@@ -23,7 +23,7 @@ from ryu.lib.dpid import dpid_to_str, str_to_dpid
 
 from ryu.ofproto import ofproto_v1_0_parser
 
-from pymongo import MongoClient
+# from pymongo import MongoClient
 
 import log
 
@@ -44,8 +44,9 @@ class TopologyWatcherAgentThread(threading.Thread):
 		self.datapath = ofproto_protocol.ProtocolDesc(version=0x01)
 		self.id = None
 
-		client = MongoClient('localhost', 27017)
-		self.db = client['netspec']
+		# Connect to database
+		# client = MongoClient('localhost', 27017)
+		# self.db = client['netspec']
 
 	def run(self):
 		while(self.is_alive):
@@ -179,11 +180,13 @@ class TopologyWatcherAgentThread(threading.Thread):
 					(port,) = struct.unpack('!I', lldp_msg.tlvs[1].port_id)
 					switch_src = str_to_dpid(lldp_msg.tlvs[0].chassis_id[5:])
 
-					self.db.topology.insert_one({"switch_dst": self.id,
-												 "port_dst": msg.in_port,
-												 "switch_src": switch_src,
-												 "port_src": port,
-												 "timestamp": datetime.datetime.utcnow()})
+					# Write to database
+					# self.db.topology.insert_one({"switch_dst": self.id,
+					# 							 "port_dst": msg.in_port,
+					# 							 "switch_src": switch_src,
+					# 							 "port_src": port,
+					# 							 "timestamp": datetime.datetime.utcnow()})
+
 					#dict = msg.to_jsondict().update(lldp_msg.to_jsondict())
 					#self.db.topology_watcher.insert_one([msg.to_jsondict(), lldp_msg.to_jsondict()])
 
@@ -208,9 +211,9 @@ class TopologyWatcher(object):
 		self.threads = []
 
 	def _handle(self, sock):
-			thread = TopologyWatcherAgentThread(sock, self.forward_host, self.forward_port)
-			thread.start()
-			self.threads.append(thread)
+		thread = TopologyWatcherAgentThread(sock, self.forward_host, self.forward_port)
+		thread.start()
+		self.threads.append(thread)
 
 	def start(self):
 		self.run()

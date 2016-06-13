@@ -23,9 +23,9 @@ from ryu.lib.dpid import dpid_to_str, str_to_dpid
 
 from ryu.ofproto import ofproto_v1_0_parser
 
-# from pymongo import MongoClient
+from pymongo import MongoClient
 
-import log
+# import log
 
 LOG = logging.getLogger('Topology Monitor')
 
@@ -44,7 +44,7 @@ class TopologyWatcherAgentThread(threading.Thread):
 		self.datapath = ofproto_protocol.ProtocolDesc(version=0x01)
 		self.id = None
 
-		# Connect to database
+		# Connect to 
 		# client = MongoClient('localhost', 27017)
 		# self.db = client['netspec']
 
@@ -228,7 +228,7 @@ class TopologyWatcher(object):
 
 if __name__ == '__main__':
 
-	log.init_log()
+	# log.init_log()
 
 	LISTEN_HOST, LISTEN_PORT = '0.0.0.0', 6633
 	FORWARD_HOST, FORWARD_PORT = 'localhost', 6643

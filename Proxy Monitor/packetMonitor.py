@@ -18,9 +18,9 @@ from ofproto import ofproto_v1_0_parser_extention
 
 from ryu.lib import addrconv
 
-# from pymongo import MongoClient
+from pymongo import MongoClient
 
-import log
+# import log
 
 LOG = logging.getLogger('Packet Monitor')
 
@@ -142,12 +142,12 @@ class MessageWatcherAgentThread(threading.Thread):
 			# 			  },
 			# 			  "timestamp": datetime.datetime.utcnow()}
 
-			for action in msg.actions:
-				if action.type == ofproto_v1_0.OFPAT_OUTPUT:
-					db_message["message"]["actions"].append({"type": action.type,
-													   "len": action.len,
-													   "port": action.port,
-													   "max_len": action.max_len})
+			# for action in msg.actions:
+			# 	if action.type == ofproto_v1_0.OFPAT_OUTPUT:
+			# 		db_message["message"]["actions"].append({"type": action.type,
+			# 										   "len": action.len,
+			# 										   "port": action.port,
+			# 										   "max_len": action.max_len})
 
 			# Insert to database
 			# self.db.flow_mods.insert_one(db_message)
@@ -243,6 +243,7 @@ class MessageWatcher(object):
 		self.threads.append(thread)
 
 	def start(self):
+		# self.logger.info("Running")
 		self.run()
 
 	def run(self):
@@ -255,7 +256,7 @@ class MessageWatcher(object):
 
 if __name__ == '__main__':
 
-	log.init_log()
+	# log.init_log()
 
 	LISTEN_HOST, LISTEN_PORT = '0.0.0.0', 6643
 	FORWARD_HOST, FORWARD_PORT = 'localhost', 6653

@@ -101,7 +101,6 @@ class MessageWatcherAgentThread(threading.Thread):
 		# Controller command messages
 		if msg_type == ofproto_v1_0.OFPT_FLOW_MOD:
 			LOG.info('Forward FLOW_MOD Message at DOWNSTREAM')
-			print("Run")
 
 			msg = ofproto_v1_0_parser_extention.OFPFlowMod.parser(
 				self.datapath, version, msg_type, msg_len, xid, pkt)
@@ -153,11 +152,13 @@ class MessageWatcherAgentThread(threading.Thread):
 			# db_message = {"test": "Test"}
 
 			# Insert to database
-			print(db_message)
+			# print(db_message)
 			self.db.flow_mods.insert_one(db_message)
 
 			#t = threading.Thread(target=self.db.flow_mods.insert_one, args=(db_message,))
 			#t.start()
+
+		self.db.packet_out.insert_one({"Type": msg_type})
 
 		# self.db.flow_mods.insert_one({"Test Field": self.id})
 		self.switch_socket.send(pkt)
@@ -223,6 +224,8 @@ class MessageWatcherAgentThread(threading.Thread):
 		#                  }
 
 		#    self.db.packet_in.insert_one(db_message)
+
+		self.db.packet_in.insert_one({"Type": msg_type})
 
 		self.controller_socket.send(pkt)
 

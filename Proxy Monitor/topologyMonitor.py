@@ -44,9 +44,12 @@ class TopologyWatcherAgentThread(threading.Thread):
 		self.datapath = ofproto_protocol.ProtocolDesc(version=0x01)
 		self.id = None
 
-		# Connect to 
+		# Connect to database
 		# client = MongoClient('localhost', 27017)
 		# self.db = client['netspec']
+
+		client = MongoClient('localhost', 27017)
+		self.db = client.test
 
 	def run(self):
 		while(self.is_alive):
@@ -181,11 +184,11 @@ class TopologyWatcherAgentThread(threading.Thread):
 					switch_src = str_to_dpid(lldp_msg.tlvs[0].chassis_id[5:])
 
 					# Write to database
-					# self.db.topology.insert_one({"switch_dst": self.id,
-					# 							 "port_dst": msg.in_port,
-					# 							 "switch_src": switch_src,
-					# 							 "port_src": port,
-					# 							 "timestamp": datetime.datetime.utcnow()})
+					self.db.topology.insert_one({"switch_dst": self.id,
+												 "port_dst": msg.in_port,
+												 "switch_src": switch_src,
+												 "port_src": port,
+												 "timestamp": datetime.datetime.utcnow()})
 
 					#dict = msg.to_jsondict().update(lldp_msg.to_jsondict())
 					#self.db.topology_watcher.insert_one([msg.to_jsondict(), lldp_msg.to_jsondict()])

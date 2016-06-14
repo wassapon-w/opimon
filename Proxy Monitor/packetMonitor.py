@@ -40,8 +40,8 @@ class MessageWatcherAgentThread(threading.Thread):
 		self.id = None
 
 		# Connect to database
-		# client = MongoClient('localhost', 27017)
-		# self.db = client['netspec']
+		client = MongoClient('localhost', 27017)
+		self.db = client.test
 
 	def run(self):
 		while(self.is_alive):
@@ -101,46 +101,47 @@ class MessageWatcherAgentThread(threading.Thread):
 		# Controller command messages
 		if msg_type == ofproto_v1_0.OFPT_FLOW_MOD:
 			LOG.info('Forward FLOW_MOD Message at DOWNSTREAM')
+			print("Run")
 
 			msg = ofproto_v1_0_parser_extention.OFPFlowMod.parser(
 				self.datapath, version, msg_type, msg_len, xid, pkt)
 
 			# Write to database
-			# db_message = {"switch": self.id,
-			# 			  "message": {
-			# 				  "header": {
-			# 					  "version": version,
-			# 					  "type": msg_type,
-			# 					  "length": msg_len,
-			# 					  "xid": xid
-			# 				  },
-			# 				  "match": {
-			# 					  "wildcards": msg.match.wildcards,
-			# 					  "in_port": msg.match.in_port,
-			# 					  #"dl_src": hexlify(msg.match.dl_src.encode()),
-			# 					  #"dl_dst": hexlify(msg.match.dl_dst.encode()),
-			# 					  "dl_src": hexlify(msg.match.dl_src),
-			# 					  "dl_dst": hexlify(msg.match.dl_dst),
-			# 					  "dl_vlan": msg.match.dl_vlan,
-			# 					  "dl_vlan_pcp": msg.match.dl_vlan_pcp,
-			# 					  "dl_type": msg.match.dl_type,
-			# 					  "nw_tos": msg.match.nw_tos,
-			# 					  "nw_proto": msg.match.nw_proto,
-			# 					  "nw_src": msg.match.nw_src,
-			# 					  "nw_dst": msg.match.nw_dst,
-			# 					  "tp_src": msg.match.tp_src,
-			# 					  "tp_dst": msg.match.tp_dst
-			# 				  },
-			# 				  "cookie": msg.cookie,
-			# 				  "command": msg.command,
-			# 				  "idle_timeout": msg.idle_timeout,
-			# 				  "priority": msg.priority,
-			# 				  "buffer_id": msg.buffer_id,
-			# 				  "out_port": msg.out_port,
-			# 				  "flags": msg.flags,
-			# 				  "actions": []
-			# 			  },
-			# 			  "timestamp": datetime.datetime.utcnow()}
+			db_message = {"switch": self.id,
+						  "message": {
+							  "header": {
+								  "version": version,
+								  "type": msg_type,
+								  "length": msg_len,
+								  "xid": xid
+							  },
+							  "match": {
+								  "wildcards": msg.match.wildcards,
+								  "in_port": msg.match.in_port,
+								  #"dl_src": hexlify(msg.match.dl_src.encode()),
+								  #"dl_dst": hexlify(msg.match.dl_dst.encode()),
+								  "dl_src": hexlify(msg.match.dl_src),
+								  "dl_dst": hexlify(msg.match.dl_dst),
+								  "dl_vlan": msg.match.dl_vlan,
+								  "dl_vlan_pcp": msg.match.dl_vlan_pcp,
+								  "dl_type": msg.match.dl_type,
+								  "nw_tos": msg.match.nw_tos,
+								  "nw_proto": msg.match.nw_proto,
+								  "nw_src": msg.match.nw_src,
+								  "nw_dst": msg.match.nw_dst,
+								  "tp_src": msg.match.tp_src,
+								  "tp_dst": msg.match.tp_dst
+							  },
+							  "cookie": msg.cookie,
+							  "command": msg.command,
+							  "idle_timeout": msg.idle_timeout,
+							  "priority": msg.priority,
+							  "buffer_id": msg.buffer_id,
+							  "out_port": msg.out_port,
+							  "flags": msg.flags,
+							  "actions": []
+						  },
+						  "timestamp": datetime.datetime.utcnow()}
 
 			# for action in msg.actions:
 			# 	if action.type == ofproto_v1_0.OFPAT_OUTPUT:
@@ -149,11 +150,16 @@ class MessageWatcherAgentThread(threading.Thread):
 			# 										   "port": action.port,
 			# 										   "max_len": action.max_len})
 
+			# db_message = {"test": "Test"}
+
 			# Insert to database
-			# self.db.flow_mods.insert_one(db_message)
+			print(db_message)
+			self.db.flow_mods.insert_one(db_message)
 
 			#t = threading.Thread(target=self.db.flow_mods.insert_one, args=(db_message,))
 			#t.start()
+
+		# self.db.flow_mods.insert_one({"Test Field": self.id})
 		self.switch_socket.send(pkt)
 
 	# Switch to Controller

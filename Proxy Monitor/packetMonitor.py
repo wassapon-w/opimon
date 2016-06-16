@@ -117,8 +117,6 @@ class MessageWatcherAgentThread(threading.Thread):
 							  "match": {
 								  "wildcards": msg.match.wildcards,
 								  "in_port": msg.match.in_port,
-								  #"dl_src": hexlify(msg.match.dl_src.encode()),
-								  #"dl_dst": hexlify(msg.match.dl_dst.encode()),
 								  "dl_src": hexlify(msg.match.dl_src),
 								  "dl_dst": hexlify(msg.match.dl_dst),
 								  "dl_vlan": msg.match.dl_vlan,
@@ -142,14 +140,12 @@ class MessageWatcherAgentThread(threading.Thread):
 						  },
 						  "timestamp": datetime.datetime.utcnow()}
 
-			# for action in msg.actions:
-			# 	if action.type == ofproto_v1_0.OFPAT_OUTPUT:
-			# 		db_message["message"]["actions"].append({"type": action.type,
-			# 										   "len": action.len,
-			# 										   "port": action.port,
-			# 										   "max_len": action.max_len})
-
-			# db_message = {"test": "Test"}
+			for action in msg.actions:
+				if action.type == ofproto_v1_0.OFPAT_OUTPUT:
+					db_message["message"]["actions"].append({"type": action.type,
+													   "len": action.len,
+													   "port": action.port,
+													   "max_len": action.max_len})
 
 			# Insert to database
 			# print(db_message)
@@ -159,14 +155,12 @@ class MessageWatcherAgentThread(threading.Thread):
 			#t.start()
 
 		elif msg_type == ofproto_v1_0.OFPT_PACKET_OUT:
-
 			self.db.packet_out.insert_one({"Switch": self.id, "Type": msg_type, "Timestamp": datetime.datetime.utcnow()})
 
 		elif msg_type == ofproto_v1_0.OFPT_ECHO_REPLY:
-
 			self.db.echo_reply.insert_one({"Switch": self.id, "Type": msg_type, "Timestamp": datetime.datetime.utcnow()})
 
-		# self.db.flow_mods.insert_one({"Test Field": self.id})
+		self.db.all_packet.insert_one({"Switch": self.id, "Type": msg_type, "Timestamp": datetime.datetime.utcnow()})
 		self.switch_socket.send(pkt)
 
 	# Switch to Controller
@@ -209,6 +203,7 @@ class MessageWatcherAgentThread(threading.Thread):
 		#    self.db.flow_mods.remove(db_message)
 
 		elif msg_type == ofproto_v1_0.OFPT_PACKET_IN:
+			self.db.packet_in.insert_one({"Switch": self.id, "Type": msg_type, "Timestamp": datetime.datetime.utcnow()})
 		#    LOG.info('Forward PACKET_IN Message at UPSTREAM')
 
 		#    msg = ofproto_v1_0_parser.OFPPacketIn.parser(
@@ -231,12 +226,10 @@ class MessageWatcherAgentThread(threading.Thread):
 
 		#    self.db.packet_in.insert_one(db_message)
 
-			self.db.packet_in.insert_one({"Switch": self.id, "Type": msg_type, "Timestamp": datetime.datetime.utcnow()})
-
 		elif msg_type == ofproto_v1_0.OFPT_ECHO_REQUEST:
-
 			self.db.echo_request.insert_one({"Switch": self.id, "Type": msg_type, "Timestamp": datetime.datetime.utcnow()})
-
+		
+		self.db.all_packet.insert_one({"Switch": self.id, "Type": msg_type, "Timestamp": datetime.datetime.utcnow()})
 		self.controller_socket.send(pkt)
 
 
@@ -278,6 +271,7 @@ if __name__ == '__main__':
 	# log.init_log()
 
 	LISTEN_HOST, LISTEN_PORT = '0.0.0.0', 6643
+	# FORWARD_HOST, FORWARD_PORT = 'sd-lemon.naist.jp', 6633
 	FORWARD_HOST, FORWARD_PORT = 'localhost', 6653
 	manager = MessageWatcher(LISTEN_HOST, LISTEN_PORT, FORWARD_HOST, FORWARD_PORT)
 	manager.start()

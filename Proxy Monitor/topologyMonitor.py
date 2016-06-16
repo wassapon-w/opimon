@@ -148,7 +148,7 @@ class TopologyWatcherAgentThread(threading.Thread):
 										  port_id=struct.pack('!I', port.port_no))
 
 				tlv_ttl = lldp.TTL(ttl=120)
-				tlv_desc = lldp.PortDescription(port_description="TestDescription")
+				tlv_desc = lldp.PortDescription(port_description="ProxyTopologyMonitorLLDP")
 				tlv_end = lldp.End()
 
 				tlvs = (tlv_chassis_id, tlv_port_id, tlv_ttl, tlv_desc, tlv_end)
@@ -179,17 +179,15 @@ class TopologyWatcherAgentThread(threading.Thread):
 			if pkt_msg.get_protocol(ethernet.ethernet).ethertype == ETH_TYPE_LLDP:
 				LOG.info('Forward PACKET_IN LLDP Message at UPSTREAM')
 				lldp_msg = pkt_msg.get_protocol(lldp.lldp)
-				# print(lldp_msg)
-				# print(lldp_msg.tlvs[3].tlv_info)
 
 				# if lldp_msg:
-
-				if lldp_msg.tlvs[3].tlv_info == "TestDescription":
+				if lldp_msg.tlvs[3].tlv_info == "ProxyTopologyMonitorLLDP":
 
 					(port,) = struct.unpack('!I', lldp_msg.tlvs[1].port_id)
 					switch_src = str_to_dpid(lldp_msg.tlvs[0].chassis_id[5:])
 
-					print(lldp_msg)	
+					# print("----------------------------")
+					print(lldp_msg)
 
 					# Write to database
 					self.db.topology.insert_one({"switch_dst": self.id,
@@ -202,6 +200,10 @@ class TopologyWatcherAgentThread(threading.Thread):
 					#self.db.topology_watcher.insert_one([msg.to_jsondict(), lldp_msg.to_jsondict()])
 
 					return
+
+				elif lldp_msg.tlvs[3].tlv_info != "ProxyTopologyMonitorLLDP":
+					# print(lldp_msg)
+					print("Controller LLDP packet")
 
 		self.controller_socket.send(pkt)
 

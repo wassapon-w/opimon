@@ -126,7 +126,7 @@ class TopologyWatcherAgentThread(threading.Thread):
 			mod = ofproto_v1_0_parser.OFPFlowMod(self.datapath, match, cookie, command, idle_timeout, hard_timeout, priority, buffer_id, out_port, flags, actions)
 			mod.serialize()
 
-			self.switch_socket.sendall(mod.buf)
+			# self.switch_socket.sendall(mod.buf)
 
 			self.id = msg.datapath_id
 			self.ports= msg.ports

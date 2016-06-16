@@ -158,7 +158,13 @@ class MessageWatcherAgentThread(threading.Thread):
 			#t = threading.Thread(target=self.db.flow_mods.insert_one, args=(db_message,))
 			#t.start()
 
-		self.db.packet_out.insert_one({"Type": msg_type})
+		elif msg_type == ofproto_v1_0.OFPT_PACKET_OUT:
+
+			self.db.packet_out.insert_one({"Switch": self.id, "Type": msg_type, "Timestamp": datetime.datetime.utcnow()})
+
+		elif msg_type == ofproto_v1_0.OFPT_ECHO_REPLY:
+
+			self.db.echo_reply.insert_one({"Switch": self.id, "Type": msg_type, "Timestamp": datetime.datetime.utcnow()})
 
 		# self.db.flow_mods.insert_one({"Test Field": self.id})
 		self.switch_socket.send(pkt)
@@ -202,7 +208,7 @@ class MessageWatcherAgentThread(threading.Thread):
  
 		#    self.db.flow_mods.remove(db_message)
 
-		#elif msg_type == ofproto_v1_0.OFPT_PACKET_IN:
+		elif msg_type == ofproto_v1_0.OFPT_PACKET_IN:
 		#    LOG.info('Forward PACKET_IN Message at UPSTREAM')
 
 		#    msg = ofproto_v1_0_parser.OFPPacketIn.parser(
@@ -225,7 +231,11 @@ class MessageWatcherAgentThread(threading.Thread):
 
 		#    self.db.packet_in.insert_one(db_message)
 
-		self.db.packet_in.insert_one({"Type": msg_type})
+			self.db.packet_in.insert_one({"Switch": self.id, "Type": msg_type, "Timestamp": datetime.datetime.utcnow()})
+
+		elif msg_type == ofproto_v1_0.OFPT_ECHO_REQUEST:
+
+			self.db.echo_request.insert_one({"Switch": self.id, "Type": msg_type, "Timestamp": datetime.datetime.utcnow()})
 
 		self.controller_socket.send(pkt)
 

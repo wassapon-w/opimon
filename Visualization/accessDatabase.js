@@ -10,7 +10,7 @@ var getFlowMods = function(db, callback) {
 	cursor.each(function(err, doc) {
 		assert.equal(err, null);
 		if (doc != null) {
-			// console.dir(doc);
+			// console.dir(doc);	// Print data in each field
 			flowMods.push(doc);
 		} else {
 			callback();
@@ -20,10 +20,10 @@ var getFlowMods = function(db, callback) {
 
 var getTopo = function(db, callback) {
 	var cursor = db.collection('topology').find();
+	// console.log(cursor);
 	cursor.each(function(err, doc) {
 		assert.equal(err, null);
 		if (doc != null) {
-			// Print data in each field
 			// console.dir(doc);
 			topology.push(doc);
 		} else {
@@ -34,16 +34,21 @@ var getTopo = function(db, callback) {
 
 MongoClient.connect(url, function(err, db) {
 	assert.equal(null, err);
-	// getFlowMods(db, function() {
-	// 	db.close();
-	// });
+
+	getFlowMods(db, function() {
+		db.close();
+		console.log(flowMods);
+	});
+});
+
+// console.log("=============================================")
+
+MongoClient.connect(url, function(err, db) {
+	assert.equal(null, err);
 
 	getTopo(db, function() {
 		db.close();
 		console.log(topology);
 	});
-
-	// console.log(flowMods);
-	// console.log(topology);
-	console.log("Test")
 });
+

@@ -5,50 +5,38 @@ var url = 'mongodb://localhost:27017/test';
 var topology = [];
 var flowMods = [];
 
-var getFlowMods = function(db, callback) {
+// Get flow mod messages from database
+MongoClient.connect(url, function(err, db) {
+	assert.equal(null, err);
+
 	var cursor = db.collection('flow_mods').find();
 	cursor.each(function(err, doc) {
 		assert.equal(err, null);
 		if (doc != null) {
-			// console.dir(doc);	// Print data in each field
+			// console.dir(doc);
 			flowMods.push(doc);
-		} else {
-			callback();
+		}
+		else {
+			console.log(flowMods);
+			db.close();
 		}
 	});
-}
+});
 
-var getTopo = function(db, callback) {
+// Get topology from database
+MongoClient.connect(url, function(err, db) {
+	assert.equal(null, err);
+
 	var cursor = db.collection('topology').find();
-	// console.log(cursor);
 	cursor.each(function(err, doc) {
 		assert.equal(err, null);
 		if (doc != null) {
 			// console.dir(doc);
 			topology.push(doc);
-		} else {
-			callback();
+		}
+		else {
+			console.log(topology);
+			db.close();
 		}
 	});
-}
-
-MongoClient.connect(url, function(err, db) {
-	assert.equal(null, err);
-
-	getFlowMods(db, function() {
-		db.close();
-		console.log(flowMods);
-	});
 });
-
-// console.log("=============================================")
-
-MongoClient.connect(url, function(err, db) {
-	assert.equal(null, err);
-
-	getTopo(db, function() {
-		db.close();
-		console.log(topology);
-	});
-});
-

@@ -2,11 +2,11 @@ var MongoClient = require('mongodb').MongoClient;
 var assert = require('assert');
 var ObjectId = require('mongodb').ObjectID;
 var url = 'mongodb://localhost:27017/test';
-var topology = [];
-var flowMods = [];
 
 // Get flow mod messages from database
 function getFlowMods() {
+	var flowMods = [];
+
 	MongoClient.connect(url, function(err, db) {
 		assert.equal(null, err);
 
@@ -15,6 +15,7 @@ function getFlowMods() {
 			assert.equal(err, null);
 			if (doc != null) {
 				// console.dir(doc);
+				console.log("Test");
 				flowMods.push(doc);
 			}
 			else {
@@ -27,6 +28,8 @@ function getFlowMods() {
 
 // Get topology from database
 function getTopology() {
+	var topology = [];
+
 	MongoClient.connect(url, function(err, db) {
 		assert.equal(null, err);
 
@@ -38,12 +41,12 @@ function getTopology() {
 				topology.push(doc);
 			}
 			else {
-				console.log(topology);
+				// console.log(topology);
 				db.close();
 			}
 		});
 	});
 }
 
-getFlowMods();
 getTopology();
+getFlowMods();

@@ -5,6 +5,7 @@ var MongoClient = require('mongodb').MongoClient;
 var assert = require('assert');
 var ObjectId = require('mongodb').ObjectID;
 var url = 'mongodb://localhost:27017/test';
+var counter = 0;
 
 app.get('/flowmods', function (req, res) {
   getFlowMods();
@@ -23,9 +24,10 @@ app.get('/flowmods', function (req, res) {
   				flowMods.push(doc);
   			}
   			else {
-  				// console.log(flowMods);
+          counter++;
+  				console.log(counter + " : Request FlowMod from webpage");
   				db.close();
-          res.send(flowMods);
+          res.json(flowMods);
   			}
   		});
   	});
@@ -49,7 +51,8 @@ app.get('/topology', function (req, res) {
   				topology.push(doc);
   			}
   			else {
-  				// console.log(topology);
+          counter++;
+  				console.log(counter + " : Request Topology from webpage");
   				db.close();
           res.send(topology);
   			}

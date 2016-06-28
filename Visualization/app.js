@@ -54,7 +54,7 @@ app.get('/topology', function (req, res) {
           counter++;
   				console.log(counter + " : Request Topology from webpage");
   				db.close();
-          res.send(topology);
+          res.json(topology);
   			}
   		});
   	});

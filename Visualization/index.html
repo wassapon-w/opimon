@@ -17,8 +17,10 @@
 <script src="http://d3js.org/d3.v3.min.js"></script>
 <script>
 
-var flowMods = [];
-var topology = [];
+// var flowMods = {};
+// var topology = {};
+
+var data = {};
 
 var getJSON = function(url, callback) {
     var xhr = new XMLHttpRequest();
@@ -35,17 +37,20 @@ var getJSON = function(url, callback) {
     xhr.send();
 };
 
-getJSON('http://192.168.22.132:3000/flowmods', function(err, data){
-    flowMods = data;
-    console.log(flowMods);
+getJSON('http://192.168.22.132:3000/flowmods', function(err, output){
+    data["flowmods"] = output;
+    console.log(data["flowmods"]);
+});
+
+getJSON('http://192.168.22.132:3000/topology', function(err, output){
+    data["topology"] = output;
+    console.log(data["topology"]);
     visualize();
 });
 
-getJSON('http://192.168.22.132:3000/topology', function(err, data){
-    console.log(data);
-});
-
 function visualize() {
+  console.log(data);
+
   var width = screen.width,
       height = screen.height;
 
@@ -60,40 +65,38 @@ function visualize() {
       .attr("width", width)
       .attr("height", height);
 
-  d3.json("test.json", function(error, graph) {
-    if (error) throw error;
+  // console.log(graph);
 
-    force
-        .nodes(graph.nodes)
-        .links(graph.links)
-        .start();
+  force
+      .nodes(data.topology)
+      // .links(graph.links)
+      .start();
 
-    var link = svg.selectAll(".link")
-        .data(graph.links)
-      .enter().append("line")
-        .attr("class", "link")
-        .style("stroke-width", function(d) { return Math.sqrt(d.value); });
+  // var link = svg.selectAll(".link")
+  //     .data(graph.links)
+  //     .enter().append("line")
+  //     .attr("class", "link")
+  //     .style("stroke-width", function(d) { return Math.sqrt(d.value); });
 
-    var node = svg.selectAll(".node")
-        .data(graph.nodes)
-      .enter().append("circle")
-        .attr("class", "node")
-        .attr("r", 5)
-        .style("fill", function(d) { return color(d.group); })
-        .call(force.drag);
+  var node = svg.selectAll(".node")
+    .data(data.topology)
+    .enter().append("circle")
+    .attr("class", "node")
+    .attr("r", 10)
+    .style("fill", function(d) { return color(d.group); })
+    .call(force.drag);
 
-    node.append("title")
-        .text(function(d) { return d.name; });
+  node.append("title")
+      .text(function(d) { return d.name; });
 
-    force.on("tick", function() {
-      link.attr("x1", function(d) { return d.source.x; })
-          .attr("y1", function(d) { return d.source.y; })
-          .attr("x2", function(d) { return d.target.x; })
-          .attr("y2", function(d) { return d.target.y; });
+  force.on("tick", function() {
+    // link.attr("x1", function(d) { return d.source.x; })
+    //     .attr("y1", function(d) { return d.source.y; })
+    //     .attr("x2", function(d) { return d.target.x; })
+    //     .attr("y2", function(d) { return d.target.y; });
 
-      node.attr("cx", function(d) { return d.x; })
-          .attr("cy", function(d) { return d.y; });
-    });
+    node.attr("cx", function(d) { return d.x; })
+        .attr("cy", function(d) { return d.y; });
   });
 }
 

@@ -43,8 +43,21 @@ getJSON('http://192.168.22.132:3000/flowmods', function(err, output){
 });
 
 getJSON('http://192.168.22.132:3000/topology', function(err, output){
+    // var topology = {};
+
     data["topology"] = output;
+    // data["topology"] = [];
     console.log(data["topology"]);
+
+    // for(var i = 0; i < output.length; i++) {
+    //     if(topology[output[i]["switch_src"]] == undefined) {
+    //       data["topology"].push(output[i]);
+    //
+    //       topology[output[i]["switch_src"]] = {};
+    //       // topology[output[i]["switch_src"]][]
+    //     }
+    // }
+
     visualize();
 });
 
@@ -78,12 +91,12 @@ function visualize() {
   //     .attr("class", "link")
   //     .style("stroke-width", function(d) { return Math.sqrt(d.value); });
 
-  var node = svg.selectAll(".node")
+  var node = svg.selectAll(".topology")
     .data(data.topology)
     .enter().append("circle")
     .attr("class", "node")
     .attr("r", 10)
-    .style("fill", function(d) { return color(d.group); })
+    .style("fill", function(d) { return color(d.switch_src); })
     .call(force.drag);
 
   node.append("title")
@@ -101,3 +114,4 @@ function visualize() {
 }
 
 </script>
+</body>

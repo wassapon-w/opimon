@@ -38,7 +38,7 @@ app.get('/topology', function (req, res) {
   getTopology();
 
   function getTopology() {
-  	var topology = [];
+  	var topologyDatabase = [];
 
   	MongoClient.connect(url, function(err, db) {
   		assert.equal(null, err);
@@ -48,12 +48,26 @@ app.get('/topology', function (req, res) {
   			assert.equal(err, null);
   			if (doc != null) {
   				// console.dir(doc);
-  				topology.push(doc);
+  				topologyDatabase.push(doc);
   			}
   			else {
           counter++;
   				console.log(counter + " : Request Topology from webpage");
   				db.close();
+
+          var topology = {};
+          for(var i = 0; i < topologyDatabase.length; i++) {
+              if(topology[topologyDatabase[i]["switch_src"]] == undefined) {
+                topology[topologyDatabase[i]["switch_src"]] = {};
+                topology[topologyDatabase[i]["switch_src"]][topologyDatabase[i]["switch_dst"]] = [];
+                // topology[topologyDatabase[i]["switch_src"]]["switch_src"].push(topologyDatabase[i]["switch_src"]);
+              }
+              else {
+                // topology[topologyDatabase[i]["switch_src"]]["switch_src"].push(topologyDatabase[i]["switch_src"]);
+                topology[topologyDatabase[i]["switch_src"]][topologyDatabase[i]["switch_dst"]] = [];
+              }
+          }
+
           res.json(topology);
   			}
   		});

@@ -91,7 +91,7 @@ function visualize() {
   //     .attr("class", "link")
   //     .style("stroke-width", function(d) { return Math.sqrt(d.value); });
 
-  var node = svg.selectAll(".topology")
+  var node = svg.selectAll("switch_src")
     .data(data.topology)
     .enter().append("circle")
     .attr("class", "node")

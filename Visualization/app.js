@@ -56,16 +56,35 @@ app.get('/topology', function (req, res) {
   				db.close();
 
           var topology = {};
+          topology["node"] = [];
+          topology["link"] = [];
+
           for(var i = 0; i < topologyDatabase.length; i++) {
-              if(topology[topologyDatabase[i]["switch_src"]] == undefined) {
-                topology[topologyDatabase[i]["switch_src"]] = {};
-                topology[topologyDatabase[i]["switch_src"]][topologyDatabase[i]["switch_dst"]] = [];
-                // topology[topologyDatabase[i]["switch_src"]]["switch_src"].push(topologyDatabase[i]["switch_src"]);
+            var isNew = true;
+            for(var j = 0; j < topology["node"].length; j++) {
+              if(topology["node"][j]["switch_id"] == topologyDatabase[i]["switch_src"]) {
+                for(var k = 0; k < topology["node"][j]["connect_to"].length; k++) {
+                  if(topology["node"][j]["connect_to"][k] == topologyDatabase[i]["switch_dst"]) {
+                    isNew = false;
+                    break;
+                  }
+                }
+                if(isNew) {
+                  topology["node"][j]["connect_to"].push(topologyDatabase[i]["switch_dst"]);
+                  topology["link"].push(topologyDatabase[i]);
+                  isNew = false;
+                  break;
+                }
               }
-              else {
-                // topology[topologyDatabase[i]["switch_src"]]["switch_src"].push(topologyDatabase[i]["switch_src"]);
-                topology[topologyDatabase[i]["switch_src"]][topologyDatabase[i]["switch_dst"]] = [];
-              }
+            }
+            if(isNew) {
+              var node = {};
+              node["switch_id"] = topologyDatabase[i]["switch_src"];
+              node["connect_to"] = [];
+              node["connect_to"].push(topologyDatabase[i]["switch_dst"]);
+              topology["node"].push(node);
+              topology["link"].push(topologyDatabase[i]);
+            }
           }
 
           res.json(topology);

@@ -71,6 +71,10 @@ app.get('/topology', function (req, res) {
                 }
                 if(isNew) {
                   topology["node"][j]["connect_to"].push(topologyDatabase[i]["switch_dst"]);
+
+                  topologyDatabase[i]["source"] = topologyDatabase[i]["switch_src"] - 1;
+                  topologyDatabase[i]["target"] = topologyDatabase[i]["switch_dst"] - 1;
+                  topologyDatabase[i]["value"] = 1;
                   topology["link"].push(topologyDatabase[i]);
                   isNew = false;
                   break;
@@ -83,6 +87,10 @@ app.get('/topology', function (req, res) {
               node["connect_to"] = [];
               node["connect_to"].push(topologyDatabase[i]["switch_dst"]);
               topology["node"].push(node);
+
+              topologyDatabase[i]["source"] = topologyDatabase[i]["switch_src"] - 1;
+              topologyDatabase[i]["target"] = topologyDatabase[i]["switch_dst"] - 1;
+              topologyDatabase[i]["value"] = 1;
               topology["link"].push(topologyDatabase[i]);
             }
           }

@@ -1,4 +1,5 @@
 var express = require('express');
+var path =  require("path");
 var app = express();
 
 var MongoClient = require('mongodb').MongoClient;
@@ -6,6 +7,15 @@ var assert = require('assert');
 var ObjectId = require('mongodb').ObjectID;
 var url = 'mongodb://localhost:27017/test';
 var counter = 0;
+
+app.get('/', function(req, res){
+    res.setHeader('Content-Type', 'text/html');
+    res.sendFile(path.join(__dirname, './public', 'index.html'));
+});
+
+app.get('/visualize.js', function(req, res){
+    res.sendFile(path.join(__dirname, './public', 'visualize.js'));
+});
 
 app.get('/flowmods', function (req, res) {
   getFlowMods();

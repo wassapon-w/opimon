@@ -62,7 +62,7 @@ app.get('/topology', function (req, res) {
           for(var i = 0; i < topologyDatabase.length; i++) {
             var isNew = true;
             for(var j = 0; j < topology["node"].length; j++) {
-              if(topology["node"][j]["switch_id"] == topologyDatabase[i]["switch_src"]) {
+              if(topology["node"][j]["id"] == topologyDatabase[i]["switch_src"]) {
                 for(var k = 0; k < topology["node"][j]["connect_to"].length; k++) {
                   if(topology["node"][j]["connect_to"][k] == topologyDatabase[i]["switch_dst"]) {
                     isNew = false;
@@ -72,8 +72,8 @@ app.get('/topology', function (req, res) {
                 if(isNew) {
                   topology["node"][j]["connect_to"].push(topologyDatabase[i]["switch_dst"]);
 
-                  topologyDatabase[i]["source"] = topologyDatabase[i]["switch_src"] - 1;
-                  topologyDatabase[i]["target"] = topologyDatabase[i]["switch_dst"] - 1;
+                  topologyDatabase[i]["source"] = topologyDatabase[i]["switch_src"] + '';
+                  topologyDatabase[i]["target"] = topologyDatabase[i]["switch_dst"] + '';
                   topologyDatabase[i]["value"] = 1;
                   topology["link"].push(topologyDatabase[i]);
                   isNew = false;
@@ -83,13 +83,13 @@ app.get('/topology', function (req, res) {
             }
             if(isNew) {
               var node = {};
-              node["switch_id"] = topologyDatabase[i]["switch_src"];
+              node["id"] = topologyDatabase[i]["switch_src"] + '';
               node["connect_to"] = [];
               node["connect_to"].push(topologyDatabase[i]["switch_dst"]);
               topology["node"].push(node);
 
-              topologyDatabase[i]["source"] = topologyDatabase[i]["switch_src"] - 1;
-              topologyDatabase[i]["target"] = topologyDatabase[i]["switch_dst"] - 1;
+              topologyDatabase[i]["source"] = topologyDatabase[i]["switch_src"] + '';
+              topologyDatabase[i]["target"] = topologyDatabase[i]["switch_dst"] + '';
               topologyDatabase[i]["value"] = 1;
               topology["link"].push(topologyDatabase[i]);
             }

@@ -29,7 +29,7 @@ getJSON('http://192.168.22.132:3000/topology', function(err, output){
 function visualize() {
   console.log(data);
 
-  // var color = d3.scaleCategory20();
+  var color = d3.scaleOrdinal(d3.schemeCategory20);
 
   var canvas = document.querySelector("canvas"),
       context = canvas.getContext("2d"),
@@ -60,10 +60,10 @@ function visualize() {
 
     context.beginPath();
     data.switch.forEach(drawNode);
+    context.fillStyle = color(data.switch.forEach(function(d) { return d.id; }));
     context.fill();
-    // context.fillStyle = color(data.switch);
-    context.strokeStyle = "#fff";
-    context.stroke();
+    // context.strokeStyle = "#fff";
+    // context.stroke();
 
     context.restore();
   }
@@ -75,6 +75,9 @@ function visualize() {
 
   function drawNode(d) {
     context.moveTo(d.x + 100, d.y);
-    context.arc(d.x, d.y, 10, 0, 10 * Math.PI);
+    context.arc(d.x, d.y, 10, 0, 2 * Math.PI);
+    // context.fillStyle = color(d.id);
+    console.log(d.id);
+    // context.fill();
   }
 }

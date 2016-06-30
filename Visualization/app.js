@@ -13,6 +13,10 @@ app.get('/', function(req, res){
     res.sendFile(path.join(__dirname, './public', 'index.html'));
 });
 
+app.get('/d3.v4.min.js', function(req, res){
+    res.sendFile(path.join(__dirname, './public', 'd3.v4.min.js'));
+});
+
 app.get('/visualize.js', function(req, res){
     res.sendFile(path.join(__dirname, './public', 'visualize.js'));
 });

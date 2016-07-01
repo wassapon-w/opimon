@@ -140,6 +140,8 @@ class MessageWatcherAgentThread(threading.Thread):
 						  },
 						  "timestamp": datetime.datetime.utcnow()}
 
+			# print(msg.actions)
+
 			for action in msg.actions:
 				if action.type == ofproto_v1_0.OFPAT_OUTPUT:
 					db_message["message"]["actions"].append({"type": action.type,
@@ -199,7 +201,7 @@ class MessageWatcherAgentThread(threading.Thread):
 		#                      "tp_src": msg.match.tp_src,
 		#                      "tp_dst": msg.match.tp_dst}
 		#                      }
- 
+
 		#    self.db.flow_mods.remove(db_message)
 
 		elif msg_type == ofproto_v1_0.OFPT_PACKET_IN:
@@ -228,7 +230,7 @@ class MessageWatcherAgentThread(threading.Thread):
 
 		elif msg_type == ofproto_v1_0.OFPT_ECHO_REQUEST:
 			self.db.echo_request.insert_one({"Switch": self.id, "Type": msg_type, "Timestamp": datetime.datetime.utcnow()})
-		
+
 		self.db.all_packet.insert_one({"Switch": self.id, "Type": msg_type, "Timestamp": datetime.datetime.utcnow()})
 		self.controller_socket.send(pkt)
 

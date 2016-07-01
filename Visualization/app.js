@@ -25,7 +25,7 @@ app.get('/flowmods', function (req, res) {
   getFlowMods();
 
   function getFlowMods() {
-  	var flowMods = [];
+  	var flowModsDatabase = [];
 
   	MongoClient.connect(url, function(err, db) {
   		assert.equal(null, err);
@@ -35,13 +35,39 @@ app.get('/flowmods', function (req, res) {
   			assert.equal(err, null);
   			if (doc != null) {
   				// console.dir(doc);
-  				flowMods.push(doc);
+  				flowModsDatabase.push(doc);
   			}
   			else {
           counter++;
   				console.log(counter + " : Request FlowMod from webpage");
   				db.close();
-          res.json(flowMods);
+
+          var flowTable = {};
+          for(var i = 0; i < flowModsDatabase.length; i++) {
+            // var isNew = true;
+            if(flowTable[flowModsDatabase[i]["switch"]] != undefined) {
+              var flow = {};
+              flow["switch_id"] = flowModsDatabase[i]["switch"];
+              flow["in_port"] = flowModsDatabase[i]["message"]["match"]["in_port"];
+              flow["dst_mac"] = flowModsDatabase[i]["message"]["match"]["dl_dst"];
+              flow["out_port"] = flowModsDatabase[i]["message"]["actions"]["port"];
+              flowTable[flowModsDatabase[i]["switch"]].push(flow);
+              // console.log(flow);
+            }
+            else {
+              flowTable[flowModsDatabase[i]["switch"]] = [];
+
+              var flow = {};
+              flow["switch_id"] = flowModsDatabase[i]["switch"];
+              flow["in_port"] = flowModsDatabase[i]["message"]["match"]["in_port"];
+              flow["dst_mac"] = flowModsDatabase[i]["message"]["match"]["dl_dst"];
+              flow["out_port"] = flowModsDatabase[i]["message"]["actions"]["port"];
+              flowTable[flowModsDatabase[i]["switch"]].push(flow);
+              // console.log(flow);
+            }
+          }
+
+          res.json(flowTable);
   			}
   		});
   	});

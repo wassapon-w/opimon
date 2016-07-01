@@ -76,8 +76,5 @@ function visualize() {
   function drawNode(d) {
     context.moveTo(d.x + 100, d.y);
     context.arc(d.x, d.y, 10, 0, 2 * Math.PI);
-    // context.fillStyle = color(d.id);
-    console.log(d.id);
-    // context.fill();
   }
 }

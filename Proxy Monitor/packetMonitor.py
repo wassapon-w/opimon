@@ -137,19 +137,17 @@ class MessageWatcherAgentThread(threading.Thread):
 							  "buffer_id": msg.buffer_id,
 							  "out_port": msg.out_port,
 							  "flags": msg.flags,
-							  "actions": {}
+							  "actions": []
 						  },
 						  "timestamp": datetime.datetime.utcnow()}
 
-			# print(msg.actions)
+			# try:
+			# 	print vars(msg.actions[0])
+			# except:
+			# 	pass
 
 			for action in msg.actions:
-				if action.type == ofproto_v1_0.OFPAT_OUTPUT:
-					db_message["message"]["actions"]["type"] = action.type
-					db_message["message"]["actions"]["len"] = action.len
-					db_message["message"]["actions"]["port"] = action.port
-					db_message["message"]["actions"]["max_len"] = action.max_len
-				# db_message["message"]["actions"].push(action);
+				db_message["message"]["actions"].append(vars(action));
 
 			# Insert to database
 			# print(db_message)
@@ -275,7 +273,7 @@ if __name__ == '__main__':
 	# log.init_log()
 
 	LISTEN_HOST, LISTEN_PORT = '0.0.0.0', 6643
-	# FORWARD_HOST, FORWARD_PORT = 'sd-lemon.naist.jp', 6633
-	FORWARD_HOST, FORWARD_PORT = 'localhost', 6653
+	FORWARD_HOST, FORWARD_PORT = 'sd-lemon.naist.jp', 6633
+	# FORWARD_HOST, FORWARD_PORT = 'localhost', 6653
 	manager = MessageWatcher(LISTEN_HOST, LISTEN_PORT, FORWARD_HOST, FORWARD_PORT)
 	manager.start()

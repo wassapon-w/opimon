@@ -13,6 +13,8 @@ class L2Switch(app_manager.RyuApp):
 
 	@set_ev_cls(ofp_event.EventOFPPacketIn, MAIN_DISPATCHER)
 	def packet_in_handler(self, ev):
+
+		# Read packet info.
 		msg = ev.msg
 		dp = msg.datapath
 		ofp = dp.ofproto
@@ -26,7 +28,7 @@ class L2Switch(app_manager.RyuApp):
 
 		sourceMAC = eth.src
 		destinationMAC = eth.dst
-		
+
 		self.portTable.setdefault(dataPathID, {})
 		self.portTable[dataPathID][sourceMAC] = inPort
 
@@ -35,7 +37,7 @@ class L2Switch(app_manager.RyuApp):
 		else:
 			outPort = ofp.OFPP_FLOOD
 
-		self.logger.info("DataPathID : %s / Source : %s (%s) / Destination : %s (%s)", dataPathID, sourceMAC, inPort, destinationMAC, outPort)
+		self.logger.info("Switch ID : %s / Source : %s (%s) / Destination : %s (%s)", dataPathID, sourceMAC, inPort, destinationMAC, outPort)
 
 		actions = [ofp_parser.OFPActionOutput(outPort)]
 

@@ -140,6 +140,60 @@ app.get('/topology', function (req, res) {
   }
 });
 
+app.get('/flowmodsdata', function (req, res) {
+  getFlowMods();
+
+  function getFlowMods() {
+  	var flowModsDatabase = [];
+
+  	MongoClient.connect(url, function(err, db) {
+  		assert.equal(null, err);
+
+  		var cursor = db.collection('flow_mods').find();
+  		cursor.each(function(err, doc) {
+  			assert.equal(err, null);
+  			if (doc != null) {
+  				flowModsDatabase.push(doc);
+  			}
+  			else {
+          counter++;
+  				console.log(counter + " : Request FlowMod (Full) from webpage");
+  				db.close();
+
+          res.json(flowModsDatabase);
+  			}
+  		});
+  	});
+  }
+});
+
+app.get('/topologydata', function (req, res) {
+  getTopology();
+
+  function getTopology() {
+  	var topologyDatabase = [];
+
+  	MongoClient.connect(url, function(err, db) {
+  		assert.equal(null, err);
+
+  		var cursor = db.collection('topology').find();
+  		cursor.each(function(err, doc) {
+  			assert.equal(err, null);
+  			if (doc != null) {
+  				topologyDatabase.push(doc);
+  			}
+  			else {
+          counter++;
+  				console.log(counter + " : Request Topology (Full) from webpage");
+  				db.close();
+
+          res.json(topologyDatabase);
+  			}
+  		});
+  	});
+  }
+});
+
 app.listen(3000, function () {
   console.log('OpenFlow Monitor running on port 3000!');
 });

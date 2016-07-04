@@ -98,6 +98,8 @@ class MessageWatcherAgentThread(threading.Thread):
 	def _downstream_parse(self, pkt):
 		(version, msg_type, msg_len, xid) = ofproto_parser.header(pkt)
 
+		self.switch_socket.send(pkt)
+
 		# Controller command messages
 		if msg_type == ofproto_v1_0.OFPT_FLOW_MOD:
 			LOG.info('Forward FLOW_MOD Message at DOWNSTREAM')
@@ -132,6 +134,7 @@ class MessageWatcherAgentThread(threading.Thread):
 							  "cookie": msg.cookie,
 							  "command": msg.command,
 							  "idle_timeout": msg.idle_timeout,
+							  "hard_timeout": msg.hard_timeout,
 							  "priority": msg.priority,
 							  "buffer_id": msg.buffer_id,
 							  "out_port": msg.out_port,
@@ -143,11 +146,12 @@ class MessageWatcherAgentThread(threading.Thread):
 			# print(msg.actions)
 
 			for action in msg.actions:
-				if action.type == ofproto_v1_0.OFPAT_OUTPUT:
-					db_message["message"]["actions"].append({"type": action.type,
-													   "len": action.len,
-													   "port": action.port,
-													   "max_len": action.max_len})
+				# if action.type == ofproto_v1_0.OFPAT_OUTPUT:
+				# 	db_message["message"]["actions"]["type"] = action.type
+				# 	db_message["message"]["actions"]["len"] = action.len
+				# 	db_message["message"]["actions"]["port"] = action.port
+				# 	db_message["message"]["actions"]["max_len"] = action.max_len
+				db_message["message"]["actions"].push(action);
 
 			# Insert to database
 			# print(db_message)
@@ -163,7 +167,6 @@ class MessageWatcherAgentThread(threading.Thread):
 			self.db.echo_reply.insert_one({"Switch": self.id, "Type": msg_type, "Timestamp": datetime.datetime.utcnow()})
 
 		self.db.all_packet.insert_one({"Switch": self.id, "Type": msg_type, "Timestamp": datetime.datetime.utcnow()})
-		self.switch_socket.send(pkt)
 
 	# Switch to Controller
 	def _upstream_parse(self, pkt):

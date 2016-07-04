@@ -52,7 +52,6 @@ app.get('/flowmods', function (req, res) {
               flow["dst_mac"] = flowModsDatabase[i]["message"]["match"]["dl_dst"];
               flow["out_port"] = flowModsDatabase[i]["message"]["actions"]["port"];
               flowTable[flowModsDatabase[i]["switch"]].push(flow);
-              // console.log(flow);
             }
             else {
               flowTable[flowModsDatabase[i]["switch"]] = [];
@@ -63,7 +62,6 @@ app.get('/flowmods', function (req, res) {
               flow["dst_mac"] = flowModsDatabase[i]["message"]["match"]["dl_dst"];
               flow["out_port"] = flowModsDatabase[i]["message"]["actions"]["port"];
               flowTable[flowModsDatabase[i]["switch"]].push(flow);
-              // console.log(flow);
             }
           }
 
@@ -143,5 +141,5 @@ app.get('/topology', function (req, res) {
 });
 
 app.listen(3000, function () {
-  console.log('Example app listening on port 3000!');
+  console.log('OpenFlow Monitor running on port 3000!');
 });

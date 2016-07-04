@@ -18,6 +18,7 @@ var getJSON = function(url, callback) {
 getJSON('http://192.168.22.132:3000/flowmods', function(err, output){
     data["flowmods"] = output;
     // console.log(data["flowmods"]);
+    showFlowTable();
 });
 
 getJSON('http://192.168.22.132:3000/topology', function(err, output){
@@ -77,4 +78,37 @@ function visualize() {
     context.moveTo(d.x + 100, d.y);
     context.arc(d.x, d.y, 10, 0, 2 * Math.PI);
   }
+}
+
+function showFlowTable() {
+    var headerRow = ["Switch ID", "Destination MAC Address","Input Port", "Output Port"];
+
+    var table = document.createElement("TABLE");
+    table.border = "1";
+
+    var row = table.insertRow(-1);
+    for (var i = 0; i < headerRow.length; i++) {
+      var headerCell = document.createElement("TH");
+      headerCell.innerHTML = headerRow[i];
+      row.appendChild(headerCell);
+    }
+
+    for (var i = 0; i < data["flowmods"]["1"].length; i++) {
+        row = table.insertRow(-1);
+        // for (var j = 0; j < 4; j++) {
+            var cell0 = row.insertCell(-1);
+            var cell1 = row.insertCell(-1);
+            var cell2 = row.insertCell(-1);
+            var cell3 = row.insertCell(-1);
+
+            cell0.innerHTML = data["flowmods"]["1"][i]["switch_id"];
+            cell1.innerHTML = data["flowmods"]["1"][i]["dst_mac"];
+            cell2.innerHTML = data["flowmods"]["1"][i]["in_port"];
+            cell3.innerHTML = data["flowmods"]["1"][i]["out_port"];
+        // }
+    }
+
+    var dvTable = document.getElementById("flowTable");
+    dvTable.innerHTML = "";
+    dvTable.appendChild(table);
 }

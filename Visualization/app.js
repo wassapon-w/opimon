@@ -48,9 +48,9 @@ app.get('/flowmods', function (req, res) {
             if(flowTable[flowModsDatabase[i]["switch"]] != undefined) {
               var flow = {};
               flow["switch_id"] = flowModsDatabase[i]["switch"];
-              flow["in_port"] = flowModsDatabase[i]["message"]["match"]["in_port"];
-              flow["dst_mac"] = flowModsDatabase[i]["message"]["match"]["dl_dst"];
-              flow["out_port"] = flowModsDatabase[i]["message"]["actions"]["port"];
+              flow["match"] = flowModsDatabase[i]["message"]["match"];
+              flow["actions"] = flowModsDatabase[i]["message"]["actions"];
+              flow["hard_timeout"] = flowModsDatabase[i]["message"]["hard_timeout"];
               flowTable[flowModsDatabase[i]["switch"]].push(flow);
             }
             else {
@@ -58,9 +58,9 @@ app.get('/flowmods', function (req, res) {
 
               var flow = {};
               flow["switch_id"] = flowModsDatabase[i]["switch"];
-              flow["in_port"] = flowModsDatabase[i]["message"]["match"]["in_port"];
-              flow["dst_mac"] = flowModsDatabase[i]["message"]["match"]["dl_dst"];
-              flow["out_port"] = flowModsDatabase[i]["message"]["actions"]["port"];
+              flow["match"] = flowModsDatabase[i]["message"]["match"];
+              flow["actions"] = flowModsDatabase[i]["message"]["actions"];
+              flow["hard_timeout"] = flowModsDatabase[i]["message"]["hard_timeout"];
               flowTable[flowModsDatabase[i]["switch"]].push(flow);
             }
           }

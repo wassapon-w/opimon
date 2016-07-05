@@ -53,7 +53,7 @@ function visualize() {
                   .data(data.switch)
                   .enter().append("circle")
                   .attr("r", 10)
-                  .style("fill", function(d) { return color(d.id); })
+                  .style("fill", function(d) { console.log(d); return color(d.id); })
                   .call(d3.drag()
                           .on("start", dragstarted)
                           .on("drag", dragged)
@@ -62,19 +62,14 @@ function visualize() {
     node.append("title")
         .text(function(d) { return d.id; });
 
-    // node.append("text")
-    //     .attr("dy", ".3em")
-    //     .style("text-anchor", "middle")
-    //     .text(function(d) { return d.id.substring(10, d.r / 3); });
+    var switchLabel = svg.selectAll('g.gnode')
+                    .data(data.switch)
+                    .enter()
+                    .append('g')
+                    .classed('gnode', true);
 
-    var gnodes = svg.selectAll('g.gnode')
-     .data(data.switch)
-     .enter()
-     .append('g')
-     .classed('gnode', true);
-
-     var labels = gnodes.append("text")
-                        .text(function(d) { return d.id; });
+     var labels = switchLabel.append("text")
+                             .text(function(d) { return d.id; });
 
     simulation
         .nodes(data.switch)
@@ -94,25 +89,25 @@ function visualize() {
           .attr("cx", function(d) { return d.x; })
           .attr("cy", function(d) { return d.y; });
 
-      gnodes
+      switchLabel
           .attr("transform", function(d) { return 'translate(' + [d.x, d.y] + ')'; });
     }
 
     function dragstarted(d) {
-      if (!d3.event.active) simulation.alphaTarget(0.3).restart();
-      d.fx = d.x;
-      d.fy = d.y;
+        if (!d3.event.active) simulation.alphaTarget(0.3).restart();
+        d.fx = d.x;
+        d.fy = d.y;
     }
 
     function dragged(d) {
-      d.fx = d3.event.x;
-      d.fy = d3.event.y;
+        d.fx = d3.event.x;
+        d.fy = d3.event.y;
     }
 
     function dragended(d) {
-      if (!d3.event.active) simulation.alphaTarget(0);
-      d.fx = null;
-      d.fy = null;
+        if (!d3.event.active) simulation.alphaTarget(0);
+        d.fx = null;
+        d.fy = null;
     }
 }
 
@@ -132,16 +127,16 @@ function showFlowTable() {
     for (var i = 0; i < data["flowmods"]["switchFlowTable"].length; i++) {
         var switch_id = data["flowmods"]["switchFlowTable"][i]
         if(data["flowmods"][i + ""] != undefined) {
-            for (var j = 0; j < data["flowmods"][i + ""].length; j++) {
+            for (var j = 0; j < data["flowmods"][switch_id].length; j++) {
                 row = table.insertRow(-1);
                 // for(var k = 0; k < 3; k++) {
                   var cell0 = row.insertCell(-1);
                   var cell1 = row.insertCell(-1);
                   var cell2 = row.insertCell(-1);
 
-                  cell0.innerHTML = data["flowmods"][i + ""][j]["switch_id"];
-                  cell1.innerHTML = JSON.stringify(data["flowmods"][i + ""][j]["match"]);
-                  cell2.innerHTML = JSON.stringify(data["flowmods"][i + ""][j]["actions"]);
+                  cell0.innerHTML = data["flowmods"][switch_id][j]["switch_id"];
+                  cell1.innerHTML = JSON.stringify(data["flowmods"][switch_id][j]["match"]);
+                  cell2.innerHTML = JSON.stringify(data["flowmods"][switch_id][j]["actions"]);
                 // }
             }
         }

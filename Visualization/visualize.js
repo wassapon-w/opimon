@@ -126,7 +126,7 @@ function showFlowTable() {
 
     for (var i = 0; i < data["flowmods"]["switchFlowTable"].length; i++) {
         var switch_id = data["flowmods"]["switchFlowTable"][i]
-        if(data["flowmods"][i + ""] != undefined) {
+        if(data["flowmods"][switch_id] != undefined) {
             for (var j = 0; j < data["flowmods"][switch_id].length; j++) {
                 row = table.insertRow(-1);
                 var cell0 = row.insertCell(-1);

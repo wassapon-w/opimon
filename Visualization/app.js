@@ -43,6 +43,8 @@ app.get('/flowmods', function (req, res) {
   				db.close();
 
           var flowTable = {};
+          var switchFlowTable = [];
+
           for(var i = 0; i < flowModsDatabase.length; i++) {
             // var isNew = true;
             if(flowTable[flowModsDatabase[i]["switch"]] != undefined) {
@@ -55,6 +57,7 @@ app.get('/flowmods', function (req, res) {
             }
             else {
               flowTable[flowModsDatabase[i]["switch"]] = [];
+              switchFlowTable.push(flowModsDatabase[i]["switch"]);
 
               var flow = {};
               flow["switch_id"] = flowModsDatabase[i]["switch"];
@@ -64,6 +67,7 @@ app.get('/flowmods', function (req, res) {
               flowTable[flowModsDatabase[i]["switch"]].push(flow);
             }
           }
+          flowTable["switchFlowTable"] = switchFlowTable;
 
           res.json(flowTable);
   			}
@@ -97,6 +101,7 @@ app.get('/topology', function (req, res) {
           topology["node"] = [];
           topology["link"] = [];
 
+          var nodeCounter = 0;
           for(var i = 0; i < topologyDatabase.length; i++) {
             var isNew = true;
             for(var j = 0; j < topology["node"].length; j++) {
@@ -120,6 +125,7 @@ app.get('/topology', function (req, res) {
               }
             }
             if(isNew) {
+              nodeCounter++;
               var node = {};
               node["id"] = topologyDatabase[i]["switch_src"] + '';
               node["connect_to"] = [];
@@ -132,6 +138,8 @@ app.get('/topology', function (req, res) {
               topology["link"].push(topologyDatabase[i]);
             }
           }
+
+          topology["nodeCounter"] = nodeCounter;
 
           res.json(topology);
   			}

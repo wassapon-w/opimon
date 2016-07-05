@@ -15,16 +15,16 @@ var getJSON = function(url, callback) {
     xhr.send();
 };
 
-getJSON('http://192.168.22.132:3000/flowmods', function(err, output){
-    data["flowmods"] = output;
-    // console.log(data["flowmods"]);
-    showFlowTable();
-});
-
 getJSON('http://192.168.22.132:3000/topology', function(err, output){
     data["switch"] = output["node"];
     data["connect"] = output["link"];
+    data["switchCounter"] = output["nodeCounter"];
     visualize();
+});
+
+getJSON('http://192.168.22.132:3000/flowmods', function(err, output){
+    data["flowmods"] = output;
+    showFlowTable();
 });
 
 function visualize() {
@@ -81,7 +81,7 @@ function visualize() {
 }
 
 function showFlowTable() {
-    var headerRow = ["Switch ID", "Destination MAC Address","Input Port", "Output Port"];
+    var headerRow = ["Switch ID", "Match", "Action"];
 
     var table = document.createElement("TABLE");
     table.border = "1";
@@ -93,19 +93,22 @@ function showFlowTable() {
       row.appendChild(headerCell);
     }
 
-    for (var i = 0; i < data["flowmods"]["1"].length; i++) {
-        row = table.insertRow(-1);
-        // for (var j = 0; j < 4; j++) {
-            var cell0 = row.insertCell(-1);
-            var cell1 = row.insertCell(-1);
-            var cell2 = row.insertCell(-1);
-            var cell3 = row.insertCell(-1);
+    for (var i = 0; i < data["switchCounter"]; i++) {
+        // var switch_id = data["flowmods"]["switchFlowTable"][i]
+        if(data["flowmods"][i + ""] != undefined) {
+            for (var j = 0; j < data["flowmods"][i + ""].length; j++) {
+                row = table.insertRow(-1);
+                // for(var k = 0; k < 3; k++) {
+                  var cell0 = row.insertCell(-1);
+                  var cell1 = row.insertCell(-1);
+                  var cell2 = row.insertCell(-1);
 
-            cell0.innerHTML = data["flowmods"]["1"][i]["switch_id"];
-            cell1.innerHTML = data["flowmods"]["1"][i]["dst_mac"];
-            cell2.innerHTML = data["flowmods"]["1"][i]["in_port"];
-            cell3.innerHTML = data["flowmods"]["1"][i]["out_port"];
-        // }
+                  cell0.innerHTML = data["flowmods"][i + ""][j]["switch_id"];
+                  cell1.innerHTML = data["flowmods"][i + ""][j]["match"];
+                  cell2.innerHTML = data["flowmods"][i + ""][j]["actions"];
+                // }
+            }
+        }
     }
 
     var dvTable = document.getElementById("flowTable");

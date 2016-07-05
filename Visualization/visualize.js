@@ -28,56 +28,122 @@ getJSON('http://192.168.22.132:3000/flowmods', function(err, output){
 });
 
 function visualize() {
-  console.log(data);
+    console.log(data);
 
-  var color = d3.scaleOrdinal(d3.schemeCategory20);
+    var color = d3.scaleOrdinal(d3.schemeCategory20);
 
-  var canvas = document.querySelector("canvas"),
-      context = canvas.getContext("2d"),
-      width = canvas.width,
-      height = canvas.height;
+  // var canvas = document.querySelector("canvas"),
+  //     context = canvas.getContext("2d"),
+  //     width = canvas.width,
+  //     height = canvas.height;
+  //
+  // var simulation = d3.forceSimulation()
+  //     .force("link", d3.forceLink().id(function(d) { return d.id; }))
+  //     .force("charge", d3.forceManyBody())
+  //     .force("center", d3.forceCenter());
+  //
+  // simulation
+  //     .nodes(data.switch)
+  //     .on("tick", ticked);
+  //
+  // simulation.force("link")
+  //     .links(data.connect);
+  //
+  // function ticked() {
+  //   context.clearRect(0, 0, width, height);
+  //   context.save();
+  //   context.translate(width / 3, height / 3);
+  //
+  //   context.beginPath();
+  //   data.connect.forEach(drawLink);
+  //   context.strokeStyle = "#aaa";
+  //   context.stroke();
+  //
+  //   context.beginPath();
+  //   data.switch.forEach(drawNode);
+  //   context.fillStyle = color(data.switch.forEach(function(d) { return d.id; }));
+  //   context.fill();
+  //   // context.strokeStyle = "#fff";
+  //   // context.stroke();
+  //
+  //   context.restore();
+  // }
+  //
+  // function drawLink(d) {
+  //   context.moveTo(d.source.x, d.source.y);
+  //   context.lineTo(d.target.x, d.target.y);
+  // }
+  //
+  // function drawNode(d) {
+  //   context.moveTo(d.x + 100, d.y);
+  //   context.arc(d.x, d.y, 10, 0, 2 * Math.PI);
+  // }
 
-  var simulation = d3.forceSimulation()
-      .force("link", d3.forceLink().id(function(d) { return d.id; }))
-      .force("charge", d3.forceManyBody())
-      .force("center", d3.forceCenter());
+    var svg = d3.select("svg"),
+        width = svg.attr("width"),
+        height = svg.attr("height");
 
-  simulation
-      .nodes(data.switch)
-      .on("tick", ticked);
+    var simulation = d3.forceSimulation()
+                       .force("link", d3.forceLink().id(function(d) { return d.id; }))
+                       .force("charge", d3.forceManyBody())
+                       .force("center", d3.forceCenter(width / 2, height / 2));
 
-  simulation.force("link")
-      .links(data.connect);
+    var link = svg.append("g")
+                  .attr("class", "links")
+                  .selectAll("line")
+                  .data(data.connect)
+                  .enter().append("line");
 
-  function ticked() {
-    context.clearRect(0, 0, width, height);
-    context.save();
-    context.translate(width / 3, height / 3);
+    var node = svg.append("g")
+                  .attr("class", "nodes")
+                  .selectAll("circle")
+                  .data(data.switch)
+                  .enter().append("circle")
+                  .attr("r", 10)
+                  .style("fill", function(d) { return color(d.id); })
+                  .call(d3.drag()
+                          .on("start", dragstarted)
+                          .on("drag", dragged)
+                          .on("end", dragended));
 
-    context.beginPath();
-    data.connect.forEach(drawLink);
-    context.strokeStyle = "#aaa";
-    context.stroke();
+    node.append("title")
+        .text(function(d) { return d.id; });
 
-    context.beginPath();
-    data.switch.forEach(drawNode);
-    context.fillStyle = color(data.switch.forEach(function(d) { return d.id; }));
-    context.fill();
-    // context.strokeStyle = "#fff";
-    // context.stroke();
+    simulation
+        .nodes(data.switch)
+        .on("tick", ticked);
 
-    context.restore();
-  }
+    simulation.force("link")
+              .links(data.connect);
 
-  function drawLink(d) {
-    context.moveTo(d.source.x, d.source.y);
-    context.lineTo(d.target.x, d.target.y);
-  }
+    function ticked() {
+      link
+          .attr("x1", function(d) { return d.source.x; })
+          .attr("y1", function(d) { return d.source.y; })
+          .attr("x2", function(d) { return d.target.x; })
+          .attr("y2", function(d) { return d.target.y; });
 
-  function drawNode(d) {
-    context.moveTo(d.x + 100, d.y);
-    context.arc(d.x, d.y, 10, 0, 2 * Math.PI);
-  }
+      node
+          .attr("cx", function(d) { return d.x; })
+          .attr("cy", function(d) { return d.y; });
+    }
+
+    function dragstarted(d) {
+      if (!d3.event.active) simulation.alphaTarget(0.3).restart();
+      d.fx = d.x;
+      d.fy = d.y;
+    }
+
+    function dragged(d) {
+      d.fx = d3.event.x;
+      d.fy = d3.event.y;
+    }
+
+    function dragended(d) {
+      if (!d3.event.active) simulation.alphaTarget(0);
+      d.fx = null;
+      d.fy = null;
+    }
 }
 
 function showFlowTable() {

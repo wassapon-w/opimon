@@ -1,6 +1,19 @@
 <!DOCTYPE html>
 <meta charset="utf-8">
-<canvas width="960" height="600"></canvas>
+<style>
+
+.links line {
+  stroke: #aaa;
+}
+
+.nodes circle {
+  pointer-events: all;
+  stroke: none;
+  stroke-width: 40px;
+}
+
+</style>
+<svg width="960" height="600"></svg>
 <div id="flowTable"></div>
 <body>
   <script src="d3.v4.min.js"></script>

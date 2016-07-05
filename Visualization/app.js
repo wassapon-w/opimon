@@ -67,7 +67,7 @@ app.get('/flowmods', function (req, res) {
               flowTable[flowModsDatabase[i]["switch"]].push(flow);
             }
           }
-          flowTable["switchFlowTable"] = switchFlowTable;
+          flowTable["switchFlowTable"] = switchFlowTable.sort();
 
           res.json(flowTable);
   			}

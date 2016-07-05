@@ -93,8 +93,8 @@ function showFlowTable() {
       row.appendChild(headerCell);
     }
 
-    for (var i = 0; i < data["switchCounter"]; i++) {
-        // var switch_id = data["flowmods"]["switchFlowTable"][i]
+    for (var i = 0; i < data["flowmods"]["switchFlowTable"].length; i++) {
+        var switch_id = data["flowmods"]["switchFlowTable"][i]
         if(data["flowmods"][i + ""] != undefined) {
             for (var j = 0; j < data["flowmods"][i + ""].length; j++) {
                 row = table.insertRow(-1);
@@ -104,8 +104,8 @@ function showFlowTable() {
                   var cell2 = row.insertCell(-1);
 
                   cell0.innerHTML = data["flowmods"][i + ""][j]["switch_id"];
-                  cell1.innerHTML = data["flowmods"][i + ""][j]["match"];
-                  cell2.innerHTML = data["flowmods"][i + ""][j]["actions"];
+                  cell1.innerHTML = JSON.stringify(data["flowmods"][i + ""][j]["match"]);
+                  cell2.innerHTML = JSON.stringify(data["flowmods"][i + ""][j]["actions"]);
                 // }
             }
         }

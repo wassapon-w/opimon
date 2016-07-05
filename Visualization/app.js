@@ -128,6 +128,7 @@ app.get('/topology', function (req, res) {
               nodeCounter++;
               var node = {};
               node["id"] = topologyDatabase[i]["switch_src"] + '';
+              node["group"] = 1;
               node["connect_to"] = [];
               node["connect_to"].push(topologyDatabase[i]["switch_dst"]);
               topology["node"].push(node);

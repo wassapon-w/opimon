@@ -90,7 +90,7 @@ function visualize() {
           .attr("cy", function(d) { return d.y; });
 
       switchLabel
-          .attr("transform", function(d) { return 'translate(' + [d.x, d.y] + ')'; });
+          .attr("transform", function(d) { return 'translate(' + [d.x-4, d.y+5] + ')'; });
     }
 
     function dragstarted(d) {

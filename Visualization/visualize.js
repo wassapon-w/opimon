@@ -62,6 +62,20 @@ function visualize() {
     node.append("title")
         .text(function(d) { return d.id; });
 
+    // node.append("text")
+    //     .attr("dy", ".3em")
+    //     .style("text-anchor", "middle")
+    //     .text(function(d) { return d.id.substring(10, d.r / 3); });
+
+    var gnodes = svg.selectAll('g.gnode')
+     .data(data.switch)
+     .enter()
+     .append('g')
+     .classed('gnode', true);
+
+     var labels = gnodes.append("text")
+                        .text(function(d) { return d.id; });
+
     simulation
         .nodes(data.switch)
         .on("tick", ticked);
@@ -79,6 +93,9 @@ function visualize() {
       node
           .attr("cx", function(d) { return d.x; })
           .attr("cy", function(d) { return d.y; });
+
+      gnodes
+          .attr("transform", function(d) { return 'translate(' + [d.x, d.y] + ')'; });
     }
 
     function dragstarted(d) {

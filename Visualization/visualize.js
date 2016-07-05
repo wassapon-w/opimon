@@ -119,9 +119,9 @@ function showFlowTable() {
 
     var row = table.insertRow(-1);
     for (var i = 0; i < headerRow.length; i++) {
-      var headerCell = document.createElement("TH");
-      headerCell.innerHTML = headerRow[i];
-      row.appendChild(headerCell);
+        var headerCell = document.createElement("TH");
+        headerCell.innerHTML = headerRow[i];
+        row.appendChild(headerCell);
     }
 
     for (var i = 0; i < data["flowmods"]["switchFlowTable"].length; i++) {
@@ -129,17 +129,15 @@ function showFlowTable() {
         if(data["flowmods"][i + ""] != undefined) {
             for (var j = 0; j < data["flowmods"][switch_id].length; j++) {
                 row = table.insertRow(-1);
-                // for(var k = 0; k < 3; k++) {
-                  var cell0 = row.insertCell(-1);
-                  var cell1 = row.insertCell(-1);
-                  var cell2 = row.insertCell(-1);
-                  var cell3 = row.insertCell(-1);
+                var cell0 = row.insertCell(-1);
+                var cell1 = row.insertCell(-1);
+                var cell2 = row.insertCell(-1);
+                var cell3 = row.insertCell(-1);
 
-                  cell0.innerHTML = data["flowmods"][switch_id][j]["switch_id"];
-                  cell1.innerHTML = JSON.stringify(data["flowmods"][switch_id][j]["match"]);
-                  cell2.innerHTML = JSON.stringify(data["flowmods"][switch_id][j]["actions"]);
-                  cell3.innerHTML = data["flowmods"][switch_id][j]["hard_timeout"];
-                // }
+                cell0.innerHTML = data["flowmods"][switch_id][j]["switch_id"];
+                cell1.innerHTML = JSON.stringify(data["flowmods"][switch_id][j]["match"]);
+                cell2.innerHTML = JSON.stringify(data["flowmods"][switch_id][j]["actions"]);
+                cell3.innerHTML = data["flowmods"][switch_id][j]["hard_timeout"];
             }
         }
     }

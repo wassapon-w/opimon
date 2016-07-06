@@ -28,13 +28,11 @@ getJSON('http://192.168.22.132:3000/flowmods', function(err, output){
 });
 
 function visualize() {
-    console.log(data);
-
-    var color = d3.scaleOrdinal(d3.schemeCategory20);
-
     var svg = d3.select("svg"),
         width = svg.attr("width"),
         height = svg.attr("height");
+
+    var color = d3.scaleOrdinal(d3.schemeCategory20);
 
     var simulation = d3.forceSimulation()
                        .force("link", d3.forceLink().id(function(d) { return d.id; }))
@@ -54,7 +52,7 @@ function visualize() {
                   .enter().append("circle")
                   .on("click", mouseClick)
                   .attr("r", 10)
-                  .style("fill", function(d) { console.log(d); return color(d.id); })
+                  .style("fill", function(d) { return color(d.id); })
                   .call(d3.drag()
                           .on("start", dragstarted)
                           .on("drag", dragged)
@@ -66,11 +64,11 @@ function visualize() {
     var switchLabel = svg.selectAll('g.gnode')
                          .data(data.switch)
                          .enter()
-                         .on("click", mouseClick)
                          .append('g')
                          .classed('gnode', true);
 
      var labels = switchLabel.append("text")
+                             .on("click", mouseClick)
                              .text(function(d) { return d.id; });
 
     simulation

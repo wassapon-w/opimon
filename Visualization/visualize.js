@@ -52,6 +52,7 @@ function visualize() {
                   .selectAll("circle")
                   .data(data.switch)
                   .enter().append("circle")
+                  .on("click", mouseClick)
                   .attr("r", 10)
                   .style("fill", function(d) { console.log(d); return color(d.id); })
                   .call(d3.drag()
@@ -63,10 +64,11 @@ function visualize() {
         .text(function(d) { return d.id; });
 
     var switchLabel = svg.selectAll('g.gnode')
-                    .data(data.switch)
-                    .enter()
-                    .append('g')
-                    .classed('gnode', true);
+                         .data(data.switch)
+                         .enter()
+                         .on("click", mouseClick)
+                         .append('g')
+                         .classed('gnode', true);
 
      var labels = switchLabel.append("text")
                              .text(function(d) { return d.id; });
@@ -109,6 +111,10 @@ function visualize() {
         d.fx = null;
         d.fy = null;
     }
+
+    function mouseClick() {
+        console.log("click");
+    }
 }
 
 function showFlowTable() {
@@ -128,21 +134,23 @@ function showFlowTable() {
         var switch_id = data["flowmods"]["switchFlowTable"][i]
         if(data["flowmods"][switch_id] != undefined) {
             for (var j = 0; j < data["flowmods"][switch_id].length; j++) {
-                row = table.insertRow(-1);
-                var cell0 = row.insertCell(-1);
-                var cell1 = row.insertCell(-1);
-                var cell2 = row.insertCell(-1);
-                var cell3 = row.insertCell(-1);
-                // var cell4 = row.insertCell(-1);
+                if(data["flowmods"][switch_id][j]["actions"].length != 0) {
+                    row = table.insertRow(-1);
+                    var cell0 = row.insertCell(-1);
+                    var cell1 = row.insertCell(-1);
+                    var cell2 = row.insertCell(-1);
+                    var cell3 = row.insertCell(-1);
+                    var cell4 = row.insertCell(-1);
 
-                var expireMillisec = Date.parse(data["flowmods"][switch_id][j]["timestamp"]) + (data["flowmods"][switch_id][j]["hard_timeout"] * 1000);
-                var expireTime = new Date(expireMillisec);
+                    var expireMillisec = Date.parse(data["flowmods"][switch_id][j]["timestamp"]) + (data["flowmods"][switch_id][j]["hard_timeout"] * 1000);
+                    var expireTime = new Date(expireMillisec);
 
-                cell0.innerHTML = data["flowmods"][switch_id][j]["switch_id"];
-                cell1.innerHTML = JSON.stringify(data["flowmods"][switch_id][j]["match"]);
-                cell2.innerHTML = JSON.stringify(data["flowmods"][switch_id][j]["actions"]);
-                cell3.innerHTML = expireTime.toString();
-                // cell4.innerHTML = data["flowmods"][switch_id][j]["timestamp"];
+                    cell0.innerHTML = data["flowmods"][switch_id][j]["switch_id"];
+                    cell1.innerHTML = JSON.stringify(data["flowmods"][switch_id][j]["match"]);
+                    cell2.innerHTML = JSON.stringify(data["flowmods"][switch_id][j]["actions"]);
+                    cell3.innerHTML = expireTime.toString();
+                    cell4.innerHTML = new Date(Date.parse(data["flowmods"][switch_id][j]["timestamp"]));
+                }
             }
         }
     }

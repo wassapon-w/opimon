@@ -116,6 +116,10 @@ function visualize() {
 }
 
 function showFlowTable() {
+    var showTime = document.getElementById("currentTime");
+    var currentTime = new Date(Date.now());
+    showTime.textContent = "Time : " + currentTime.toString();
+
     var headerRow = ["Switch ID", "Match", "Action", "Expire"];
 
     var table = document.createElement("TABLE");

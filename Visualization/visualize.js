@@ -110,8 +110,8 @@ function visualize() {
         d.fy = null;
     }
 
-    function mouseClick() {
-        console.log("click");
+    function mouseClick(d) {
+        showFlowTableByID(d.id);
     }
 }
 
@@ -153,6 +153,46 @@ function showFlowTable() {
                     cell3.innerHTML = expireTime.toString();
                     // cell4.innerHTML = new Date(Date.parse(data["flowmods"][switch_id][j]["timestamp"]));
                 }
+            }
+        }
+    }
+
+    var dvTable = document.getElementById("flowTable");
+    dvTable.innerHTML = "";
+    dvTable.appendChild(table);
+}
+
+function showFlowTableByID(switch_id) {
+    var headerRow = ["Switch ID", "Match", "Action", "Expire"];
+
+    var table = document.createElement("TABLE");
+    table.border = "1";
+
+    var row = table.insertRow(-1);
+    for (var i = 0; i < headerRow.length; i++) {
+        var headerCell = document.createElement("TH");
+        headerCell.innerHTML = headerRow[i];
+        row.appendChild(headerCell);
+    }
+
+    if(data["flowmods"][switch_id] != undefined) {
+        for (var j = 0; j < data["flowmods"][switch_id].length; j++) {
+            var expireMillisec = Date.parse(data["flowmods"][switch_id][j]["timestamp"]) + (data["flowmods"][switch_id][j]["hard_timeout"] * 1000);
+            var expireTime = new Date(expireMillisec);
+
+            if(expireTime > Date.now()) {
+                row = table.insertRow(-1);
+                var cell0 = row.insertCell(-1);
+                var cell1 = row.insertCell(-1);
+                var cell2 = row.insertCell(-1);
+                var cell3 = row.insertCell(-1);
+                // var cell4 = row.insertCell(-1);
+
+                cell0.innerHTML = data["flowmods"][switch_id][j]["switch_id"];
+                cell1.innerHTML = JSON.stringify(data["flowmods"][switch_id][j]["match"]);
+                cell2.innerHTML = JSON.stringify(data["flowmods"][switch_id][j]["actions"]);
+                cell3.innerHTML = expireTime.toString();
+                // cell4.innerHTML = new Date(Date.parse(data["flowmods"][switch_id][j]["timestamp"]));
             }
         }
     }

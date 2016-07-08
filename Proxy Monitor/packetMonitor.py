@@ -272,7 +272,7 @@ if __name__ == '__main__':
 
 	# log.init_log()
 
-	LISTEN_HOST, LISTEN_PORT = '0.0.0.0', 6643
+	LISTEN_HOST, LISTEN_PORT = '0.0.0.0', 7643
 	FORWARD_HOST, FORWARD_PORT = 'sd-lemon.naist.jp', 6633
 	# FORWARD_HOST, FORWARD_PORT = 'localhost', 6653
 	manager = MessageWatcher(LISTEN_HOST, LISTEN_PORT, FORWARD_HOST, FORWARD_PORT)

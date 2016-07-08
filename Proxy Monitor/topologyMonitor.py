@@ -244,6 +244,6 @@ if __name__ == '__main__':
 	# log.init_log()
 
 	LISTEN_HOST, LISTEN_PORT = '0.0.0.0', 6633
-	FORWARD_HOST, FORWARD_PORT = 'localhost', 6643
+	FORWARD_HOST, FORWARD_PORT = 'localhost', 7643
 	manager = TopologyWatcher(LISTEN_HOST, LISTEN_PORT, FORWARD_HOST, FORWARD_PORT)
 	manager.start()

@@ -24,7 +24,8 @@ getJSON('http://192.168.22.132:3000/topology', function(err, output){
 
 getJSON('http://192.168.22.132:3000/flowmods', function(err, output){
     data["flowmods"] = output;
-    showFlowTable();
+    // showFlowTable();
+    makeTable($(document.body), data);
 });
 
 function visualize() {
@@ -161,9 +162,6 @@ function showFlowTable() {
     dvTable.innerHTML = "";
     dvTable.appendChild(table);
 
-    // $('#flowTable').bootstrapTable({
-    //     data: data
-    // });
 }
 
 function showFlowTableByID(switch_id) {
@@ -208,4 +206,21 @@ function showFlowTableByID(switch_id) {
     var dvTable = document.getElementById("flowTable");
     dvTable.innerHTML = "";
     dvTable.appendChild(table);
+}
+
+function makeTable(container, data) {
+    var table = $("<table/>").addClass('CSSTableGenerator');
+    for(var i = 0; i < data["flowmods"]["switchFlowTable"].length; i++) {
+      var switch_id = data["flowmods"]["switchFlowTable"][i]
+      $.each(data["flowmods"][switch_id], function(rowIndex, r) {
+          var row = $("<tr/>");
+          // console.log(r);
+          $.each(r, function(colIndex, c) {
+              // console.log(c);
+              row.append($("<t"+(rowIndex == 0 ?  "h" : "d")+"/>").text(c));
+          });
+          table.append(row);
+      });
+    }
+    return container.append(table);
 }

@@ -1,27 +1,36 @@
 <!DOCTYPE html>
 <head>
+    <meta charset="utf-8">
+    <link rel="stylesheet" href="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css">
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
     <script src="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js"></script>
     <script src="d3.v4.min.js"></script>
     <script src="visualize.js"></script>
+
+    <style>
+        .links line {
+          stroke: #aaa;
+        }
+
+        .nodes circle {
+          pointer-events: all;
+          stroke: none;
+          stroke-width: 40px;
+        }
+    </style>
 </head>
-<meta charset="utf-8">
-<style>
 
-.links line {
-  stroke: #aaa;
-}
-
-.nodes circle {
-  pointer-events: all;
-  stroke: none;
-  stroke-width: 40px;
-}
-
-</style>
 <svg width="800" height="600"></svg>
-<div id="currentTime"></div>
-<div id="flowTable"></div>
-<body>
 
-</body>
+<div id="currentTime"></div>
+<table id="flowTable" class="table">
+  <!-- <thead>
+        <tr>
+            <th data-field="switch_id">Switch ID</th>
+            <th data-field="match">Match</th>
+            <th data-field="actions">Actions</th>
+        </tr>
+    </thead> -->
+</table>
+
+<body></body>

@@ -160,6 +160,10 @@ function showFlowTable() {
     var dvTable = document.getElementById("flowTable");
     dvTable.innerHTML = "";
     dvTable.appendChild(table);
+
+    // $('#flowTable').bootstrapTable({
+    //     data: data
+    // });
 }
 
 function showFlowTableByID(switch_id) {

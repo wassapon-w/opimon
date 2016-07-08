@@ -25,7 +25,7 @@ getJSON('http://192.168.22.132:3000/topology', function(err, output){
 getJSON('http://192.168.22.132:3000/flowmods', function(err, output){
     data["flowmods"] = output;
     // showFlowTable();
-    makeTable($(document.body), data);
+    makeTable($(document.getElementById("flowTable")), data);
 });
 
 function visualize() {
@@ -209,18 +209,35 @@ function showFlowTableByID(switch_id) {
 }
 
 function makeTable(container, data) {
-    var table = $("<table/>").addClass('CSSTableGenerator');
+    var table = $("<table/>").addClass('table');
+
+    var head = $("<thead/>");
+    var row = $("<tr/>");
+    row.append($("<th/>").text("Switch ID"));
+    row.append($("<th/>").text("Match"));
+    row.append($("<th/>").text("Actions"));
+    row.append($("<th/>").text("Expire"));
+    head.append(row);
+    table.append(head);
+
+    var body = $("<tbody/>");
     for(var i = 0; i < data["flowmods"]["switchFlowTable"].length; i++) {
       var switch_id = data["flowmods"]["switchFlowTable"][i]
       $.each(data["flowmods"][switch_id], function(rowIndex, r) {
-          var row = $("<tr/>");
-          // console.log(r);
-          $.each(r, function(colIndex, c) {
-              // console.log(c);
-              row.append($("<t"+(rowIndex == 0 ?  "h" : "d")+"/>").text(c));
-          });
-          table.append(row);
+          var expireMillisec = Date.parse(r["timestamp"]) + (r["hard_timeout"] * 1000);
+          var expireTime = new Date(expireMillisec);
+
+          if(expireTime > Date.now()) {
+              var row = $("<tr/>");
+              row.append($("<td/>").text(r["switch_id"]));
+              row.append($("<td/>").text(JSON.stringify(r["match"])));
+              row.append($("<td/>").text(JSON.stringify(r["actions"])));
+              row.append($("<td/>").text(expireTime.toString()));
+              body.append(row);
+          }
       });
     }
+    table.append(body);
+
     return container.append(table);
 }

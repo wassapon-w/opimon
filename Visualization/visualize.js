@@ -24,7 +24,6 @@ getJSON('http://192.168.22.132:3000/topology', function(err, output){
 
 getJSON('http://192.168.22.132:3000/flowmods', function(err, output){
     data["flowmods"] = output;
-    // showFlowTable();
     showFlowTable($(document.getElementById("flowTable")), data);
 });
 
@@ -112,7 +111,7 @@ function visualize() {
     }
 
     function mouseClick(d) {
-        showFlowTableByID($(document.getElementById("flowTable")), data, d.id);
+        getNewFlowTableData($(document.getElementById("flowTable")), data, d.id);
     }
 }
 
@@ -187,4 +186,11 @@ function showFlowTableByID(container, data, switch_id) {
     table.append(body);
 
     return container.html(table);
+}
+
+function getNewFlowTableData(container, data, switch_id) {
+  getJSON('http://192.168.22.132:3000/flowmods', function(err, output){
+      data["flowmods"] = output;
+      showFlowTableByID(container, data, switch_id);
+  });
 }

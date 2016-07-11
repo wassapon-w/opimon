@@ -15,6 +15,15 @@ var getJSON = function(url, callback) {
     xhr.send();
 };
 
+$(document).ready(function(){
+    $('#showfull').click(function(){
+      getJSON('http://192.168.22.132:3000/flowmods', function(err, output){
+          data["flowmods"] = output;
+          showFlowTable($(document.getElementById("flowTable")), data);
+      });
+    });
+});
+
 getJSON('http://192.168.22.132:3000/topology', function(err, output){
     data["switch"] = output["node"];
     data["connect"] = output["link"];
@@ -163,7 +172,7 @@ function showFlowTable(container, data) {
               action.append($("<li/>").text("Switch Output Port : " + r["actions"][0]["port"] + "\n"));
               action.append($("<li/>").text("Max Length : " + r["actions"][0]["max_len"] + "\n"));
               row.append(action);
-              
+
               row.append($("<td/>").text(expireTime.toString()));
               body.append(row);
           }

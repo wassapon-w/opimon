@@ -141,7 +141,23 @@ function showFlowTable(container, data) {
           if(expireTime > Date.now()) {
               var row = $("<tr/>");
               row.append($("<td/>").text(r["switch_id"]));
-              row.append($("<td/>").text(JSON.stringify(r["match"])));
+
+              var match = $("<td/>");
+              match.append($("<li/>").text("Wildcard : " + r["match"]["wildcards"] + "\n"));
+              match.append($("<li/>").text("Switch Input Port : " + r["match"]["in_port"] + "\n"));
+              match.append($("<li/>").text("Source MAC Address : " + r["match"]["dl_src"] + "\n"));
+              match.append($("<li/>").text("Destination MAC Address : " + r["match"]["dl_dst"] + "\n"));
+              match.append($("<li/>").text("VLAN ID : " + r["match"]["dl_vlan"] + "\n"));
+              match.append($("<li/>").text("VLAN Priority : " + r["match"]["dl_vlan_pcp"] + "\n"));
+              match.append($("<li/>").text("Ethernet Frame Type : " + r["match"]["dl_type"] + "\n"));
+              match.append($("<li/>").text("IP ToS : " + r["match"]["nw_tos"] + "\n"));
+              match.append($("<li/>").text("IP Protocol : " + r["match"]["nw_proto"] + "\n"));
+              match.append($("<li/>").text("Source IP Address : " + r["match"]["nw_src"] + "\n"));
+              match.append($("<li/>").text("Destination IP Address : " + r["match"]["nw_dst"] + "\n"));
+              match.append($("<li/>").text("Source TCP/UDP Port : " + r["match"]["tp_src"] + "\n"));
+              match.append($("<li/>").text("Destination TCP/UDP Port : " + r["match"]["tp_dst"] + "\n"));
+              row.append(match);
+
               row.append($("<td/>").text(JSON.stringify(r["actions"])));
               row.append($("<td/>").text(expireTime.toString()));
               body.append(row);
@@ -177,7 +193,23 @@ function showFlowTableByID(container, data, switch_id) {
         if(expireTime > Date.now()) {
             var row = $("<tr/>");
             row.append($("<td/>").text(r["switch_id"]));
-            row.append($("<td/>").text(JSON.stringify(r["match"])));
+
+            var match = $("<td/>");
+            match.append($("<li/>").text("Wildcard : " + r["match"]["wildcards"] + "\n"));
+            match.append($("<li/>").text("Switch Input Port : " + r["match"]["in_port"] + "\n"));
+            match.append($("<li/>").text("Source MAC Address : " + r["match"]["dl_src"] + "\n"));
+            match.append($("<li/>").text("Destination MAC Address : " + r["match"]["dl_dst"] + "\n"));
+            match.append($("<li/>").text("VLAN ID : " + r["match"]["dl_vlan"] + "\n"));
+            match.append($("<li/>").text("VLAN Priority : " + r["match"]["dl_vlan_pcp"] + "\n"));
+            match.append($("<li/>").text("Ethernet Frame Type : " + r["match"]["dl_type"] + "\n"));
+            match.append($("<li/>").text("IP ToS : " + r["match"]["nw_tos"] + "\n"));
+            match.append($("<li/>").text("IP Protocol : " + r["match"]["nw_proto"] + "\n"));
+            match.append($("<li/>").text("Source IP Address : " + r["match"]["nw_src"] + "\n"));
+            match.append($("<li/>").text("Destination IP Address : " + r["match"]["nw_dst"] + "\n"));
+            match.append($("<li/>").text("Source TCP/UDP Port : " + r["match"]["tp_src"] + "\n"));
+            match.append($("<li/>").text("Destination TCP/UDP Port : " + r["match"]["tp_dst"] + "\n"));
+            row.append(match);
+
             row.append($("<td/>").text(JSON.stringify(r["actions"])));
             row.append($("<td/>").text(expireTime.toString()));
             body.append(row);

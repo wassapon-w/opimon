@@ -158,7 +158,12 @@ function showFlowTable(container, data) {
               match.append($("<li/>").text("Destination TCP/UDP Port : " + r["match"]["tp_dst"] + "\n"));
               row.append(match);
 
-              row.append($("<td/>").text(JSON.stringify(r["actions"])));
+              var action = $("<td/>");
+              action.append($("<li/>").text("Type : " + r["actions"][0]["type"] + "\n"));
+              action.append($("<li/>").text("Switch Output Port : " + r["actions"][0]["port"] + "\n"));
+              action.append($("<li/>").text("Max Length : " + r["actions"][0]["max_len"] + "\n"));
+              row.append(action);
+              
               row.append($("<td/>").text(expireTime.toString()));
               body.append(row);
           }
@@ -210,7 +215,12 @@ function showFlowTableByID(container, data, switch_id) {
             match.append($("<li/>").text("Destination TCP/UDP Port : " + r["match"]["tp_dst"] + "\n"));
             row.append(match);
 
-            row.append($("<td/>").text(JSON.stringify(r["actions"])));
+            var action = $("<td/>");
+            action.append($("<li/>").text("Type : " + r["actions"][0]["type"] + "\n"));
+            action.append($("<li/>").text("Switch Output Port : " + r["actions"][0]["port"] + "\n"));
+            action.append($("<li/>").text("Max Length : " + r["actions"][0]["max_len"] + "\n"));
+            row.append(action);
+
             row.append($("<td/>").text(expireTime.toString()));
             body.append(row);
         }

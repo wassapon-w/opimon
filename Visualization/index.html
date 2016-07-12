@@ -21,10 +21,17 @@
 </head>
 
 <body>
-    <svg width="800" height="600"></svg>
+    <nav class="navbar navbar-inverse">
+        <a id="showfull" class="navbar-brand" href="#">OpenFlow Monitor</a>
+    </nav>
+
+    <div align="center">
+        <svg width="800" height="600"></svg>
+    </div>
 
     <div>
-        <button id="showfull" class="btn btn-default">All</button>
+        <h4>Flow Table</h4>
+        <!-- <button id="showfull" class="btn btn-default">All</button> -->
         <div id="currentTime"></div>
         <table id="flowTable" class="table"></table>
     </div>

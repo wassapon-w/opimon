@@ -21,6 +21,10 @@ app.get('/visualize.js', function(req, res){
     res.sendFile(path.join(__dirname, './public', 'visualize.js'));
 });
 
+app.get('/settings.json', function(req, res){
+    res.sendFile(path.join(__dirname, './public', 'settings.json'));
+});
+
 app.get('/flowmods', function (req, res) {
   getFlowMods();
 

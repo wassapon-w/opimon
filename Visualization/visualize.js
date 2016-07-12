@@ -86,7 +86,7 @@ function visualize() {
      var labels = switchLabel.append("text")
                              .on("click", mouseClick)
                              .text(function(d) {
-                               if(data["settings"][d.id] != undefined) { return data["settings"][d.id]["Name"]; }
+                               if(data["settings"][d.id] != undefined) { return data["settings"][d.id]["name"]; }
                                else { return d.id; } });
 
     simulation

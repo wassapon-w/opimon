@@ -28,13 +28,20 @@ getJSON('http://192.168.22.132:3000/topology', function(err, output){
     data["switch"] = output["node"];
     data["connect"] = output["link"];
     data["switchCounter"] = output["nodeCounter"];
-    visualize();
+    getSettings();
 });
 
 getJSON('http://192.168.22.132:3000/flowmods', function(err, output){
     data["flowmods"] = output;
     showFlowTable($(document.getElementById("flowTable")), data);
 });
+
+function getSettings() {
+    getJSON('http://192.168.22.132:3000/settings.json', function(err, output){
+        data["settings"] = output;
+        visualize();
+    });
+}
 
 function visualize() {
     var svg = d3.select("svg"),
@@ -78,7 +85,9 @@ function visualize() {
 
      var labels = switchLabel.append("text")
                              .on("click", mouseClick)
-                             .text(function(d) { return d.id; });
+                             .text(function(d) {
+                               if(data["settings"][d.id] != undefined) { return data["settings"][d.id]["Name"]; }
+                               else { return d.id; } });
 
     simulation
         .nodes(data.switch)

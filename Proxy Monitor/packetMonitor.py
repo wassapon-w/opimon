@@ -97,6 +97,7 @@ class MessageWatcherAgentThread(threading.Thread):
 	# Controller to Switch
 	def _downstream_parse(self, pkt):
 		(version, msg_type, msg_len, xid) = ofproto_parser.header(pkt)
+		# print(pkt);
 
 		# Controller command messages
 		if msg_type == ofproto_v1_0.OFPT_FLOW_MOD:
@@ -104,6 +105,8 @@ class MessageWatcherAgentThread(threading.Thread):
 
 			msg = ofproto_v1_0_parser_extention.OFPFlowMod.parser(
 				self.datapath, version, msg_type, msg_len, xid, pkt)
+
+			# print(msg);
 
 			# Write to database
 			db_message = {"switch": self.id,
@@ -141,16 +144,10 @@ class MessageWatcherAgentThread(threading.Thread):
 						  },
 						  "timestamp": datetime.datetime.utcnow()}
 
-			# try:
-			# 	print vars(msg.actions[0])
-			# except:
-			# 	pass
-
 			for action in msg.actions:
 				db_message["message"]["actions"].append(vars(action));
 
 			# Insert to database
-			# print(db_message)
 			self.db.flow_mods.insert_one(db_message)
 
 			#t = threading.Thread(target=self.db.flow_mods.insert_one, args=(db_message,))
@@ -160,6 +157,11 @@ class MessageWatcherAgentThread(threading.Thread):
 			self.db.packet_out.insert_one({"Switch": self.id, "Type": msg_type, "Timestamp": datetime.datetime.utcnow()})
 
 		elif msg_type == ofproto_v1_0.OFPT_ECHO_REPLY:
+			msg = ofproto_v1_0_parser.OFPEchoReply.parser(
+				self.datapath, version, msg_type, msg_len, xid, pkt)
+
+			print(msg)
+
 			self.db.echo_reply.insert_one({"Switch": self.id, "Type": msg_type, "Timestamp": datetime.datetime.utcnow()})
 
 		self.db.all_packet.insert_one({"Switch": self.id, "Type": msg_type, "Timestamp": datetime.datetime.utcnow()})
@@ -175,6 +177,8 @@ class MessageWatcherAgentThread(threading.Thread):
 
 			msg = ofproto_v1_0_parser.OFPSwitchFeatures.parser(
 				self.datapath, version, msg_type, msg_len, xid, pkt)
+
+			print(msg)
 
 			self.id = msg.datapath_id
 			self.ports= msg.ports

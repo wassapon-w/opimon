@@ -153,8 +153,10 @@ function showFlowTable(container, data) {
     var currentTime = new Date(Date.now());
     showTime.textContent = "Time : " + currentTime.toString();
 
-    var table = $("<table/>").addClass('table');
+    var showSwitch = document.getElementById("switch");
+    showSwitch.textContent = "";
 
+    var table = $("<table/>").addClass('table');
     var head = $("<thead/>");
     var row = $("<tr/>");
     row.append($("<th/>").text("Switch ID"));
@@ -212,8 +214,15 @@ function showFlowTableByID(container, data, switch_id) {
     var currentTime = new Date(Date.now());
     showTime.textContent = "Time : " + currentTime.toString();
 
-    var table = $("<table/>").addClass('table');
+    var showSwitch = document.getElementById("switch");
+    if(data["settings"][switch_id] != undefined) {
+        showSwitch.textContent = "Switch ID : " + switch_id + " (" + data["settings"][switch_id]["name"] + ")";
+    }
+    else {
+        showSwitch.textContent = "Switch ID : " + switch_id;
+    }
 
+    var table = $("<table/>").addClass('table');
     var head = $("<thead/>");
     var row = $("<tr/>");
     row.append($("<th/>").text("Switch ID"));

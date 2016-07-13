@@ -97,18 +97,33 @@ function visualize() {
               .links(data.connect);
 
     function ticked() {
+
       link
-          .attr("x1", function(d) { return d.source.x; })
-          .attr("y1", function(d) { return d.source.y; })
-          .attr("x2", function(d) { return d.target.x; })
-          .attr("y2", function(d) { return d.target.y; });
+          .attr("x1", function(d) {
+              if(data["settings"][d.source.id] != undefined) { return data["settings"][d.source.id]["x"]; }
+              else { return d.source.x; } })
+          .attr("y1", function(d) {
+              if(data["settings"][d.source.id] != undefined) { return data["settings"][d.source.id]["y"]; }
+              else { return d.source.y; } })
+          .attr("x2", function(d) {
+              if(data["settings"][d.target.id] != undefined) { return data["settings"][d.target.id]["x"]; }
+              else { return d.target.x; } })
+          .attr("y2", function(d) {
+              if(data["settings"][d.target.id] != undefined) { return data["settings"][d.target.id]["y"]; }
+              else { return d.target.y; } });
 
       node
-          .attr("cx", function(d) { return d.x; })
-          .attr("cy", function(d) { return d.y; });
+          .attr("cx", function(d) {
+              if(data["settings"][d.id] != undefined) { return data["settings"][d.id]["x"]; }
+              else { return d.x; } })
+          .attr("cy", function(d) {
+              if(data["settings"][d.id] != undefined) { return data["settings"][d.id]["y"]; }
+              else { return d.y; } });
 
       switchLabel
-          .attr("transform", function(d) { return 'translate(' + [d.x-4, d.y+5] + ')'; });
+          .attr("transform", function(d) {
+              if(data["settings"][d.id] != undefined) { return 'translate(' + [data["settings"][d.id]["x"]-4, data["settings"][d.id]["y"]+5] + ')'; }
+              else { return 'translate(' + [d.x-4, d.y+5] + ')'; } });
     }
 
     function dragstarted(d) {

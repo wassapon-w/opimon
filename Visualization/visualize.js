@@ -93,8 +93,9 @@ function visualize() {
         .nodes(data.switch)
         .on("tick", ticked);
 
-    simulation.force("link")
-              .links(data.connect);
+    simulation
+        .force("link")
+        .links(data.connect);
 
     function ticked() {
 
@@ -122,25 +123,34 @@ function visualize() {
 
       switchLabel
           .attr("transform", function(d) {
-              if(data["settings"][d.id] != undefined) { return 'translate(' + [data["settings"][d.id]["x"]-4, data["settings"][d.id]["y"]+5] + ')'; }
-              else { return 'translate(' + [d.x-4, d.y+5] + ')'; } });
+              if(data["settings"][d.id] != undefined) { return 'translate(' + [data["settings"][d.id]["x"], data["settings"][d.id]["y"]] + ')'; }
+              else { return 'translate(' + [d.x, d.y] + ')'; } });
     }
 
     function dragstarted(d) {
-        if (!d3.event.active) simulation.alphaTarget(0.3).restart();
-        d.fx = d.x;
-        d.fy = d.y;
+        // if (!d3.event.active) simulation.alphaTarget(0.3).restart();
+        // d.fx = d.x;
+        // d.fy = d.y;
+        force.stop()
     }
 
     function dragged(d) {
-        d.fx = d3.event.x;
-        d.fy = d3.event.y;
+        // d.fx = d3.event.x;
+        // d.fy = d3.event.y;
+        d.px += d3.event.dx;
+        d.py += d3.event.dy;
+        d.x += d3.event.dx;
+        d.y += d3.event.dy;
+        ticked();
     }
 
     function dragended(d) {
-        if (!d3.event.active) simulation.alphaTarget(0);
-        d.fx = null;
-        d.fy = null;
+        // if (!d3.event.active) simulation.alphaTarget(0);
+        // d.fx = null;
+        // d.fy = null;
+        d.fixed = true;
+        ticked();
+        force.resume();
     }
 
     function mouseClick(d) {

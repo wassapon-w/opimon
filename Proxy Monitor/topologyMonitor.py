@@ -184,7 +184,7 @@ class TopologyWatcherAgentThread(threading.Thread):
 				if lldp_msg.tlvs[3].tlv_info == "ProxyTopologyMonitorLLDP":
 
 					(port,) = struct.unpack('!I', lldp_msg.tlvs[1].port_id)
-					switch_src = lldp_msg.tlvs[0].chassis_id
+					switch_src = str_to_dpid(lldp_msg.tlvs[0].chassis_id[5:])
 
 					# print("----------------------------")
 					print(lldp_msg)

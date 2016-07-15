@@ -43,6 +43,13 @@ function getSettings() {
     });
 }
 
+function getNewFlowTableData(container, data, switch_id) {
+  getJSON('http://sd-lemon.naist.jp:3000/flowmods', function(err, output){
+      data["flowmods"] = output;
+      showFlowTableByID(container, data, switch_id);
+  });
+}
+
 function visualize() {
     var svg = d3.select("svg"),
         width = svg.attr("width"),
@@ -272,11 +279,4 @@ function showFlowTableByID(container, data, switch_id) {
     table.append(body);
 
     return container.html(table);
-}
-
-function getNewFlowTableData(container, data, switch_id) {
-  getJSON('http://sd-lemon.naist.jp:3000/flowmods', function(err, output){
-      data["flowmods"] = output;
-      showFlowTableByID(container, data, switch_id);
-  });
 }

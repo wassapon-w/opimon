@@ -12,17 +12,21 @@ from ryu.ofproto import ofproto_common
 from ryu.ofproto import ofproto_parser
 from ryu.ofproto import ofproto_v1_0
 from ryu.ofproto import ofproto_protocol
+from ryu.ofproto.ether import ETH_TYPE_LLDP
 
+from ryu.lib.packet import packet, ethernet, lldp
+from ryu.lib.dpid import dpid_to_str, str_to_dpid
 from ryu.ofproto import ofproto_v1_0_parser
 from ofproto import ofproto_v1_0_parser_extention
 
+from ryu.ofproto import ofproto_v1_0_parser
 from ryu.lib import addrconv
 
 from pymongo import MongoClient
 
 # import log
 
-LOG = logging.getLogger('Packet Monitor')
+LOG = logging.getLogger('OpenFlow Monitor')
 
 class MessageWatcherAgentThread(threading.Thread):
 	def __init__(self, switch_socket, controller_host, controller_port):
@@ -38,6 +42,10 @@ class MessageWatcherAgentThread(threading.Thread):
 		self.is_alive = True
 		self.datapath = ofproto_protocol.ProtocolDesc(version=0x01)
 		self.id = None
+
+		# Connect to database
+		# client = MongoClient('localhost', 27017)
+		# self.db = client['netspec']
 
 		# Connect to database
 		client = MongoClient('sd-lemon.naist.jp', 9999)
@@ -175,13 +183,97 @@ class MessageWatcherAgentThread(threading.Thread):
 		if msg_type == ofproto_v1_0.OFPT_FEATURES_REPLY:
 			LOG.info('Forward FEATURES_REPLY Message at UPSTREAM')
 
-			msg = ofproto_v1_0_parser.OFPSwitchFeatures.parser(
-				self.datapath, version, msg_type, msg_len, xid, pkt)
+			msg = ofproto_v1_0_parser.OFPSwitchFeatures.parser(self.datapath, version, msg_type, msg_len, xid, pkt)
+			match = ofproto_v1_0_parser.OFPMatch(dl_type=ETH_TYPE_LLDP, dl_dst=lldp.LLDP_MAC_NEAREST_BRIDGE)
+			cookie = 0
+			command = ofproto_v1_0.OFPFC_ADD
+			idle_timeout = hard_timeout = 0
+			priority = 0
+			buffer_id= ofproto_v1_0.OFP_NO_BUFFER
+			out_port = ofproto_v1_0.OFPP_NONE
+			flags = 0
+			actions = [ofproto_v1_0_parser.OFPActionOutput(ofproto_v1_0.OFPP_CONTROLLER)]
+			mod = ofproto_v1_0_parser.OFPFlowMod(self.datapath, match, cookie, command, idle_timeout, hard_timeout, priority, buffer_id, out_port, flags, actions)
+			mod.serialize()
 
-			print(msg)
+			# self.switch_socket.sendall(mod.buf)
 
 			self.id = msg.datapath_id
 			self.ports= msg.ports
+
+			for port in self.ports.values():
+				pkt_lldp = packet.Packet()
+
+				dst = lldp.LLDP_MAC_NEAREST_BRIDGE
+				src = port.hw_addr
+				ethertype = ETH_TYPE_LLDP
+				eth_pkt = ethernet.ethernet(dst, src, ethertype)
+				pkt_lldp.add_protocol(eth_pkt)
+
+				tlv_chassis_id = lldp.ChassisID(
+					subtype=lldp.ChassisID.SUB_LOCALLY_ASSIGNED,
+					chassis_id='dpid:%s' % dpid_to_str(self.id))
+
+				tlv_port_id = lldp.PortID(subtype=lldp.PortID.SUB_PORT_COMPONENT,
+										  port_id=struct.pack('!I', port.port_no))
+
+				tlv_ttl = lldp.TTL(ttl=120)
+				tlv_desc = lldp.PortDescription(port_description="ProxyTopologyMonitorLLDP")
+				tlv_end = lldp.End()
+
+				tlvs = (tlv_chassis_id, tlv_port_id, tlv_ttl, tlv_desc, tlv_end)
+				lldp_pkt = lldp.lldp(tlvs)
+				pkt_lldp.add_protocol(lldp_pkt)
+
+				pkt_lldp.serialize()
+
+				actions = [ofproto_v1_0_parser.OFPActionOutput(port.port_no)]
+				out = ofproto_v1_0_parser.OFPPacketOut(
+					datapath=self.datapath, in_port=ofproto_v1_0.OFPP_CONTROLLER,
+					buffer_id=ofproto_v1_0.OFP_NO_BUFFER, actions=actions,
+					data=pkt_lldp.data)
+				out.serialize()
+
+				t = threading.Timer(1, self.switch_socket.sendall, (out.buf,))
+				t.start()
+				LOG.info('Send LLDP Message to UPSTREAM')
+
+		# Asynchronous messages
+		elif msg_type == ofproto_v1_0.OFPT_PACKET_IN:
+			LOG.info('Forward PACKET_IN Message at UPSTREAM')
+
+			msg = ofproto_v1_0_parser.OFPPacketIn.parser(
+				self.datapath, version, msg_type, msg_len, xid, pkt)
+			pkt_msg = packet.Packet(msg.data)
+
+			if pkt_msg.get_protocol(ethernet.ethernet).ethertype == ETH_TYPE_LLDP:
+				LOG.info('Forward PACKET_IN LLDP Message at UPSTREAM')
+				lldp_msg = pkt_msg.get_protocol(lldp.lldp)
+
+				# if lldp_msg:
+				if lldp_msg.tlvs[3].tlv_info == "ProxyTopologyMonitorLLDP":
+
+					(port,) = struct.unpack('!I', lldp_msg.tlvs[1].port_id)
+					switch_src = str_to_dpid(lldp_msg.tlvs[0].chassis_id[5:])
+
+					# print("----------------------------")
+					print(lldp_msg)
+
+					# Write to database
+					self.db.topology.insert_one({"switch_dst": self.id,
+												 "port_dst": msg.in_port,
+												 "switch_src": switch_src,
+												 "port_src": port,
+												 "timestamp": datetime.datetime.utcnow()})
+
+					#dict = msg.to_jsondict().update(lldp_msg.to_jsondict())
+					#self.db.topology_watcher.insert_one([msg.to_jsondict(), lldp_msg.to_jsondict()])
+
+					return
+
+				elif lldp_msg.tlvs[3].tlv_info != "ProxyTopologyMonitorLLDP":
+					# print(lldp_msg)
+					print("Controller LLDP packet")
 
 		# Asynchronous messages
 		#elif msg_type == ofproto_v1_0.OFPT_FLOW_REMOVED:
@@ -208,8 +300,8 @@ class MessageWatcherAgentThread(threading.Thread):
 
 		#    self.db.flow_mods.remove(db_message)
 
-		elif msg_type == ofproto_v1_0.OFPT_PACKET_IN:
-			self.db.packet_in.insert_one({"Switch": self.id, "Type": msg_type, "Timestamp": datetime.datetime.utcnow()})
+		# elif msg_type == ofproto_v1_0.OFPT_PACKET_IN:
+		# 	self.db.packet_in.insert_one({"Switch": self.id, "Type": msg_type, "Timestamp": datetime.datetime.utcnow()})
 		#    LOG.info('Forward PACKET_IN Message at UPSTREAM')
 
 		#    msg = ofproto_v1_0_parser.OFPPacketIn.parser(
@@ -232,10 +324,11 @@ class MessageWatcherAgentThread(threading.Thread):
 
 		#    self.db.packet_in.insert_one(db_message)
 
-		elif msg_type == ofproto_v1_0.OFPT_ECHO_REQUEST:
-			self.db.echo_request.insert_one({"Switch": self.id, "Type": msg_type, "Timestamp": datetime.datetime.utcnow()})
+		# elif msg_type == ofproto_v1_0.OFPT_ECHO_REQUEST:
+		# 	self.db.echo_request.insert_one({"Switch": self.id, "Type": msg_type, "Timestamp": datetime.datetime.utcnow()})
 
 		self.db.all_packet.insert_one({"Switch": self.id, "Type": msg_type, "Timestamp": datetime.datetime.utcnow()})
+
 		self.controller_socket.send(pkt)
 
 
@@ -276,7 +369,7 @@ if __name__ == '__main__':
 
 	# log.init_log()
 
-	LISTEN_HOST, LISTEN_PORT = '0.0.0.0', 7643
+	LISTEN_HOST, LISTEN_PORT = '0.0.0.0', 6653
 	FORWARD_HOST, FORWARD_PORT = 'sd-lemon.naist.jp', 6633
 	# FORWARD_HOST, FORWARD_PORT = 'localhost', 6653
 	manager = MessageWatcher(LISTEN_HOST, LISTEN_PORT, FORWARD_HOST, FORWARD_PORT)

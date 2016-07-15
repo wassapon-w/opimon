@@ -39,6 +39,7 @@ getJSON('http://sd-lemon.naist.jp:3000/flowmods', function(err, output){
 function getSettings() {
     getJSON('http://sd-lemon.naist.jp:3000/settings.json', function(err, output){
         data["settings"] = output;
+        console.log(data);
         visualize();
     });
 }

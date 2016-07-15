@@ -119,7 +119,7 @@ app.get('/topology', function (req, res) {
                   }
                 }
                 if(isNew) {
-                  topology["node"][j]["connect_to"].push(topologyDatabase[i]["switch_dst"]);
+                  topology["node"][j]["connect_to"].push(topologyDatabase[i]["switch_dst"] + '');
 
                   topologyDatabase[i]["source"] = topologyDatabase[i]["switch_src"] + '';
                   topologyDatabase[i]["target"] = topologyDatabase[i]["switch_dst"] + '';
@@ -136,7 +136,7 @@ app.get('/topology', function (req, res) {
               node["id"] = topologyDatabase[i]["switch_src"] + '';
               node["group"] = 1;
               node["connect_to"] = [];
-              node["connect_to"].push(topologyDatabase[i]["switch_dst"]);
+              node["connect_to"].push(topologyDatabase[i]["switch_dst"] + '');
               topology["node"].push(node);
 
               topologyDatabase[i]["source"] = topologyDatabase[i]["switch_src"] + '';

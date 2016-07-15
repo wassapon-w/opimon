@@ -40,7 +40,7 @@ class MessageWatcherAgentThread(threading.Thread):
 		self.id = None
 
 		# Connect to database
-		client = MongoClient('localhost', 27017)
+		client = MongoClient('sd-lemon.naist.jp', 9999)
 		self.db = client.test
 
 	def run(self):

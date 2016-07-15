@@ -48,7 +48,7 @@ class TopologyWatcherAgentThread(threading.Thread):
 		# client = MongoClient('localhost', 27017)
 		# self.db = client['netspec']
 
-		client = MongoClient('localhost', 27017)
+		client = MongoClient('sd-lemon.naist.jp', 9999)
 		self.db = client.test
 
 	def run(self):

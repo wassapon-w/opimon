@@ -18,7 +18,7 @@ app.get('/d3.v4.min.js', function(req, res){
 });
 
 app.get('/visualize.js', function(req, res){
-    res.sendFile(path.join(__dirname, './public', 'visualize.js'));
+    res.sendFile(path.join(__dirname, './public/js', 'visualize.js'));
 });
 
 app.get('/settings.json', function(req, res){

@@ -107,6 +107,8 @@ app.get('/topology', function (req, res) {
           topology["node"] = [];
           topology["link"] = [];
 
+          var checkSwitch = {};
+
           var nodeCounter = 0;
           for(var i = 0; i < topologyDatabase.length; i++) {
             var isNew = true;
@@ -121,12 +123,18 @@ app.get('/topology', function (req, res) {
                 if(isNew) {
                   topology["node"][j]["connect_to"].push(topologyDatabase[i]["switch_dst"] + '');
 
+                  if(checkSwitch[topologyDatabase[i]["switch_dst"] + ''] != 1) {
+                    var node = {};
+                    node["id"] = topologyDatabase[i]["switch_dst"] + '';
+                    node["group"] = 1;
+                    node["connect_to"] = [];
+                    topology["node"].push(node);
+                  }
+
                   topologyDatabase[i]["source"] = topologyDatabase[i]["switch_src"] + '';
                   topologyDatabase[i]["target"] = topologyDatabase[i]["switch_dst"] + '';
                   topologyDatabase[i]["value"] = 1;
-                  if(topologyDatabase[i]["source"] != undefined && topologyDatabase[i]["target"] != undefined) {
-                    topology["link"].push(topologyDatabase[i]);
-                  }
+                  topology["link"].push(topologyDatabase[i]);
                   isNew = false;
                   break;
                 }
@@ -141,13 +149,22 @@ app.get('/topology', function (req, res) {
               node["connect_to"].push(topologyDatabase[i]["switch_dst"] + '');
               topology["node"].push(node);
 
+              checkSwitch[topologyDatabase[i]["switch_src"] + ''] = 1;
+              if(checkSwitch[topologyDatabase[i]["switch_dst"] + ''] != 1) {
+                var node = {};
+                node["id"] = topologyDatabase[i]["switch_dst"] + '';
+                node["group"] = 1;
+                node["connect_to"] = [];
+                topology["node"].push(node);
+              }
+
               topologyDatabase[i]["source"] = topologyDatabase[i]["switch_src"] + '';
               topologyDatabase[i]["target"] = topologyDatabase[i]["switch_dst"] + '';
               topologyDatabase[i]["value"] = 1;
-              if(topologyDatabase[i]["source"] != undefined && topologyDatabase[i]["target"] != undefined) {
-                topology["link"].push(topologyDatabase[i]);
-              }
+              topology["link"].push(topologyDatabase[i]);
             }
+
+
           }
 
           topology["nodeCounter"] = nodeCounter;

@@ -17,27 +17,27 @@ var getJSON = function(url, callback) {
 
 $(document).ready(function(){
     $('#showfull').click(function(){
-      getJSON('http://192.168.22.132:3000/flowmods', function(err, output){
+      getJSON('http://sd-lemon.naist.jp:3000/flowmods', function(err, output){
           data["flowmods"] = output;
           showFlowTable($(document.getElementById("flowTable")), data);
       });
     });
 });
 
-getJSON('http://192.168.22.132:3000/topology', function(err, output){
+getJSON('http://sd-lemon.naist.jp:3000/topology', function(err, output){
     data["switch"] = output["node"];
     data["connect"] = output["link"];
     data["switchCounter"] = output["nodeCounter"];
     getSettings();
 });
 
-getJSON('http://192.168.22.132:3000/flowmods', function(err, output){
+getJSON('http://sd-lemon.naist.jp:3000/flowmods', function(err, output){
     data["flowmods"] = output;
     showFlowTable($(document.getElementById("flowTable")), data);
 });
 
 function getSettings() {
-    getJSON('http://192.168.22.132:3000/settings.json', function(err, output){
+    getJSON('http://sd-lemon.naist.jp:3000/settings.json', function(err, output){
         data["settings"] = output;
         visualize();
     });
@@ -128,15 +128,10 @@ function visualize() {
     }
 
     function dragstarted(d) {
-        // if (!d3.event.active) simulation.alphaTarget(0.3).restart();
-        // d.fx = d.x;
-        // d.fy = d.y;
         force.stop()
     }
 
     function dragged(d) {
-        // d.fx = d3.event.x;
-        // d.fy = d3.event.y;
         d.px += d3.event.dx;
         d.py += d3.event.dy;
         d.x += d3.event.dx;
@@ -145,9 +140,6 @@ function visualize() {
     }
 
     function dragended(d) {
-        // if (!d3.event.active) simulation.alphaTarget(0);
-        // d.fx = null;
-        // d.fy = null;
         d.fixed = true;
         ticked();
         force.resume();
@@ -283,7 +275,7 @@ function showFlowTableByID(container, data, switch_id) {
 }
 
 function getNewFlowTableData(container, data, switch_id) {
-  getJSON('http://192.168.22.132:3000/flowmods', function(err, output){
+  getJSON('http://sd-lemon.naist.jp:3000/flowmods', function(err, output){
       data["flowmods"] = output;
       showFlowTableByID(container, data, switch_id);
   });

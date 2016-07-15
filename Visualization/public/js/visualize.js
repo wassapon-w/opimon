@@ -128,7 +128,7 @@ function visualize() {
     }
 
     function dragstarted(d) {
-        force.stop()
+        // force.stop()
     }
 
     function dragged(d) {
@@ -142,7 +142,7 @@ function visualize() {
     function dragended(d) {
         d.fixed = true;
         ticked();
-        force.resume();
+        // force.resume();
     }
 
     function mouseClick(d) {

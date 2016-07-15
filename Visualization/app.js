@@ -129,6 +129,7 @@ app.get('/topology', function (req, res) {
                     node["group"] = 1;
                     node["connect_to"] = [];
                     topology["node"].push(node);
+                    checkSwitch[topologyDatabase[i]["switch_dst"] + ''] = 1;
                   }
 
                   topologyDatabase[i]["source"] = topologyDatabase[i]["switch_src"] + '';
@@ -140,6 +141,7 @@ app.get('/topology', function (req, res) {
                 }
               }
             }
+
             if(isNew) {
               nodeCounter++;
               var node = {};
@@ -148,14 +150,15 @@ app.get('/topology', function (req, res) {
               node["connect_to"] = [];
               node["connect_to"].push(topologyDatabase[i]["switch_dst"] + '');
               topology["node"].push(node);
-
               checkSwitch[topologyDatabase[i]["switch_src"] + ''] = 1;
+              
               if(checkSwitch[topologyDatabase[i]["switch_dst"] + ''] != 1) {
                 var node = {};
                 node["id"] = topologyDatabase[i]["switch_dst"] + '';
                 node["group"] = 1;
                 node["connect_to"] = [];
                 topology["node"].push(node);
+                checkSwitch[topologyDatabase[i]["switch_dst"] + ''] = 1;
               }
 
               topologyDatabase[i]["source"] = topologyDatabase[i]["switch_src"] + '';
@@ -163,8 +166,6 @@ app.get('/topology', function (req, res) {
               topologyDatabase[i]["value"] = 1;
               topology["link"].push(topologyDatabase[i]);
             }
-
-
           }
 
           topology["nodeCounter"] = nodeCounter;

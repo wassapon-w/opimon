@@ -5,7 +5,7 @@ var app = express();
 var MongoClient = require('mongodb').MongoClient;
 var assert = require('assert');
 var ObjectId = require('mongodb').ObjectID;
-var url = 'mongodb://localhost:27017/test';
+var url = 'mongodb://sd-lemon.naist.jp:9999/test';
 var counter = 0;
 
 app.get('/', function(req, res){

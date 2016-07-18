@@ -256,13 +256,13 @@ class MessageWatcherAgentThread(threading.Thread):
 					(port,) = struct.unpack('!I', lldp_msg.tlvs[1].port_id)
 					switch_src = str_to_dpid(lldp_msg.tlvs[0].chassis_id[5:])
 
-					# print("----------------------------")
+					print("Proxy LLDP Packet")
 					print(lldp_msg)
 
 					# Write to database
-					self.db.topology.insert_one({"switch_dst": self.id,
+					self.db.topology.insert_one({"switch_dst": hex(self.id),
 												 "port_dst": msg.in_port,
-												 "switch_src": switch_src,
+												 "switch_src": hex(switch_src),
 												 "port_src": port,
 												 "timestamp": datetime.datetime.utcnow()})
 

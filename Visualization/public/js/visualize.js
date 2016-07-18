@@ -61,10 +61,10 @@ function visualize() {
        .enter().append("svg:marker")
        .attr("id", String)
        .attr("viewBox", "0 -5 10 10")
-       .attr("refX", 20)
+       .attr("refX", 22)
        .attr("refY", 0)
-       .attr("markerWidth", 6)
-       .attr("markerHeight", 6)
+       .attr("markerWidth", 5)
+       .attr("markerHeight", 5)
        .attr("orient", "auto")
        .append("svg:path")
        .attr("d", "M0,-5L10,0L0,5");
@@ -145,11 +145,25 @@ function visualize() {
 
       path
           .attr("d", function(d) {
-              var dx = d.target.x - d.source.x,
-                  dy = d.target.y - d.source.y,
-                  dr = Math.sqrt(dx * dx + dy * dy);
+              if(data["settings"][d.source.id] != undefined) {
+                  var dx_source = data["settings"][d.source.id]["x"];
+                  var dy_source = data["settings"][d.source.id]["y"];
+              }
+              else {
+                  var dx_source = d.source.x;
+                  var dy_source = d.source.y;
+              }
 
-              return "M" + d.source.x + "," + d.source.y + "A" + 0 + "," + 0 + " 0 1,1 " + d.target.x + "," + d.target.y;
+              if(data["settings"][d.target.id] != undefined) {
+                  var dx_target = data["settings"][d.target.id]["x"];
+                  var dy_target = data["settings"][d.target.id]["y"];
+              }
+              else {
+                  var dx_target = d.target.x;
+                  var dy_target = d.target.y;
+              }
+
+              return "M" + dx_source + "," + dy_source + "A" + 0 + "," + 0 + " 0 0,1 " + dx_target + "," + dy_target;
       });
 
       node

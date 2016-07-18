@@ -17,27 +17,27 @@ var getJSON = function(url, callback) {
 
 $(document).ready(function(){
     $('#showfull').click(function(){
-      getJSON('http://192.168.22.132:3000/flowmods', function(err, output){
+      getJSON('http://sd-lemon.naist.jp:3000/flowmods', function(err, output){
           data["flowmods"] = output;
           showFlowTable($(document.getElementById("flowTable")), data);
       });
     });
 });
 
-getJSON('http://192.168.22.132:3000/topology', function(err, output){
+getJSON('http://sd-lemon.naist.jp:3000/topology', function(err, output){
     data["switch"] = output["node"];
     data["connect"] = output["link"];
     data["switchCounter"] = output["nodeCounter"];
     getSettings();
 });
 
-getJSON('http://192.168.22.132:3000/flowmods', function(err, output){
+getJSON('http://sd-lemon.naist.jp:3000/flowmods', function(err, output){
     data["flowmods"] = output;
     showFlowTable($(document.getElementById("flowTable")), data);
 });
 
 function getSettings() {
-    getJSON('http://192.168.22.132:3000/settings.json', function(err, output){
+    getJSON('http://sd-lemon.naist.jp:3000/settings.json', function(err, output){
         data["settings"] = output;
         console.log(data);
         visualize();
@@ -45,7 +45,7 @@ function getSettings() {
 }
 
 function getNewFlowTableData(container, data, switch_id) {
-  getJSON('http://192.168.22.132:3000/flowmods', function(err, output){
+  getJSON('http://sd-lemon.naist.jp:3000/flowmods', function(err, output){
       data["flowmods"] = output;
       showFlowTableByID(container, data, switch_id);
   });
@@ -75,15 +75,6 @@ function visualize() {
                        .force("link", d3.forceLink().id(function(d) { return d.id; }))
                        .force("charge", d3.forceManyBody())
                        .force("center", d3.forceCenter(width / 2, height / 2));
-
-    // var link = svg.append("g")
-    //               .attr("class", "links")
-    //               .selectAll("line")
-    //               .attr('id', 'markers')
-    //               .data(data.connect)
-    //               .style("stroke-width", function(d) { return Math.sqrt(d.value); })
-    //               .attr("marker-end", "url(#end)")
-    //               .enter().append("line");
 
     var path = svg.append("g").selectAll("path")
                   .data(data.connect)
@@ -128,20 +119,6 @@ function visualize() {
         .links(data.connect);
 
     function ticked() {
-
-      // link
-      //     .attr("x1", function(d) {
-      //         if(data["settings"][d.source.id] != undefined) { return data["settings"][d.source.id]["x"]; }
-      //         else { return d.source.x; } })
-      //     .attr("y1", function(d) {
-      //         if(data["settings"][d.source.id] != undefined) { return data["settings"][d.source.id]["y"]; }
-      //         else { return d.source.y; } })
-      //     .attr("x2", function(d) {
-      //         if(data["settings"][d.target.id] != undefined) { return data["settings"][d.target.id]["x"]; }
-      //         else { return d.target.x; } })
-      //     .attr("y2", function(d) {
-      //         if(data["settings"][d.target.id] != undefined) { return data["settings"][d.target.id]["y"]; }
-      //         else { return d.target.y; } })
 
       path
           .attr("d", function(d) {

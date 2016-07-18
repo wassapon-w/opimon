@@ -109,7 +109,7 @@ class MessageWatcherAgentThread(threading.Thread):
 
 		# Controller command messages
 		if msg_type == ofproto_v1_0.OFPT_FLOW_MOD:
-			LOG.info('Forward FLOW_MOD Message at DOWNSTREAM')
+			# LOG.info('Forward FLOW_MOD Message at DOWNSTREAM')
 
 			msg = ofproto_v1_0_parser_extention.OFPFlowMod.parser(
 				self.datapath, version, msg_type, msg_len, xid, pkt)
@@ -168,8 +168,6 @@ class MessageWatcherAgentThread(threading.Thread):
 			msg = ofproto_v1_0_parser.OFPEchoReply.parser(
 				self.datapath, version, msg_type, msg_len, xid, pkt)
 
-			print(msg)
-
 			self.db.echo_reply.insert_one({"Switch": self.id, "Type": msg_type, "Timestamp": datetime.datetime.utcnow()})
 
 		self.db.all_packet.insert_one({"Switch": self.id, "Type": msg_type, "Timestamp": datetime.datetime.utcnow()})
@@ -181,7 +179,7 @@ class MessageWatcherAgentThread(threading.Thread):
 
 		# Switch configuration messages
 		if msg_type == ofproto_v1_0.OFPT_FEATURES_REPLY:
-			LOG.info('Forward FEATURES_REPLY Message at UPSTREAM')
+			# LOG.info('Forward FEATURES_REPLY Message at UPSTREAM')
 
 			msg = ofproto_v1_0_parser.OFPSwitchFeatures.parser(self.datapath, version, msg_type, msg_len, xid, pkt)
 			match = ofproto_v1_0_parser.OFPMatch(dl_type=ETH_TYPE_LLDP, dl_dst=lldp.LLDP_MAC_NEAREST_BRIDGE)
@@ -236,18 +234,18 @@ class MessageWatcherAgentThread(threading.Thread):
 
 				t = threading.Timer(1, self.switch_socket.sendall, (out.buf,))
 				t.start()
-				LOG.info('Send LLDP Message to UPSTREAM')
+				# LOG.info('Send LLDP Message to UPSTREAM')
 
 		# Asynchronous messages
 		elif msg_type == ofproto_v1_0.OFPT_PACKET_IN:
-			LOG.info('Forward PACKET_IN Message at UPSTREAM')
+			# LOG.info('Forward PACKET_IN Message at UPSTREAM')
 
 			msg = ofproto_v1_0_parser.OFPPacketIn.parser(
 				self.datapath, version, msg_type, msg_len, xid, pkt)
 			pkt_msg = packet.Packet(msg.data)
 
 			if pkt_msg.get_protocol(ethernet.ethernet).ethertype == ETH_TYPE_LLDP:
-				LOG.info('Forward PACKET_IN LLDP Message at UPSTREAM')
+				# LOG.info('Forward PACKET_IN LLDP Message at UPSTREAM')
 				lldp_msg = pkt_msg.get_protocol(lldp.lldp)
 
 				# if lldp_msg:
@@ -257,7 +255,7 @@ class MessageWatcherAgentThread(threading.Thread):
 					switch_src = str_to_dpid(lldp_msg.tlvs[0].chassis_id[5:])
 
 					print("Proxy LLDP Packet")
-					print(lldp_msg)
+					# print(lldp_msg)
 
 					# Write to database
 					self.db.topology.insert_one({"switch_dst": hex(self.id),
@@ -273,7 +271,8 @@ class MessageWatcherAgentThread(threading.Thread):
 
 				elif lldp_msg.tlvs[3].tlv_info != "ProxyTopologyMonitorLLDP":
 					# print(lldp_msg)
-					print("Controller LLDP packet")
+					# print("Controller LLDP packet")
+					pass
 
 		# Asynchronous messages
 		#elif msg_type == ofproto_v1_0.OFPT_FLOW_REMOVED:

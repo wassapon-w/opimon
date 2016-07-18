@@ -17,27 +17,27 @@ var getJSON = function(url, callback) {
 
 $(document).ready(function(){
     $('#showfull').click(function(){
-      getJSON('http://sd-lemon.naist.jp:3000/flowmods', function(err, output){
+      getJSON('http://192.168.22.132:3000/flowmods', function(err, output){
           data["flowmods"] = output;
           showFlowTable($(document.getElementById("flowTable")), data);
       });
     });
 });
 
-getJSON('http://sd-lemon.naist.jp:3000/topology', function(err, output){
+getJSON('http://192.168.22.132:3000/topology', function(err, output){
     data["switch"] = output["node"];
     data["connect"] = output["link"];
     data["switchCounter"] = output["nodeCounter"];
     getSettings();
 });
 
-getJSON('http://sd-lemon.naist.jp:3000/flowmods', function(err, output){
+getJSON('http://192.168.22.132:3000/flowmods', function(err, output){
     data["flowmods"] = output;
     showFlowTable($(document.getElementById("flowTable")), data);
 });
 
 function getSettings() {
-    getJSON('http://sd-lemon.naist.jp:3000/settings.json', function(err, output){
+    getJSON('http://192.168.22.132:3000/settings.json', function(err, output){
         data["settings"] = output;
         console.log(data);
         visualize();
@@ -45,7 +45,7 @@ function getSettings() {
 }
 
 function getNewFlowTableData(container, data, switch_id) {
-  getJSON('http://sd-lemon.naist.jp:3000/flowmods', function(err, output){
+  getJSON('http://192.168.22.132:3000/flowmods', function(err, output){
       data["flowmods"] = output;
       showFlowTableByID(container, data, switch_id);
   });
@@ -56,6 +56,19 @@ function visualize() {
         width = svg.attr("width"),
         height = svg.attr("height");
 
+    svg.append("svg:defs").selectAll("marker")
+       .data(["arrow"])
+       .enter().append("svg:marker")
+       .attr("id", String)
+       .attr("viewBox", "0 -5 10 10")
+       .attr("refX", 20)
+       .attr("refY", 0)
+       .attr("markerWidth", 6)
+       .attr("markerHeight", 6)
+       .attr("orient", "auto")
+       .append("svg:path")
+       .attr("d", "M0,-5L10,0L0,5");
+
     var color = d3.scaleOrdinal(d3.schemeCategory20);
 
     var simulation = d3.forceSimulation()
@@ -63,11 +76,20 @@ function visualize() {
                        .force("charge", d3.forceManyBody())
                        .force("center", d3.forceCenter(width / 2, height / 2));
 
-    var link = svg.append("g")
-                  .attr("class", "links")
-                  .selectAll("line")
+    // var link = svg.append("g")
+    //               .attr("class", "links")
+    //               .selectAll("line")
+    //               .attr('id', 'markers')
+    //               .data(data.connect)
+    //               .style("stroke-width", function(d) { return Math.sqrt(d.value); })
+    //               .attr("marker-end", "url(#end)")
+    //               .enter().append("line");
+
+    var path = svg.append("g").selectAll("path")
                   .data(data.connect)
-                  .enter().append("line");
+                  .enter().append("path")
+                  .attr("class", "link")
+                  .attr("marker-end", "url(#arrow)");
 
     var node = svg.append("g")
                   .attr("class", "nodes")
@@ -107,19 +129,28 @@ function visualize() {
 
     function ticked() {
 
-      link
-          .attr("x1", function(d) {
-              if(data["settings"][d.source.id] != undefined) { return data["settings"][d.source.id]["x"]; }
-              else { return d.source.x; } })
-          .attr("y1", function(d) {
-              if(data["settings"][d.source.id] != undefined) { return data["settings"][d.source.id]["y"]; }
-              else { return d.source.y; } })
-          .attr("x2", function(d) {
-              if(data["settings"][d.target.id] != undefined) { return data["settings"][d.target.id]["x"]; }
-              else { return d.target.x; } })
-          .attr("y2", function(d) {
-              if(data["settings"][d.target.id] != undefined) { return data["settings"][d.target.id]["y"]; }
-              else { return d.target.y; } });
+      // link
+      //     .attr("x1", function(d) {
+      //         if(data["settings"][d.source.id] != undefined) { return data["settings"][d.source.id]["x"]; }
+      //         else { return d.source.x; } })
+      //     .attr("y1", function(d) {
+      //         if(data["settings"][d.source.id] != undefined) { return data["settings"][d.source.id]["y"]; }
+      //         else { return d.source.y; } })
+      //     .attr("x2", function(d) {
+      //         if(data["settings"][d.target.id] != undefined) { return data["settings"][d.target.id]["x"]; }
+      //         else { return d.target.x; } })
+      //     .attr("y2", function(d) {
+      //         if(data["settings"][d.target.id] != undefined) { return data["settings"][d.target.id]["y"]; }
+      //         else { return d.target.y; } })
+
+      path
+          .attr("d", function(d) {
+              var dx = d.target.x - d.source.x,
+                  dy = d.target.y - d.source.y,
+                  dr = Math.sqrt(dx * dx + dy * dy);
+
+              return "M" + d.source.x + "," + d.source.y + "A" + 0 + "," + 0 + " 0 1,1 " + d.target.x + "," + d.target.y;
+      });
 
       node
           .attr("cx", function(d) {

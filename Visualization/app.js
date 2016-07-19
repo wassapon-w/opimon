@@ -197,6 +197,35 @@ app.get('/switch', function (req, res) {
   				console.log(counter + " : Request Switch Port from webpage");
   				db.close();
 
+          var switchPort = {};
+          var portChecker = {};
+
+          for(var i = 0; i < switchDatabase.length; i++) {
+            if(switchPort[switchDatabase[i]["switch_id"]] != undefined) {
+              if(portChecker[switchDatabase[i]["switch_id"]][switchDatabase[i]["port_no"]] != 1) {
+                var port = {};
+                port["port_no"] = switchDatabase[i]["port_no"];
+                port["hw_addr"] = switchDatabase[i]["hw_addr"];
+                switchPort[switchDatabase[i]]["ports"].push(port);
+
+                portChecker[switchDatabase[i]["switch_id"]][switchDatabase[i]["port_no"]] = 1;
+              }
+            }
+            else {
+              switchPort[switchDatabase[i]["switch_id"]] = {};
+              switchPort[switchDatabase[i]["switch_id"]]["switch_id"] = switchDatabase[i]["switch_id"];
+              switchPort[switchDatabase[i]["switch_id"]]["ports"] = [];
+
+              var port = {};
+              port["port_no"] = switchDatabase[i]["port_no"];
+              port["hw_addr"] = switchDatabase[i]["hw_addr"];
+              switchPort[switchDatabase[i]]["ports"].push(port);
+
+              portChecker[switchDatabase[i]["switch_id"]] = {}
+              portChecker[switchDatabase[i]["switch_id"]][switchDatabase[i]["port_no"]] = 1;
+            }
+          }
+
           res.json(switchDatabase);
   			}
   		});

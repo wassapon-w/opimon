@@ -226,7 +226,7 @@ app.get('/switch', function (req, res) {
             }
           }
 
-          res.json(switchDatabase);
+          res.json(switchPort);
   			}
   		});
   	});

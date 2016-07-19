@@ -204,10 +204,10 @@ class MessageWatcherAgentThread(threading.Thread):
 				# print(port.port_no)
 				# print(port.hw_addr)
 
-				self.db.switch.insert_one({"switch_id": hex(self.id),
-											 "port_no": port.port_no,
-											 "hw_addr": port.hw_addr,
-											 "timestamp": datetime.datetime.utcnow()})
+				self.db.switch_port.insert_one({"switch_id": hex(self.id),
+											 	"port_no": port.port_no,
+											 	"hw_addr": port.hw_addr,
+											 	"timestamp": datetime.datetime.utcnow()})
 
 				pkt_lldp = packet.Packet()
 

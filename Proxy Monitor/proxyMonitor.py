@@ -161,14 +161,14 @@ class MessageWatcherAgentThread(threading.Thread):
 			#t = threading.Thread(target=self.db.flow_mods.insert_one, args=(db_message,))
 			#t.start()
 
-		elif msg_type == ofproto_v1_0.OFPT_PACKET_OUT:
-			self.db.packet_out.insert_one({"Switch": self.id, "Type": msg_type, "Timestamp": datetime.datetime.utcnow()})
+		# elif msg_type == ofproto_v1_0.OFPT_PACKET_OUT:
+		# 	self.db.packet_out.insert_one({"Switch": self.id, "Type": msg_type, "Timestamp": datetime.datetime.utcnow()})
 
-		elif msg_type == ofproto_v1_0.OFPT_ECHO_REPLY:
-			msg = ofproto_v1_0_parser.OFPEchoReply.parser(self.datapath, version, msg_type, msg_len, xid, pkt)
-			self.db.echo_reply.insert_one({"Switch": self.id, "Type": msg_type, "Timestamp": datetime.datetime.utcnow()})
+		# elif msg_type == ofproto_v1_0.OFPT_ECHO_REPLY:
+		# 	msg = ofproto_v1_0_parser.OFPEchoReply.parser(self.datapath, version, msg_type, msg_len, xid, pkt)
+		# 	self.db.echo_reply.insert_one({"Switch": self.id, "Type": msg_type, "Timestamp": datetime.datetime.utcnow()})
 
-		self.db.all_packet.insert_one({"Switch": self.id, "Type": msg_type, "Timestamp": datetime.datetime.utcnow()})
+		# self.db.all_packet.insert_one({"Switch": self.id, "Type": msg_type, "Timestamp": datetime.datetime.utcnow()})
 		self.switch_socket.send(pkt)
 
 	# Switch to Controller
@@ -335,7 +335,7 @@ class MessageWatcherAgentThread(threading.Thread):
 		# elif msg_type == ofproto_v1_0.OFPT_ECHO_REQUEST:
 		# 	self.db.echo_request.insert_one({"Switch": self.id, "Type": msg_type, "Timestamp": datetime.datetime.utcnow()})
 
-		self.db.all_packet.insert_one({"Switch": self.id, "Type": msg_type, "Timestamp": datetime.datetime.utcnow()})
+		# self.db.all_packet.insert_one({"Switch": self.id, "Type": msg_type, "Timestamp": datetime.datetime.utcnow()})
 
 		self.controller_socket.send(pkt)
 

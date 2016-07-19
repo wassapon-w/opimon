@@ -117,7 +117,7 @@ class MessageWatcherAgentThread(threading.Thread):
 			# print(msg)
 
 			# Write to database
-			db_message = {"switch": self.id,
+			db_message = {"switch": hex(self.id),
 						  "message": {
 							  "header": {
 								  "version": version,

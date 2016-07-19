@@ -151,7 +151,7 @@ app.get('/topology', function (req, res) {
               node["connect_to"].push(topologyDatabase[i]["switch_dst"] + '');
               topology["node"].push(node);
               checkSwitch[topologyDatabase[i]["switch_src"] + ''] = 1;
-              
+
               if(checkSwitch[topologyDatabase[i]["switch_dst"] + ''] != 1) {
                 var node = {};
                 node["id"] = topologyDatabase[i]["switch_dst"] + '';
@@ -171,6 +171,33 @@ app.get('/topology', function (req, res) {
           topology["nodeCounter"] = nodeCounter;
 
           res.json(topology);
+  			}
+  		});
+  	});
+  }
+});
+
+app.get('/switch', function (req, res) {
+  getSwitchPort();
+
+  function getSwitchPort() {
+  	var switchDatabase = [];
+
+  	MongoClient.connect(url, function(err, db) {
+  		assert.equal(null, err);
+
+  		var cursor = db.collection('switch_port').find();
+  		cursor.each(function(err, doc) {
+  			assert.equal(err, null);
+  			if (doc != null) {
+  				switchDatabase.push(doc);
+  			}
+  			else {
+          counter++;
+  				console.log(counter + " : Request Switch Port from webpage");
+  				db.close();
+
+          res.json(switchDatabase);
   			}
   		});
   	});
@@ -225,6 +252,33 @@ app.get('/topologydata', function (req, res) {
   				db.close();
 
           res.json(topologyDatabase);
+  			}
+  		});
+  	});
+  }
+});
+
+app.get('/switchdata', function (req, res) {
+  getSwitchPort();
+
+  function getSwitchPort() {
+  	var switchDatabase = [];
+
+  	MongoClient.connect(url, function(err, db) {
+  		assert.equal(null, err);
+
+  		var cursor = db.collection('switch_port').find();
+  		cursor.each(function(err, doc) {
+  			assert.equal(err, null);
+  			if (doc != null) {
+  				switchDatabase.push(doc);
+  			}
+  			else {
+          counter++;
+  				console.log(counter + " : Request Switch Port (Full) from webpage");
+  				db.close();
+
+          res.json(switchDatabase);
   			}
   		});
   	});

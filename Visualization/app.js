@@ -206,7 +206,7 @@ app.get('/switch', function (req, res) {
                 var port = {};
                 port["port_no"] = switchDatabase[i]["port_no"];
                 port["hw_addr"] = switchDatabase[i]["hw_addr"];
-                switchPort[switchDatabase[i]]["ports"].push(port);
+                switchPort[switchDatabase[i]["switch_id"]]["ports"].push(port);
 
                 portChecker[switchDatabase[i]["switch_id"]][switchDatabase[i]["port_no"]] = 1;
               }

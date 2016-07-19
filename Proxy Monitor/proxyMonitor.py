@@ -111,10 +111,10 @@ class MessageWatcherAgentThread(threading.Thread):
 		if msg_type == ofproto_v1_0.OFPT_FLOW_MOD:
 			# LOG.info('Forward FLOW_MOD Message at DOWNSTREAM')
 
-			msg = ofproto_v1_0_parser_extention.OFPFlowMod.parser(
-				self.datapath, version, msg_type, msg_len, xid, pkt)
+			msg = ofproto_v1_0_parser.OFPFlowMod.parser(self.datapath, version, msg_type, msg_len, xid, pkt)
 
-			# print(msg);
+			print("Flow Mod Packet")
+			# print(msg)
 
 			# Write to database
 			db_message = {"switch": self.id,
@@ -165,9 +165,7 @@ class MessageWatcherAgentThread(threading.Thread):
 			self.db.packet_out.insert_one({"Switch": self.id, "Type": msg_type, "Timestamp": datetime.datetime.utcnow()})
 
 		elif msg_type == ofproto_v1_0.OFPT_ECHO_REPLY:
-			msg = ofproto_v1_0_parser.OFPEchoReply.parser(
-				self.datapath, version, msg_type, msg_len, xid, pkt)
-
+			msg = ofproto_v1_0_parser.OFPEchoReply.parser(self.datapath, version, msg_type, msg_len, xid, pkt)
 			self.db.echo_reply.insert_one({"Switch": self.id, "Type": msg_type, "Timestamp": datetime.datetime.utcnow()})
 
 		self.db.all_packet.insert_one({"Switch": self.id, "Type": msg_type, "Timestamp": datetime.datetime.utcnow()})
@@ -187,19 +185,30 @@ class MessageWatcherAgentThread(threading.Thread):
 			command = ofproto_v1_0.OFPFC_ADD
 			idle_timeout = hard_timeout = 0
 			priority = 0
-			buffer_id= ofproto_v1_0.OFP_NO_BUFFER
+			buffer_id = ofproto_v1_0.OFP_NO_BUFFER
 			out_port = ofproto_v1_0.OFPP_NONE
 			flags = 0
 			actions = [ofproto_v1_0_parser.OFPActionOutput(ofproto_v1_0.OFPP_CONTROLLER)]
 			mod = ofproto_v1_0_parser.OFPFlowMod(self.datapath, match, cookie, command, idle_timeout, hard_timeout, priority, buffer_id, out_port, flags, actions)
 			mod.serialize()
 
+			# print(msg)
+
 			# self.switch_socket.sendall(mod.buf)
 
 			self.id = msg.datapath_id
-			self.ports= msg.ports
+			self.ports = msg.ports
 
 			for port in self.ports.values():
+				# print(port)
+				# print(port.port_no)
+				# print(port.hw_addr)
+
+				self.db.switch.insert_one({"switch_id": hex(self.id),
+											 "port_no": port.port_no,
+											 "hw_addr": port.hw_addr,
+											 "timestamp": datetime.datetime.utcnow()})
+
 				pkt_lldp = packet.Packet()
 
 				dst = lldp.LLDP_MAC_NEAREST_BRIDGE

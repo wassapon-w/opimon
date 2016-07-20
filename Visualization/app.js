@@ -51,7 +51,7 @@ app.get('/flowmods', function (req, res) {
 
           for(var i = 0; i < flowModsDatabase.length; i++) {
             if(flowTable[flowModsDatabase[i]["switch"]] != undefined) {
-              if(flowModsDatabase[i]["message"]["actions"] != []) {
+              if(flowModsDatabase[i]["message"]["actions"][0] != undefined) {
                 var flow = {};
                 flow["switch_id"] = flowModsDatabase[i]["switch"];
                 flow["match"] = flowModsDatabase[i]["message"]["match"];
@@ -65,7 +65,7 @@ app.get('/flowmods', function (req, res) {
               flowTable[flowModsDatabase[i]["switch"]] = [];
               switchFlowTable.push(flowModsDatabase[i]["switch"]);
 
-              if(flowModsDatabase[i]["message"]["actions"] != []) {
+              if(flowModsDatabase[i]["message"]["actions"][0] != undefined) {
                 var flow = {};
                 flow["switch_id"] = flowModsDatabase[i]["switch"];
                 flow["match"] = flowModsDatabase[i]["message"]["match"];

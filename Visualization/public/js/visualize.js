@@ -44,10 +44,15 @@ function getSettings() {
     });
 }
 
-function getNewFlowTableData(container, data, switch_id) {
+function getNewSwitchData(data, switch_id) {
   getJSON('http://sd-lemon.naist.jp:3000/flowmods', function(err, output){
       data["flowmods"] = output;
-      showFlowTableByID(container, data, switch_id);
+      showFlowTableByID($(document.getElementById("flowTable")), data, switch_id);
+  });
+
+  getJSON('http://sd-lemon.naist.jp:3000/switch', function(err, output){
+      data["switch"] = output;
+      showSwitchPort($(document.getElementById("portTable")), data, switch_id);
   });
 }
 
@@ -176,7 +181,7 @@ function visualize() {
     }
 
     function mouseClick(d) {
-        getNewFlowTableData($(document.getElementById("flowTable")), data, d.id);
+        getNewSwitchData(data, d.id);
     }
 }
 
@@ -246,13 +251,13 @@ function showFlowTableByID(container, data, switch_id) {
     var currentTime = new Date(Date.now());
     showTime.textContent = "Time : " + currentTime.toString();
 
-    var showSwitch = document.getElementById("switch");
-    if(data["settings"][switch_id] != undefined) {
-        showSwitch.textContent = "Switch ID : " + switch_id + " (" + data["settings"][switch_id]["name"] + ")";
-    }
-    else {
-        showSwitch.textContent = "Switch ID : " + switch_id;
-    }
+    // var showSwitch = document.getElementById("switch");
+    // if(data["settings"][switch_id] != undefined) {
+    //     showSwitch.textContent = "Switch ID : " + switch_id + " (" + data["settings"][switch_id]["name"] + ")";
+    // }
+    // else {
+    //     showSwitch.textContent = "Switch ID : " + switch_id;
+    // }
 
     var table = $("<table/>").addClass('table');
     var head = $("<thead/>");
@@ -298,6 +303,39 @@ function showFlowTableByID(container, data, switch_id) {
             row.append($("<td/>").text(expireTime.toString()));
             body.append(row);
         }
+    });
+    table.append(body);
+
+    return container.html(table);
+}
+
+function showSwitchPort(container, data, switch_id) {
+    var showTime = document.getElementById("currentTime");
+    var currentTime = new Date(Date.now());
+    showTime.textContent = "Time : " + currentTime.toString();
+
+    var showSwitch = document.getElementById("switch");
+    if(data["settings"][switch_id] != undefined) {
+        showSwitch.textContent = "Switch ID : " + switch_id + " (" + data["settings"][switch_id]["name"] + ")";
+    }
+    else {
+        showSwitch.textContent = "Switch ID : " + switch_id;
+    }
+
+    var table = $("<table/>").addClass('table');
+    var head = $("<thead/>");
+    var row = $("<tr/>");
+    row.append($("<th/>").text("Port"));
+    row.append($("<th/>").text("Mac Address"));
+    head.append(row);
+    table.append(head);
+
+    var body = $("<tbody/>");
+    $.each(data["switch"][switch_id], function(rowIndex, r) {
+        var row = $("<tr/>");
+        row.append($("<td/>").text(r["port_no"]));
+        row.append($("<td/>").text(r["hw_addr"]));
+        body.append(row);
     });
     table.append(body);
 

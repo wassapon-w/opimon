@@ -269,7 +269,7 @@ function showFlowTableByID(container, data, switch_id) {
         var expireMillisec = Date.parse(r["timestamp"]) + (r["hard_timeout"] * 1000);
         var expireTime = new Date(expireMillisec);
 
-        if(expireTime > Date.now()) {
+        // if(expireTime > Date.now()) {
             var row = $("<tr/>");
             // row.append($("<td/>").text(r["switch_id"]));
 
@@ -297,7 +297,7 @@ function showFlowTableByID(container, data, switch_id) {
 
             // row.append($("<td/>").text(expireTime.toString()));
             body.append(row);
-        }
+        // }
     });
     table.append(body);
 
@@ -320,7 +320,7 @@ function showSwitchPort(container, data, switch_id) {
     var head = $("<thead/>");
     var row = $("<tr/>");
     row.append($("<th/>").text("Port"));
-    row.append($("<th/>").text("Mac Address"));
+    row.append($("<th/>").text("MAC Address"));
     head.append(row);
     table.append(head);
 

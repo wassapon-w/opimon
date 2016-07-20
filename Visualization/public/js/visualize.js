@@ -248,7 +248,7 @@ function showFlowTable(container, data) {
 
 function showFlowTableByID(container, data, switch_id) {
     var showHeader = document.getElementById("flowTableHead");
-    showTime.textContent = "Flow Table";
+    showHeader.textContent = "Flow Table";
 
     var showTime = document.getElementById("currentTime");
     var currentTime = new Date(Date.now());
@@ -306,7 +306,7 @@ function showFlowTableByID(container, data, switch_id) {
 
 function showSwitchPort(container, data, switch_id) {
     var showHeader = document.getElementById("portTableHead");
-    showTime.textContent = "Switch Detail";
+    showHeader.textContent = "Switch Detail";
 
     var showSwitch = document.getElementById("switch");
     if(data["settings"][switch_id] != undefined) {

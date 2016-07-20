@@ -331,7 +331,7 @@ function showSwitchPort(container, data, switch_id) {
     table.append(head);
 
     var body = $("<tbody/>");
-    $.each(data["switch"][switch_id], function(rowIndex, r) {
+    $.each(data["switch"][switch_id]["ports"], function(rowIndex, r) {
         var row = $("<tr/>");
         row.append($("<td/>").text(r["port_no"]));
         row.append($("<td/>").text(r["hw_addr"]));

@@ -247,17 +247,12 @@ function showFlowTable(container, data) {
 }
 
 function showFlowTableByID(container, data, switch_id) {
+    var showHeader = document.getElementById("flowTableHead");
+    showTime.textContent = "Flow Table";
+
     var showTime = document.getElementById("currentTime");
     var currentTime = new Date(Date.now());
     showTime.textContent = "Time : " + currentTime.toString();
-
-    // var showSwitch = document.getElementById("switch");
-    // if(data["settings"][switch_id] != undefined) {
-    //     showSwitch.textContent = "Switch ID : " + switch_id + " (" + data["settings"][switch_id]["name"] + ")";
-    // }
-    // else {
-    //     showSwitch.textContent = "Switch ID : " + switch_id;
-    // }
 
     var table = $("<table/>").addClass('table');
     var head = $("<thead/>");
@@ -310,9 +305,8 @@ function showFlowTableByID(container, data, switch_id) {
 }
 
 function showSwitchPort(container, data, switch_id) {
-    var showTime = document.getElementById("currentTime");
-    var currentTime = new Date(Date.now());
-    showTime.textContent = "Time : " + currentTime.toString();
+    var showHeader = document.getElementById("portTableHead");
+    showTime.textContent = "Switch Detail";
 
     var showSwitch = document.getElementById("switch");
     if(data["settings"][switch_id] != undefined) {

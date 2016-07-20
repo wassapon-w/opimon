@@ -51,25 +51,29 @@ app.get('/flowmods', function (req, res) {
 
           for(var i = 0; i < flowModsDatabase.length; i++) {
             if(flowTable[flowModsDatabase[i]["switch"]] != undefined) {
-              var flow = {};
-              flow["switch_id"] = flowModsDatabase[i]["switch"];
-              flow["match"] = flowModsDatabase[i]["message"]["match"];
-              flow["actions"] = flowModsDatabase[i]["message"]["actions"];
-              flow["hard_timeout"] = flowModsDatabase[i]["message"]["hard_timeout"];
-              flow["timestamp"] = flowModsDatabase[i]["timestamp"];
-              flowTable[flowModsDatabase[i]["switch"]].push(flow);
+              if(flowModsDatabase[i]["message"]["actions"] != []) {
+                var flow = {};
+                flow["switch_id"] = flowModsDatabase[i]["switch"];
+                flow["match"] = flowModsDatabase[i]["message"]["match"];
+                flow["actions"] = flowModsDatabase[i]["message"]["actions"];
+                flow["hard_timeout"] = flowModsDatabase[i]["message"]["hard_timeout"];
+                flow["timestamp"] = flowModsDatabase[i]["timestamp"];
+                flowTable[flowModsDatabase[i]["switch"]].push(flow);
+              }
             }
             else {
               flowTable[flowModsDatabase[i]["switch"]] = [];
               switchFlowTable.push(flowModsDatabase[i]["switch"]);
 
-              var flow = {};
-              flow["switch_id"] = flowModsDatabase[i]["switch"];
-              flow["match"] = flowModsDatabase[i]["message"]["match"];
-              flow["actions"] = flowModsDatabase[i]["message"]["actions"];
-              flow["hard_timeout"] = flowModsDatabase[i]["message"]["hard_timeout"];
-              flow["timestamp"] = flowModsDatabase[i]["timestamp"];
-              flowTable[flowModsDatabase[i]["switch"]].push(flow);
+              if(flowModsDatabase[i]["message"]["actions"] != []) {
+                var flow = {};
+                flow["switch_id"] = flowModsDatabase[i]["switch"];
+                flow["match"] = flowModsDatabase[i]["message"]["match"];
+                flow["actions"] = flowModsDatabase[i]["message"]["actions"];
+                flow["hard_timeout"] = flowModsDatabase[i]["message"]["hard_timeout"];
+                flow["timestamp"] = flowModsDatabase[i]["timestamp"];
+                flowTable[flowModsDatabase[i]["switch"]].push(flow);
+              }
             }
           }
 

@@ -19,7 +19,7 @@ $(document).ready(function(){
     $('#showfull').click(function(){
       getJSON('http://sd-lemon.naist.jp:3000/flowmods', function(err, output){
           data["flowmods"] = output;
-          showFlowTable($(document.getElementById("flowTable")), data);
+          // showFlowTable($(document.getElementById("flowTable")), data);
       });
     });
 });
@@ -33,7 +33,7 @@ getJSON('http://sd-lemon.naist.jp:3000/topology', function(err, output){
 
 getJSON('http://sd-lemon.naist.jp:3000/flowmods', function(err, output){
     data["flowmods"] = output;
-    showFlowTable($(document.getElementById("flowTable")), data);
+    // showFlowTable($(document.getElementById("flowTable")), data);
 });
 
 function getSettings() {
@@ -262,10 +262,10 @@ function showFlowTableByID(container, data, switch_id) {
     var table = $("<table/>").addClass('table');
     var head = $("<thead/>");
     var row = $("<tr/>");
-    row.append($("<th/>").text("Switch ID"));
+    // row.append($("<th/>").text("Switch ID"));
     row.append($("<th/>").text("Match"));
     row.append($("<th/>").text("Actions"));
-    row.append($("<th/>").text("Expire"));
+    // row.append($("<th/>").text("Expire"));
     head.append(row);
     table.append(head);
 
@@ -276,7 +276,7 @@ function showFlowTableByID(container, data, switch_id) {
 
         if(expireTime > Date.now()) {
             var row = $("<tr/>");
-            row.append($("<td/>").text(r["switch_id"]));
+            // row.append($("<td/>").text(r["switch_id"]));
 
             var match = $("<td/>");
             match.append($("<li/>").text("Wildcard : " + r["match"]["wildcards"] + "\n"));
@@ -300,7 +300,7 @@ function showFlowTableByID(container, data, switch_id) {
             action.append($("<li/>").text("Max Length : " + r["actions"][0]["max_len"] + "\n"));
             row.append(action);
 
-            row.append($("<td/>").text(expireTime.toString()));
+            // row.append($("<td/>").text(expireTime.toString()));
             body.append(row);
         }
     });

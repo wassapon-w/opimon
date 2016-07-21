@@ -1,6 +1,16 @@
 {
- "1":{"name": "Tokyo", "x":60 , "y":20},
- "2":{"name": "Osaka", "x":50 , "y":50},
- "3":{"name": "Bangkok", "x":100 , "y":200},
- "0x1018c1900e":{"name": "NAIST", "x":100 , "y":200}
+ "0x678c089e01e99495":{"name": "NAIST (Pica8)"},
+ "0x1018c1900e":{"name": "NAIST (sd-lemon)"},
+ "0x5008069821":{"name": "NAIST (sd-grape01)"},
+ "0x86d353c8544c":{"name": "Osaka (apple)"},
+ "0x3085a99581b7":{"name": "OsakaUmekita (nozomi3)"},
+ "0x201022039":{"name": "NICT (Tokyo)"},
+ "0x301032039":{"name": "NICT (Osaka)"},
+ "0x1101022039":{"name": "NICT (LA)"},
+ "0xcaa8089e018237b4":{"name": "UF (Pica P3295)"},
+ "0x2219629060":{"name": "UF (dirt00)"},
+ "0x678c089e01e994e5":{"name": "UCSD (Pica8-1)"},
+ "0x5e3e486e7302045e":{"name": "UCSD (Pica8-2)"},
+ "0x188b7ba34e":{"name": "UCSD (rocks-106)"},
+ "0x40a8f0303b75":{"name": "NCHC (NCHC)"}
 }

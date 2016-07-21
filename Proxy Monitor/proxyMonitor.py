@@ -109,7 +109,7 @@ class MessageWatcherAgentThread(threading.Thread):
 	def _downstream_parse(self, pkt):
 		pkt_obj = packet.Packet(data=pkt)
 		pkt_ipv4 = pkt_obj.get_protocol(ipv4.ipv4)
-		print(pkt_ipv4)
+		print(pkt_obj)
 		(version, msg_type, msg_len, xid) = ofproto_parser.header(pkt)
 		# print(pkt);
 

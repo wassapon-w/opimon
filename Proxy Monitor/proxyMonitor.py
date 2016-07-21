@@ -79,12 +79,12 @@ class MessageWatcherAgentThread(threading.Thread):
 				break
 
 			if sock is self.controller_socket:
-				downstream_buf += ret
-				downstream_buf = self._parse(self.downstream_buf, self._downstream_parse)
+				self.downstream_buf += ret
+				self.downstream_buf = self._parse(self.downstream_buf, self._downstream_parse)
 
 			if sock is self.switch_socket:
-				upstream_buf += ret
-				upstream_buf = self._parse(self.upstream_buf, self._upstream_parse)
+				self.upstream_buf += ret
+				self.upstream_buf = self._parse(self.upstream_buf, self._upstream_parse)
 
 	def _close(self):
 		self.controller_socket.close()

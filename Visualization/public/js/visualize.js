@@ -128,8 +128,14 @@ function visualize() {
       path
           .attr("d", function(d) {
               if(data["settings"][d.source.id] != undefined) {
-                  var dx_source = data["settings"][d.source.id]["x"];
-                  var dy_source = data["settings"][d.source.id]["y"];
+                  if(data["settings"][d.source.id]["x"] != undefined && data["settings"][d.source.id]["y"] != undefined) {
+                      var dx_source = data["settings"][d.source.id]["x"];
+                      var dy_source = data["settings"][d.source.id]["y"];
+                  }
+                  else {
+                      var dx_source = d.source.x;
+                      var dy_source = d.source.y;
+                  }
               }
               else {
                   var dx_source = d.source.x;
@@ -137,8 +143,14 @@ function visualize() {
               }
 
               if(data["settings"][d.target.id] != undefined) {
-                  var dx_target = data["settings"][d.target.id]["x"];
-                  var dy_target = data["settings"][d.target.id]["y"];
+                  if(data["settings"][d.target.id]["x"] != undefined && data["settings"][d.target.id]["y"] != undefined) {
+                      var dx_target = data["settings"][d.target.id]["x"];
+                      var dy_target = data["settings"][d.target.id]["y"];
+                  }
+                  else {
+                      var dx_target = d.target.x;
+                      var dy_target = d.target.y;
+                  }
               }
               else {
                   var dx_target = d.target.x;
@@ -150,15 +162,24 @@ function visualize() {
 
       node
           .attr("cx", function(d) {
-              if(data["settings"][d.id] != undefined) { return data["settings"][d.id]["x"]; }
+              if(data["settings"][d.id] != undefined) {
+                  if(data["settings"][d.id]["x"] != undefined) { return data["settings"][d.id]["x"]; }
+                  else { return d.x; }
+              }
               else { return d.x; } })
           .attr("cy", function(d) {
-              if(data["settings"][d.id] != undefined) { return data["settings"][d.id]["y"]; }
+              if(data["settings"][d.id] != undefined) {
+                  if(data["settings"][d.id]["y"] != undefined) { return data["settings"][d.id]["y"]; }
+                  else { return d.y; }
+              }
               else { return d.y; } });
 
       switchLabel
           .attr("transform", function(d) {
-              if(data["settings"][d.id] != undefined) { return 'translate(' + [data["settings"][d.id]["x"], data["settings"][d.id]["y"]] + ')'; }
+              if(data["settings"][d.id] != undefined) {
+                  if(data["settings"][d.id]["x"] != undefined && data["settings"][d.id]["y"] != undefined) { return 'translate(' + [data["settings"][d.id]["x"], data["settings"][d.id]["y"]] + ')'; }
+                  else { return 'translate(' + [d.x, d.y] + ')'; }
+              }
               else { return 'translate(' + [d.x, d.y] + ')'; } });
     }
 

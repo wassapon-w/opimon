@@ -44,6 +44,8 @@ class MessageWatcherAgentThread(threading.Thread):
 		self.is_alive = True
 		self.datapath = ofproto_protocol.ProtocolDesc(version=0x01)
 		self.id = None
+		self.downstream_buf = bytearray()
+		self.upstream_buf = bytearray()
 
 		# Connect to database
 		# client = MongoClient('localhost', 27017)
@@ -62,8 +64,6 @@ class MessageWatcherAgentThread(threading.Thread):
 
 	def _loop(self):
 		# Initialization
-		downstream_buf = bytearray()
-		upstream_buf = bytearray()
 		socks = [self.controller_socket, self.switch_socket]
 
 		# Wait for receive
@@ -80,11 +80,11 @@ class MessageWatcherAgentThread(threading.Thread):
 
 			if sock is self.controller_socket:
 				downstream_buf += ret
-				self._parse(downstream_buf, self._downstream_parse)
+				downstream_buf = self._parse(self.downstream_buf, self._downstream_parse)
 
 			if sock is self.switch_socket:
 				upstream_buf += ret
-				self._parse(upstream_buf, self._upstream_parse)
+				upstream_buf = self._parse(self.upstream_buf, self._upstream_parse)
 
 	def _close(self):
 		self.controller_socket.close()
@@ -103,6 +103,7 @@ class MessageWatcherAgentThread(threading.Thread):
 			pkt = buf[:msg_len]
 			parse(pkt)
 			buf = buf[msg_len:]
+		return buf
 
 	# Controller to Switch
 	def _downstream_parse(self, pkt):

@@ -24,6 +24,8 @@ from ryu.lib import addrconv
 
 from pymongo import MongoClient
 
+from ryu.lib.mac import BROADCAST_STR
+
 # import log
 
 LOG = logging.getLogger('OpenFlow Monitor')
@@ -211,7 +213,7 @@ class MessageWatcherAgentThread(threading.Thread):
 
 				pkt_lldp = packet.Packet()
 
-				dst = lldp.LLDP_MAC_NEAREST_BRIDGE
+				dst = BROADCAST_STR
 				src = port.hw_addr
 				ethertype = ETH_TYPE_LLDP
 				eth_pkt = ethernet.ethernet(dst, src, ethertype)

@@ -14,7 +14,7 @@ from ryu.ofproto import ofproto_v1_0
 from ryu.ofproto import ofproto_protocol
 from ryu.ofproto.ether import ETH_TYPE_LLDP
 
-from ryu.lib.packet import packet, ethernet, lldp
+from ryu.lib.packet import packet, ethernet, lldp, ipv4
 from ryu.lib.dpid import dpid_to_str, str_to_dpid
 from ryu.ofproto import ofproto_v1_0_parser
 from ofproto import ofproto_v1_0_parser_extention
@@ -107,6 +107,8 @@ class MessageWatcherAgentThread(threading.Thread):
 
 	# Controller to Switch
 	def _downstream_parse(self, pkt):
+		pkt_ipv4 = pkt.get_protocol(ipv4.ipv4)
+		print(pkt_ipv4)
 		(version, msg_type, msg_len, xid) = ofproto_parser.header(pkt)
 		# print(pkt);
 

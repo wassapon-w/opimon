@@ -321,7 +321,7 @@ function showFlowTableByID(container, data, switch_id) {
             if(r["match"]["nw_src"] != "0") { match.append($("<li/>").text("Source IP Address : " + r["match"]["nw_src"] + "\n")); }
             if(r["match"]["nw_dst"] != "0") { match.append($("<li/>").text("Destination IP Address : " + r["match"]["nw_dst"] + "\n")); }
             if(r["match"]["tp_src"] != "0") { match.append($("<li/>").text("Source TCP/UDP Port : " + r["match"]["tp_src"] + "\n")); }
-            if(r["match"]["nw_dst"] != "0") { match.append($("<li/>").text("Destination TCP/UDP Port : " + r["match"]["tp_dst"] + "\n")); }
+            if(r["match"]["tp_dst"] != "0") { match.append($("<li/>").text("Destination TCP/UDP Port : " + r["match"]["tp_dst"] + "\n")); }
             row.append(match);
 
             var action = $("<td/>");

@@ -310,22 +310,22 @@ function showFlowTableByID(container, data, switch_id) {
 
             var match = $("<td/>");
             match.append($("<li/>").text("Wildcard : " + r["match"]["wildcards"] + "\n"));
-            match.append($("<li/>").text("Switch Input Port : " + r["match"]["in_port"] + "\n"));
-            match.append($("<li/>").text("Source MAC Address : " + r["match"]["dl_src"].charAt(0) + r["match"]["dl_src"].charAt(1) + ":" + r["match"]["dl_src"].charAt(2) + r["match"]["dl_src"].charAt(3) + ":" + r["match"]["dl_src"].charAt(4) + r["match"]["dl_src"].charAt(5) + ":" + r["match"]["dl_src"].charAt(6) + r["match"]["dl_src"].charAt(7) + ":" + r["match"]["dl_src"].charAt(8) + r["match"]["dl_src"].charAt(9) + ":" + r["match"]["dl_src"].charAt(10) + r["match"]["dl_src"].charAt(11) + "\n"));
-            match.append($("<li/>").text("Destination MAC Address : " + r["match"]["dl_dst"].charAt(0) + r["match"]["dl_dst"].charAt(1) + ":" + r["match"]["dl_dst"].charAt(2) + r["match"]["dl_dst"].charAt(3) + ":" + r["match"]["dl_dst"].charAt(4) + r["match"]["dl_dst"].charAt(5) + ":" + r["match"]["dl_dst"].charAt(6) + r["match"]["dl_dst"].charAt(7) + ":" + r["match"]["dl_dst"].charAt(8) + r["match"]["dl_dst"].charAt(9) + ":" + r["match"]["dl_dst"].charAt(10) + r["match"]["dl_dst"].charAt(11) + "\n"));
-            match.append($("<li/>").text("VLAN ID : " + r["match"]["dl_vlan"] + "\n"));
-            match.append($("<li/>").text("VLAN Priority : " + r["match"]["dl_vlan_pcp"] + "\n"));
-            match.append($("<li/>").text("Ethernet Frame Type : " + r["match"]["dl_type"] + "\n"));
-            match.append($("<li/>").text("IP ToS : " + r["match"]["nw_tos"] + "\n"));
-            match.append($("<li/>").text("IP Protocol : " + r["match"]["nw_proto"] + "\n"));
-            match.append($("<li/>").text("Source IP Address : " + r["match"]["nw_src"] + "\n"));
-            match.append($("<li/>").text("Destination IP Address : " + r["match"]["nw_dst"] + "\n"));
-            match.append($("<li/>").text("Source TCP/UDP Port : " + r["match"]["tp_src"] + "\n"));
-            match.append($("<li/>").text("Destination TCP/UDP Port : " + r["match"]["tp_dst"] + "\n"));
+            if(r["match"]["in_port"] != "0") { match.append($("<li/>").text("Switch Input Port : " + r["match"]["in_port"] + "\n")); }
+            if(r["match"]["dl_src"] != "000000000000" ) { match.append($("<li/>").text("Source MAC Address : " + r["match"]["dl_src"].charAt(0) + r["match"]["dl_src"].charAt(1) + ":" + r["match"]["dl_src"].charAt(2) + r["match"]["dl_src"].charAt(3) + ":" + r["match"]["dl_src"].charAt(4) + r["match"]["dl_src"].charAt(5) + ":" + r["match"]["dl_src"].charAt(6) + r["match"]["dl_src"].charAt(7) + ":" + r["match"]["dl_src"].charAt(8) + r["match"]["dl_src"].charAt(9) + ":" + r["match"]["dl_src"].charAt(10) + r["match"]["dl_src"].charAt(11) + "\n")); }
+            if(r["match"]["dl_dst"] != "000000000000" ) { match.append($("<li/>").text("Destination MAC Address : " + r["match"]["dl_dst"].charAt(0) + r["match"]["dl_dst"].charAt(1) + ":" + r["match"]["dl_dst"].charAt(2) + r["match"]["dl_dst"].charAt(3) + ":" + r["match"]["dl_dst"].charAt(4) + r["match"]["dl_dst"].charAt(5) + ":" + r["match"]["dl_dst"].charAt(6) + r["match"]["dl_dst"].charAt(7) + ":" + r["match"]["dl_dst"].charAt(8) + r["match"]["dl_dst"].charAt(9) + ":" + r["match"]["dl_dst"].charAt(10) + r["match"]["dl_dst"].charAt(11) + "\n")); }
+            if(r["match"]["dl_vlan"] != "0") { match.append($("<li/>").text("VLAN ID : " + r["match"]["dl_vlan"] + "\n")); }
+            if(r["match"]["dl_vlan_pcp"] != "0") { match.append($("<li/>").text("VLAN Priority : " + r["match"]["dl_vlan_pcp"] + "\n")); }
+            if(r["match"]["dl_type"] != "0") { match.append($("<li/>").text("Ethernet Frame Type : " + r["match"]["dl_type"] + "\n")); }
+            if(r["match"]["nw_tos"] != "0") { match.append($("<li/>").text("IP ToS : " + r["match"]["nw_tos"] + "\n")); }
+            if(r["match"]["nw_proto"] != "0") { match.append($("<li/>").text("IP Protocol : " + r["match"]["nw_proto"] + "\n")); }
+            if(r["match"]["nw_src"] != "0") { match.append($("<li/>").text("Source IP Address : " + r["match"]["nw_src"] + "\n")); }
+            if(r["match"]["nw_dst"] != "0") { match.append($("<li/>").text("Destination IP Address : " + r["match"]["nw_dst"] + "\n")); }
+            if(r["match"]["tp_src"] != "0") { match.append($("<li/>").text("Source TCP/UDP Port : " + r["match"]["tp_src"] + "\n")); }
+            if(r["match"]["nw_dst"] != "0") { match.append($("<li/>").text("Destination TCP/UDP Port : " + r["match"]["tp_dst"] + "\n")); }
             row.append(match);
 
             var action = $("<td/>");
-            if(r["actions"][0]["type"] == 0) { action.append($("<li/>").text("Type : " + r["actions"][0]["type"] + "(OFPActionOutput)" + "\n")); }
+            if(r["actions"][0]["type"] == 0) { action.append($("<li/>").text("Type : " + r["actions"][0]["type"] + " (OFPActionOutput)" + "\n")); }
             else { action.append($("<li/>").text("Type : " + r["actions"][0]["type"] + "\n")); }
             action.append($("<li/>").text("Switch Output Port : " + r["actions"][0]["port"] + "\n"));
             action.append($("<li/>").text("Max Length : " + r["actions"][0]["max_len"] + "\n"));

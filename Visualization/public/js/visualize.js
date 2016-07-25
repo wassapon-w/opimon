@@ -208,6 +208,10 @@ function visualize() {
         var loadLabel = document.getElementById("switch");
         loadLabel.textContent = "Loading...";
 
+        var table = $("<table/>").addClass('table');
+        document.getElementById("portTable").html(table);
+        document.getElementById("flowTable").html(table);
+
         getNewSwitchData(data, d.id);
     }
 }
@@ -326,6 +330,8 @@ function showFlowTableByID(container, data, switch_id) {
             body.append(row);
         // }
     });
+    var row = $("<tr/>");
+    body.append(row);
     table.append(body);
 
     return container.html(table);

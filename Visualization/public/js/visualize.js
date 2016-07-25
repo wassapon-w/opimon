@@ -205,6 +205,9 @@ function visualize() {
     }
 
     function mouseClick(d) {
+        var loadLabel = document.getElementById("switch");
+        loadLabel.textContent = "Loading...";
+
         getNewSwitchData(data, d.id);
     }
 }

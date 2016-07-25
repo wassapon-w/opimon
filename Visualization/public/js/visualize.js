@@ -325,7 +325,8 @@ function showFlowTableByID(container, data, switch_id) {
             row.append(match);
 
             var action = $("<td/>");
-            action.append($("<li/>").text("Type : " + r["actions"][0]["type"] + "\n"));
+            if(r["actions"][0]["type"] == 0) { action.append($("<li/>").text("Type : " + r["actions"][0]["type"] + "(OFPActionOutput)" + "\n")); }
+            else { action.append($("<li/>").text("Type : " + r["actions"][0]["type"] + "\n")); }
             action.append($("<li/>").text("Switch Output Port : " + r["actions"][0]["port"] + "\n"));
             action.append($("<li/>").text("Max Length : " + r["actions"][0]["max_len"] + "\n"));
             row.append(action);

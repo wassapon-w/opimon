@@ -20,7 +20,7 @@ from ryu.ofproto import ofproto_v1_0_parser
 from ofproto import ofproto_v1_0_parser_extention
 
 from ryu.ofproto import ofproto_v1_0_parser
-from ryu.lib import addrconv
+from ryu.lib import addrconv, ip, mac
 
 from pymongo import MongoClient
 
@@ -131,15 +131,15 @@ class MessageWatcherAgentThread(threading.Thread):
 							  "match": {
 								  "wildcards": msg.match.wildcards,
 								  "in_port": msg.match.in_port,
-								  "dl_src": hexlify(msg.match.dl_src),
-								  "dl_dst": hexlify(msg.match.dl_dst),
+								  "dl_src": mac.haddr_to_str(msg.match.dl_src),
+								  "dl_dst": mac.haddr_to_str(msg.match.dl_dst),
 								  "dl_vlan": msg.match.dl_vlan,
 								  "dl_vlan_pcp": msg.match.dl_vlan_pcp,
 								  "dl_type": msg.match.dl_type,
 								  "nw_tos": msg.match.nw_tos,
 								  "nw_proto": msg.match.nw_proto,
-								  "nw_src": msg.match.nw_src,
-								  "nw_dst": msg.match.nw_dst,
+								  "nw_src": ip.ipv4_to_str(msg.match.nw_src),
+								  "nw_dst": ip.ipv4_to_str(msg.match.nw_dst),
 								  "tp_src": msg.match.tp_src,
 								  "tp_dst": msg.match.tp_dst
 							  },

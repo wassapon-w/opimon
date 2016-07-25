@@ -57,6 +57,7 @@ app.get('/flowmods', function (req, res) {
                 flow["match"] = flowModsDatabase[i]["message"]["match"];
                 flow["actions"] = flowModsDatabase[i]["message"]["actions"];
                 flow["hard_timeout"] = flowModsDatabase[i]["message"]["hard_timeout"];
+                flow["idle_timeout"] = flowModsDatabase[i]["message"]["idle_timeout"];
                 flow["timestamp"] = flowModsDatabase[i]["timestamp"];
                 flowTable[flowModsDatabase[i]["switch"]].push(flow);
               }
@@ -71,6 +72,7 @@ app.get('/flowmods', function (req, res) {
                 flow["match"] = flowModsDatabase[i]["message"]["match"];
                 flow["actions"] = flowModsDatabase[i]["message"]["actions"];
                 flow["hard_timeout"] = flowModsDatabase[i]["message"]["hard_timeout"];
+                flow["idle_timeout"] = flowModsDatabase[i]["message"]["idle_timeout"];
                 flow["timestamp"] = flowModsDatabase[i]["timestamp"];
                 flowTable[flowModsDatabase[i]["switch"]].push(flow);
               }

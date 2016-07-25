@@ -209,8 +209,8 @@ function visualize() {
         loadLabel.textContent = "Loading...";
 
         var table = $("<table/>").addClass('table');
-        document.getElementById("portTable").html(table);
-        document.getElementById("flowTable").html(table);
+        $(document.getElementById("portTable")).html(table);
+        $(document.getElementById("flowTable")).html(table);
 
         getNewSwitchData(data, d.id);
     }

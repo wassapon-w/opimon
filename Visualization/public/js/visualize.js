@@ -346,7 +346,8 @@ function showSwitchPort(container, data, switch_id) {
 
     var showSwitch = document.getElementById("switch");
     if(data["settings"][switch_id] != undefined) {
-        showSwitch.textContent = "Switch ID : " + switch_id + " (" + data["settings"][switch_id]["name"] + ")";
+        if(data["settings"][switch_id]["name"] != undefined) { showSwitch.textContent = "Switch ID : " + switch_id + " (" + data["settings"][switch_id]["name"] + ")"; }
+        else { showSwitch.textContent = "Switch ID : " + switch_id; }
     }
     else {
         showSwitch.textContent = "Switch ID : " + switch_id;

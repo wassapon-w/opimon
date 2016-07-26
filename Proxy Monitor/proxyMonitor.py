@@ -108,7 +108,6 @@ class MessageWatcherAgentThread(threading.Thread):
 	# Controller to Switch
 	def _downstream_parse(self, pkt):
 		(version, msg_type, msg_len, xid) = ofproto_parser.header(pkt)
-		# print(pkt);
 
 		# Controller command messages
 		if msg_type == ofproto_v1_0.OFPT_FLOW_MOD:
@@ -117,7 +116,6 @@ class MessageWatcherAgentThread(threading.Thread):
 			msg = ofproto_v1_0_parser.OFPFlowMod.parser(self.datapath, version, msg_type, msg_len, xid, pkt)
 
 			print("Flow Mod Packet")
-			# print(msg)
 
 			# Write to database
 			db_message = {"switch": hex(self.id),
@@ -161,8 +159,13 @@ class MessageWatcherAgentThread(threading.Thread):
 			# Insert to database
 			self.db.flow_mods.insert_one(db_message)
 
-			#t = threading.Thread(target=self.db.flow_mods.insert_one, args=(db_message,))
-			#t.start()
+			# Send OFPFeaturesRequest for LLDP packet inject
+			ofp_parser = self.datapath.ofproto_parser
+            out = ofp_parser.OFPFeaturesRequest(self.datapath)
+            out.serialize()
+
+            t = threading.Timer(1, self.switch_socket.sendall, (out.buf,))
+            t.start()
 
 		# elif msg_type == ofproto_v1_0.OFPT_PACKET_OUT:
 		# 	self.db.packet_out.insert_one({"Switch": self.id, "Type": msg_type, "Timestamp": datetime.datetime.utcnow()})
@@ -195,18 +198,10 @@ class MessageWatcherAgentThread(threading.Thread):
 			mod = ofproto_v1_0_parser.OFPFlowMod(self.datapath, match, cookie, command, idle_timeout, hard_timeout, priority, buffer_id, out_port, flags, actions)
 			mod.serialize()
 
-			# print(msg)
-
-			# self.switch_socket.sendall(mod.buf)
-
 			self.id = msg.datapath_id
 			self.ports = msg.ports
 
 			for port in self.ports.values():
-				# print(port)
-				# print(port.port_no)
-				# print(port.hw_addr)
-
 				self.db.switch_port.insert_one({"switch_id": hex(self.id),
 											 	"port_no": port.port_no,
 											 	"hw_addr": port.hw_addr,

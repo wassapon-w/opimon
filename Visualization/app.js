@@ -232,6 +232,10 @@ app.get('/switch', function (req, res) {
             }
           }
 
+          for(var eachSwitch in switchPort) {
+              switchPort[eachSwitch]["ports"].sort(function(a,b) {return (a.port_no > b.port_no) ? 1 : ((b.port_no > a.port_no) ? -1 : 0);} ); 
+          }
+
           res.json(switchPort);
   			}
   		});

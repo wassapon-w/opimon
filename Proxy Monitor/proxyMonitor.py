@@ -255,7 +255,7 @@ class MessageWatcherAgentThread(threading.Thread):
 				# LOG.info('Forward PACKET_IN LLDP Message at UPSTREAM')
 				lldp_msg = pkt_msg.get_protocol(lldp.lldp)
 
-				if lldp_msg.tlvs != None:
+				if lldp_msg != None:
 					if lldp_msg.tlvs[3].tlv_info == "ProxyTopologyMonitorLLDP":
 
 						(port,) = struct.unpack('!I', lldp_msg.tlvs[1].port_id)

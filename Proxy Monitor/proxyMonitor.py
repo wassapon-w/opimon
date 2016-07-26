@@ -255,31 +255,31 @@ class MessageWatcherAgentThread(threading.Thread):
 				# LOG.info('Forward PACKET_IN LLDP Message at UPSTREAM')
 				lldp_msg = pkt_msg.get_protocol(lldp.lldp)
 
-				# if lldp_msg:
-				if lldp_msg.tlvs[3].tlv_info == "ProxyTopologyMonitorLLDP":
+				if lldp_msg.tlvs != None:
+					if lldp_msg.tlvs[3].tlv_info == "ProxyTopologyMonitorLLDP":
 
-					(port,) = struct.unpack('!I', lldp_msg.tlvs[1].port_id)
-					switch_src = str_to_dpid(lldp_msg.tlvs[0].chassis_id[5:])
+						(port,) = struct.unpack('!I', lldp_msg.tlvs[1].port_id)
+						switch_src = str_to_dpid(lldp_msg.tlvs[0].chassis_id[5:])
 
-					print("Proxy LLDP Packet")
-					# print(lldp_msg)
+						print("Proxy LLDP Packet")
+						# print(lldp_msg)
 
-					# Write to database
-					self.db.topology.insert_one({"switch_dst": hex(self.id),
-												 "port_dst": msg.in_port,
-												 "switch_src": hex(switch_src),
-												 "port_src": port,
-												 "timestamp": datetime.datetime.utcnow()})
+						# Write to database
+						self.db.topology.insert_one({"switch_dst": hex(self.id),
+													 "port_dst": msg.in_port,
+													 "switch_src": hex(switch_src),
+													 "port_src": port,
+													 "timestamp": datetime.datetime.utcnow()})
 
-					#dict = msg.to_jsondict().update(lldp_msg.to_jsondict())
-					#self.db.topology_watcher.insert_one([msg.to_jsondict(), lldp_msg.to_jsondict()])
+						#dict = msg.to_jsondict().update(lldp_msg.to_jsondict())
+						#self.db.topology_watcher.insert_one([msg.to_jsondict(), lldp_msg.to_jsondict()])
 
-					return
+						return
 
-				elif lldp_msg.tlvs[3].tlv_info != "ProxyTopologyMonitorLLDP":
-					# print(lldp_msg)
-					# print("Controller LLDP packet")
-					pass
+					elif lldp_msg.tlvs[3].tlv_info != "ProxyTopologyMonitorLLDP":
+						# print(lldp_msg)
+						# print("Controller LLDP packet")
+						pass
 
 		# Asynchronous messages
 		#elif msg_type == ofproto_v1_0.OFPT_FLOW_REMOVED:

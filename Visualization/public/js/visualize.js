@@ -323,7 +323,7 @@ function showFlowTableByID(container, data, switch_id) {
             if(r["match"]["tp_src"] != "0") { match.append($("<li/>").text("Source TCP/UDP Port : " + r["match"]["tp_src"] + "\n")); }
             if(r["match"]["tp_dst"] != "0") { match.append($("<li/>").text("Destination TCP/UDP Port : " + r["match"]["tp_dst"] + "\n")); }
             match.append($("<li/>").text("Idle Timeout : " + r["idle_timeout"]));
-            match.append($("<li/>").text("Hard Timeout : " + r["idle_timeout"]));
+            match.append($("<li/>").text("Hard Timeout : " + r["hard_timeout"]));
             row.append(match);
 
             var action = $("<td/>");

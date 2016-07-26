@@ -301,10 +301,23 @@ function showFlowTableByID(container, data, switch_id) {
 
     var body = $("<tbody/>");
     $.each(data["flowmods"][switch_id], function(rowIndex, r) {
-        var expireMillisec = Date.parse(r["timestamp"]) + (r["hard_timeout"] * 1000);
-        var expireTime = new Date(expireMillisec);
+        var isActive = false;
 
-        // if(expireTime > Date.now()) {
+        if(r["hard_timeout"] != 0) {
+            var expireMillisec = Date.parse(r["timestamp"]) + (r["hard_timeout"] * 1000);
+            var expireTime = new Date(expireMillisec);
+            if(expireTime > Date.now()) { isActive = true; }
+        }
+        else if(r["hard_timeout"] == 0 && r["idle_timeout"] != 0) {
+            var expireMillisec = Date.parse(r["timestamp"]) + ((r["idle_timeout"] + 1000) * 1000);
+            var expireTime = new Date(expireMillisec);
+            if(expireTime > Date.now()) { isActive = true; }
+        }
+        else if(r["hard_timeout"] == 0 && r["idle_timeout"] == 0) {
+            isActive = true;
+        }
+
+        if(isActive) {
             var row = $("<tr/>");
             // row.append($("<td/>").text(r["switch_id"]));
 
@@ -335,7 +348,7 @@ function showFlowTableByID(container, data, switch_id) {
 
             // row.append($("<td/>").text(expireTime.toString()));
             body.append(row);
-        // }
+        }
     });
     table.append(body);
 

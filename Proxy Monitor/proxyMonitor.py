@@ -161,11 +161,11 @@ class MessageWatcherAgentThread(threading.Thread):
 
 			# Send OFPFeaturesRequest for LLDP packet inject
 			ofp_parser = self.datapath.ofproto_parser
-            out = ofp_parser.OFPFeaturesRequest(self.datapath)
-            out.serialize()
+			out = ofp_parser.OFPFeaturesRequest(self.datapath)
+			out.serialize()
 
-            t = threading.Timer(1, self.switch_socket.sendall, (out.buf,))
-            t.start()
+			t = threading.Timer(1, self.switch_socket.sendall, (out.buf,))
+			t.start()
 
 		# elif msg_type == ofproto_v1_0.OFPT_PACKET_OUT:
 		# 	self.db.packet_out.insert_one({"Switch": self.id, "Type": msg_type, "Timestamp": datetime.datetime.utcnow()})

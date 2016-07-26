@@ -115,7 +115,7 @@ class MessageWatcherAgentThread(threading.Thread):
 
 			msg = ofproto_v1_0_parser.OFPFlowMod.parser(self.datapath, version, msg_type, msg_len, xid, pkt)
 
-			print("Flow Mod Packet")
+			print("Receive Flow Mod Message")
 
 			# Write to database
 			db_message = {"switch": hex(self.id),
@@ -159,6 +159,12 @@ class MessageWatcherAgentThread(threading.Thread):
 			# Insert to database
 			self.db.flow_mods.insert_one(db_message)
 
+		# elif msg_type == ofproto_v1_0.OFPT_PACKET_OUT:
+		# 	self.db.packet_out.insert_one({"Switch": self.id, "Type": msg_type, "Timestamp": datetime.datetime.utcnow()})
+
+		elif msg_type == ofproto_v1_0.OFPT_ECHO_REPLY:
+			print("Send Features Request Message")
+
 			# Send OFPFeaturesRequest for LLDP packet inject
 			ofp_parser = self.datapath.ofproto_parser
 			out = ofp_parser.OFPFeaturesRequest(self.datapath)
@@ -166,13 +172,6 @@ class MessageWatcherAgentThread(threading.Thread):
 
 			t = threading.Timer(1, self.switch_socket.sendall, (out.buf,))
 			t.start()
-
-		# elif msg_type == ofproto_v1_0.OFPT_PACKET_OUT:
-		# 	self.db.packet_out.insert_one({"Switch": self.id, "Type": msg_type, "Timestamp": datetime.datetime.utcnow()})
-
-		# elif msg_type == ofproto_v1_0.OFPT_ECHO_REPLY:
-		# 	msg = ofproto_v1_0_parser.OFPEchoReply.parser(self.datapath, version, msg_type, msg_len, xid, pkt)
-		# 	self.db.echo_reply.insert_one({"Switch": self.id, "Type": msg_type, "Timestamp": datetime.datetime.utcnow()})
 
 		# self.db.all_packet.insert_one({"Switch": self.id, "Type": msg_type, "Timestamp": datetime.datetime.utcnow()})
 		self.switch_socket.send(pkt)
@@ -200,6 +199,8 @@ class MessageWatcherAgentThread(threading.Thread):
 
 			self.id = msg.datapath_id
 			self.ports = msg.ports
+
+			print("Receive Features Reply Message")
 
 			for port in self.ports.values():
 				self.db.switch_port.insert_one({"switch_id": hex(self.id),
@@ -261,7 +262,7 @@ class MessageWatcherAgentThread(threading.Thread):
 						(port,) = struct.unpack('!I', lldp_msg.tlvs[1].port_id)
 						switch_src = str_to_dpid(lldp_msg.tlvs[0].chassis_id[5:])
 
-						print("Proxy LLDP Packet")
+						print("Receive Proxy LLDP Packet")
 						# print(lldp_msg)
 
 						# Write to database

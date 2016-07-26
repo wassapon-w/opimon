@@ -97,7 +97,7 @@ app.get('/topology', function (req, res) {
   	MongoClient.connect(url, function(err, db) {
   		assert.equal(null, err);
 
-  		var cursor = db.collection('topology').find();
+  		var cursor = db.collection('topology').find( { timestamp: { $gte: new Date(ISODate().getTime() - 600 * 1000), $lt:new Date(ISODate().getTime()) } } );
   		cursor.each(function(err, doc) {
   			assert.equal(err, null);
   			if (doc != null) {
@@ -233,7 +233,7 @@ app.get('/switch', function (req, res) {
           }
 
           for(var eachSwitch in switchPort) {
-              switchPort[eachSwitch]["ports"].sort(function(a,b) {return (a.port_no > b.port_no) ? 1 : ((b.port_no > a.port_no) ? -1 : 0);} ); 
+              switchPort[eachSwitch]["ports"].sort(function(a,b) {return (a.port_no > b.port_no) ? 1 : ((b.port_no > a.port_no) ? -1 : 0);} );
           }
 
           res.json(switchPort);

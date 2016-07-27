@@ -108,6 +108,8 @@ class MessageWatcherAgentThread(threading.Thread):
 
 	# Controller to Switch
 	def _downstream_parse(self, pkt):
+		self.switch_socket.send(pkt)
+
 		(version, msg_type, msg_len, xid) = ofproto_parser.header(pkt)
 
 		# Controller command messages
@@ -175,10 +177,12 @@ class MessageWatcherAgentThread(threading.Thread):
 		# 	t.start()
 
 		# self.db.all_packet.insert_one({"Switch": self.id, "Type": msg_type, "Timestamp": datetime.datetime.utcnow()})
-		self.switch_socket.send(pkt)
+		# self.switch_socket.send(pkt)
 
 	# Switch to Controller
 	def _upstream_parse(self, pkt):
+		self.controller_socket.send(pkt)
+
 		(version, msg_type, msg_len, xid) = ofproto_parser.header(pkt)
 
 		# Switch configuration messages
@@ -346,7 +350,7 @@ class MessageWatcherAgentThread(threading.Thread):
 
 		# self.db.all_packet.insert_one({"Switch": self.id, "Type": msg_type, "Timestamp": datetime.datetime.utcnow()})
 
-		self.controller_socket.send(pkt)
+		# self.controller_socket.send(pkt)
 
 
 class MessageWatcher(object):

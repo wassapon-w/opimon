@@ -97,7 +97,7 @@ app.get('/topology', function (req, res) {
   	MongoClient.connect(url, function(err, db) {
   		assert.equal(null, err);
 
-  		var cursor = db.collection('topology').find( { timestamp: { $gte: new Date(Date.now() - 30 * 1000), $lt: new Date(Date.now()) } } );
+  		var cursor = db.collection('topology').find( { timestamp: { $gte: new Date(Date.now() - 120 * 1000), $lt: new Date(Date.now()) } } );
       // var cursor = db.collection('topology').find();
   		cursor.each(function(err, doc) {
   			assert.equal(err, null);
@@ -193,7 +193,7 @@ app.get('/switch', function (req, res) {
   	MongoClient.connect(url, function(err, db) {
   		assert.equal(null, err);
 
-  		var cursor = db.collection('switch_port').find( { timestamp: { $gte: new Date(Date.now() - 30 * 1000), $lt: new Date(Date.now()) } } );
+  		var cursor = db.collection('switch_port').find( { timestamp: { $gte: new Date(Date.now() - 120 * 1000), $lt: new Date(Date.now()) } } );
   		cursor.each(function(err, doc) {
   			assert.equal(err, null);
   			if (doc != null) {

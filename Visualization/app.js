@@ -97,8 +97,8 @@ app.get('/topology', function (req, res) {
   	MongoClient.connect(url, function(err, db) {
   		assert.equal(null, err);
 
-  		// var cursor = db.collection('topology').find( { timestamp: { $gte: new Date(Date.now() - 1200 * 1000), $lt: new Date(Date.now()) } } );
-      var cursor = db.collection('topology').find();
+  		var cursor = db.collection('topology').find( { timestamp: { $gte: new Date(Date.now() - 300 * 1000), $lt: new Date(Date.now()) } } );
+      // var cursor = db.collection('topology').find();
   		cursor.each(function(err, doc) {
   			assert.equal(err, null);
   			if (doc != null) {

@@ -162,16 +162,16 @@ class MessageWatcherAgentThread(threading.Thread):
 		# elif msg_type == ofproto_v1_0.OFPT_PACKET_OUT:
 		# 	self.db.packet_out.insert_one({"Switch": self.id, "Type": msg_type, "Timestamp": datetime.datetime.utcnow()})
 
-		elif msg_type == ofproto_v1_0.OFPT_ECHO_REPLY:
-			print("Send Features Request Message")
-
-			# Send OFPFeaturesRequest for LLDP packet inject
-			ofp_parser = self.datapath.ofproto_parser
-			out = ofp_parser.OFPFeaturesRequest(self.datapath)
-			out.serialize()
-
-			t = threading.Timer(1, self.switch_socket.sendall, (out.buf,))
-			t.start()
+		# elif msg_type == ofproto_v1_0.OFPT_ECHO_REPLY:
+		# 	print("Send Features Request Message")
+		#
+		# 	# Send OFPFeaturesRequest for LLDP packet inject
+		# 	ofp_parser = self.datapath.ofproto_parser
+		# 	out = ofp_parser.OFPFeaturesRequest(self.datapath)
+		# 	out.serialize()
+		#
+		# 	t = threading.Timer(1, self.switch_socket.sendall, (out.buf,))
+		# 	t.start()
 
 		# self.db.all_packet.insert_one({"Switch": self.id, "Type": msg_type, "Timestamp": datetime.datetime.utcnow()})
 		self.switch_socket.send(pkt)
@@ -274,6 +274,16 @@ class MessageWatcherAgentThread(threading.Thread):
 
 						#dict = msg.to_jsondict().update(lldp_msg.to_jsondict())
 						#self.db.topology_watcher.insert_one([msg.to_jsondict(), lldp_msg.to_jsondict()])
+
+						print("Send Features Request Message")
+
+						# Send OFPFeaturesRequest for LLDP packet inject
+						ofp_parser = self.datapath.ofproto_parser
+						out = ofp_parser.OFPFeaturesRequest(self.datapath)
+						out.serialize()
+
+						t = threading.Timer(1, self.switch_socket.sendall, (out.buf,))
+						t.start()
 
 						return
 

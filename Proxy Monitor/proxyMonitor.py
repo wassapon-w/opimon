@@ -4,6 +4,7 @@ import threading
 import struct
 
 import datetime
+import time
 
 import logging
 from binascii import hexlify, unhexlify
@@ -243,6 +244,8 @@ class MessageWatcherAgentThread(threading.Thread):
 				t = threading.Timer(1, self.switch_socket.sendall, (out.buf,))
 				t.start()
 				# LOG.info('Send LLDP Message to UPSTREAM')
+
+			time.sleep(60)
 
 			print("Send Features Request Message")
 

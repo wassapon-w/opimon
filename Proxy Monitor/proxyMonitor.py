@@ -249,7 +249,7 @@ class MessageWatcherAgentThread(threading.Thread):
 				t.start()
 				# LOG.info('Send LLDP Message to UPSTREAM')
 
-			time.sleep(60)
+			# time.sleep(60)
 
 			print("Send Features Request Message")
 

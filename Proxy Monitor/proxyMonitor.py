@@ -53,7 +53,8 @@ class MessageWatcherAgentThread(threading.Thread):
 		# self.db = client['netspec']
 
 		# Connect to database
-		client = MongoClient('sd-lemon.naist.jp', 9999)
+		# client = MongoClient('sd-lemon.naist.jp', 9999)
+		client = MongoClient('localhost', 27017)
 		self.db = client.test
 
 	def run(self):
@@ -391,7 +392,7 @@ if __name__ == '__main__':
 	# log.init_log()
 
 	LISTEN_HOST, LISTEN_PORT = '0.0.0.0', 6653
-	FORWARD_HOST, FORWARD_PORT = 'sd-lemon.naist.jp', 6633
-	# FORWARD_HOST, FORWARD_PORT = 'localhost', 6653
+	# FORWARD_HOST, FORWARD_PORT = 'sd-lemon.naist.jp', 6633
+	FORWARD_HOST, FORWARD_PORT = 'localhost', 6633
 	manager = MessageWatcher(LISTEN_HOST, LISTEN_PORT, FORWARD_HOST, FORWARD_PORT)
 	manager.start()

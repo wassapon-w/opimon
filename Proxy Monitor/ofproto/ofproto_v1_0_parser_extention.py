@@ -36,7 +36,7 @@ class OFPPacketOut(ofproto_parser.OFPPacketOut):
 
 
 class OFPFlowMod(ofproto_parser.OFPFlowMod):
-	def __init__(self, datapath, match=None, cookie=None, command=None, 
+	def __init__(self, datapath, match=None, cookie=None, command=None,
 				 idle_timeout=0, hard_timeout=0,
 				 priority=ofproto.OFP_DEFAULT_PRIORITY,
 				 buffer_id=0xffffffff, out_port=ofproto.OFPP_NONE,

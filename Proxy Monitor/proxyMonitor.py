@@ -18,7 +18,7 @@ from ryu.ofproto.ether import ETH_TYPE_LLDP
 from ryu.lib.packet import packet, ethernet, lldp, ipv4
 from ryu.lib.dpid import dpid_to_str, str_to_dpid
 from ryu.ofproto import ofproto_v1_0_parser
-from ofproto import ofproto_v1_0_parser_extention
+# from ofproto import ofproto_v1_0_parser_extention
 
 from ryu.ofproto import ofproto_v1_0_parser
 from ryu.lib import addrconv, ip, mac
@@ -182,8 +182,6 @@ class MessageWatcherAgentThread(threading.Thread):
 
 	# Switch to Controller
 	def _upstream_parse(self, pkt):
-		self.controller_socket.send(pkt)
-
 		(version, msg_type, msg_len, xid) = ofproto_parser.header(pkt)
 
 		# Switch configuration messages
@@ -245,9 +243,10 @@ class MessageWatcherAgentThread(threading.Thread):
 					buffer_id=ofproto_v1_0.OFP_NO_BUFFER, actions=actions,
 					data=pkt_lldp.data)
 				out.serialize()
+				self.switch_socket.send(out.buf)
 
-				t = threading.Timer(1, self.switch_socket.sendall, (out.buf,))
-				t.start()
+				# t = threading.Timer(1, self.switch_socket.sendall, (out.buf,))
+				# t.start()
 				# LOG.info('Send LLDP Message to UPSTREAM')
 
 			# time.sleep(60)
@@ -258,9 +257,10 @@ class MessageWatcherAgentThread(threading.Thread):
 			ofp_parser = self.datapath.ofproto_parser
 			out = ofp_parser.OFPFeaturesRequest(self.datapath)
 			out.serialize()
+			self.switch_socket.send(out.buf)
 
-			t = threading.Timer(1, self.switch_socket.sendall, (out.buf,))
-			t.start()
+			# t = threading.Timer(1, self.switch_socket.sendall, (out.buf,))
+			# t.start()
 
 		# Asynchronous messages
 		elif msg_type == ofproto_v1_0.OFPT_PACKET_IN:
@@ -285,10 +285,10 @@ class MessageWatcherAgentThread(threading.Thread):
 
 						# Write to database
 						self.db.topology.insert_one({"switch_dst": hex(self.id),
-													 "port_dst": msg.in_port,
-													 "switch_src": hex(switch_src),
-													 "port_src": port,
-													 "timestamp": datetime.datetime.utcnow()})
+												 	 "port_dst": port,
+												 	 "switch_src": hex(switch_src),
+												 	 "port_src": msg.in_port,
+												 	 "timestamp": datetime.datetime.utcnow()})
 
 						return
 
@@ -296,6 +296,8 @@ class MessageWatcherAgentThread(threading.Thread):
 						# print(lldp_msg)
 						# print("Controller LLDP packet")
 						pass
+
+		self.controller_socket.send(pkt)
 
 		# Asynchronous messages
 		#elif msg_type == ofproto_v1_0.OFPT_FLOW_REMOVED:

@@ -1,3 +1,5 @@
+var dataURL = ''
+
 var data = {};
 
 var getJSON = function(url, callback) {
@@ -17,27 +19,27 @@ var getJSON = function(url, callback) {
 
 $(document).ready(function(){
     $('#showfull').click(function(){
-      getJSON('http://sd-lemon.naist.jp:3000/flowmods', function(err, output){
+      getJSON(dataURL + '/flowmods', function(err, output){
           data["flowmods"] = output;
           // showFlowTable($(document.getElementById("flowTable")), data);
       });
     });
 });
 
-getJSON('http://sd-lemon.naist.jp:3000/topology', function(err, output){
+getJSON(dataURL + '/topology', function(err, output){
     data["switch"] = output["node"];
     data["connect"] = output["link"];
     data["switchCounter"] = output["nodeCounter"];
     getSettings();
 });
 
-getJSON('http://sd-lemon.naist.jp:3000/flowmods', function(err, output){
+getJSON(dataURL + '/flowmods', function(err, output){
     data["flowmods"] = output;
     // showFlowTable($(document.getElementById("flowTable")), data);
 });
 
 function getSettings() {
-    getJSON('http://sd-lemon.naist.jp:3000/settings.json', function(err, output){
+    getJSON(dataURL + '/settings.json', function(err, output){
         data["settings"] = output;
         console.log(data);
         visualize();
@@ -45,12 +47,12 @@ function getSettings() {
 }
 
 function getNewSwitchData(data, switch_id) {
-  getJSON('http://sd-lemon.naist.jp:3000/flowmods', function(err, output){
+  getJSON(dataURL + '/flowmods', function(err, output){
       data["flowmods"] = output;
       showFlowTableByID($(document.getElementById("flowTable")), data, switch_id);
   });
 
-  getJSON('http://sd-lemon.naist.jp:3000/switch', function(err, output){
+  getJSON(dataURL + '/switch', function(err, output){
       data["switch"] = output;
       showSwitchPort($(document.getElementById("portTable")), data, switch_id);
   });

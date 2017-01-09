@@ -59,6 +59,9 @@ function getNewSwitchData(data, switch_id) {
 }
 
 function visualize() {
+    var loadLabel = document.getElementById("loading");
+    loadLabel.textContent = "";
+
     var svg = d3.select("#topology"),
         width = svg.attr("width"),
         height = svg.attr("height");
@@ -207,6 +210,9 @@ function visualize() {
     }
 
     function mouseClick(d) {
+        var tempTable = document.getElementById("initialText");
+        tempTable.textContent = "";
+
         var loadLabel = document.getElementById("switch");
         loadLabel.textContent = "Loading...";
 

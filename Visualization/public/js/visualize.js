@@ -59,7 +59,7 @@ function getNewSwitchData(data, switch_id) {
 }
 
 function visualize() {
-    var svg = d3.select("svg"),
+    var svg = d3.select("#topology"),
         width = svg.attr("width"),
         height = svg.attr("height");
 

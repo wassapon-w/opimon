@@ -76,7 +76,7 @@ function visualize() {
        .attr("markerWidth", 5)
        .attr("markerHeight", 5)
        .attr("orient", "auto")
-       .append("svg:path")
+       .append("svg:path").style("fill", function(d) { return d3.rgb(119, 136, 153); })
        .attr("d", "M0,-5L10,0L0,5");
 
     var color = d3.scaleOrdinal(d3.schemeCategory20);
@@ -90,6 +90,7 @@ function visualize() {
                   .data(data.connect)
                   .enter().append("path")
                   .attr("class", "link")
+                  .style("stroke", function(d) { return d3.rgb(119, 136, 153); })
                   .attr("marker-end", "url(#arrow)");
 
     var node = svg.append("g")

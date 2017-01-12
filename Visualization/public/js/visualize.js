@@ -396,3 +396,9 @@ function showSwitchPort(container, data, switch_id) {
 
     return container.html(table);
 }
+
+$('#timeHistory').slider({
+	formatter: function(value) {
+		return 'Current value: ' + value;
+	}
+});

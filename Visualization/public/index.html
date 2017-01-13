@@ -8,6 +8,8 @@
     <script src="visualize.js"></script>
 
     <style>
+        html,body { height:100%; }
+
         path.link {
           fill: none;
           stroke: #666;
@@ -38,24 +40,28 @@
 </head>
 
 <body>
-    <div class="row">
-        <div class="col-md-6">
-            <div class="container-fluid">
+    <div style="height:85%; width:100%;">
+        <div class="col-md-6" style="height:100%;">
+            <div class="container-fluid" style="height:100%;">
                 <h4><div id="topologyHead">Network Topology</div></h4>
-                <div class="container-fluid">
-                  <div class="col-md-8">
-                    <input id="timeHistory" data-slider-id='ex1Slider' type="range" data-slider-min="0" data-slider-max="20" data-slider-step="1" data-slider-value="14"/>
-                  </div>
-                  <div class="col-md-4">
-                    <div>Test</div>
+                <div class="row">
+                  <div class="container-fluid">
+                    <div class="col-md-8">
+                      <input id="timeHistory" type="range" min="0" max="100" value="50" oninput="timeUpdate(value)"/>
+                    </div>
+                    <div class="col-md-4">
+                      <div id="showTime">Test</div>
+                    </div>
                   </div>
                 </div>
                 <div id=loading>Loading...</div>
-                <svg id="topology" width="800" height="600"></svg>
+                <div class="container-fluid" id="showNetworkTopology" style="height:100%;">
+                  <svg id="topology" width="100%" height="100%"></svg>
+                </div>
             </div>
         </div>
 
-        <div class="col-md-6">
+        <div class="col-md-6" style="height:100%;">
             <div id="showSwitchID" class="container-fluid">
                 <h4><div id="switch"></div></h4>
             </div>

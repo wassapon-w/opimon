@@ -63,8 +63,8 @@ function visualize() {
     loadLabel.textContent = "";
 
     var svg = d3.select("#topology"),
-        width = svg.attr("width"),
-        height = svg.attr("height");
+        width = $("#showNetworkTopology").width(),
+        height = $("#showNetworkTopology").height();
 
     svg.append("svg:defs").selectAll("marker")
        .data(["arrow"])
@@ -397,8 +397,12 @@ function showSwitchPort(container, data, switch_id) {
     return container.html(table);
 }
 
-$('#timeHistory').slider({
-	formatter: function(value) {
-		return 'Current value: ' + value;
-	}
-});
+// $('#timeHistory').slider({
+// 	formatter: function(value) {
+// 		return 'Current value: ' + value;
+// 	}
+// });
+
+function timeUpdate(value) {
+    document.getElementById("showTime").textContent = value;
+}

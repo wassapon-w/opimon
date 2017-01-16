@@ -324,7 +324,7 @@ app.get('/switchdata', function (req, res) {
 
 app.get('/dataquery', function (req, res, next) {
   console.log(req.query);
-  // res.json({'status': 200, 'msg': 'success'});
+  res.json({'status': 200, 'msg': 'success'});
 });
 
 app.listen(3000, function () {

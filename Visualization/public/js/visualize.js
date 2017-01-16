@@ -397,11 +397,13 @@ function showSwitchPort(container, data, switch_id) {
     return container.html(table);
 }
 
-// $('#timeHistory').slider({
-// 	formatter: function(value) {
-// 		return 'Current value: ' + value;
-// 	}
-// });
+function sendDataToServer() {
+    console.log(document.getElementById("timeHistory").value);
+
+    $.get('/dataquery', { timeSecond : document.getElementById("timeHistory").value})
+    .success(function(res){ console.log(res); })
+    .error(function(err){ console.log(err); });
+}
 
 function timeUpdate(value) {
     document.getElementById("showTime").textContent = value;

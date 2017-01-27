@@ -204,7 +204,7 @@ class MessageWatcherAgentThread(threading.Thread):
 			self.id = msg.datapath_id
 			self.ports = msg.ports
 
-			print("Receive Features Reply Message")
+			# print("Receive Features Reply Message")
 
 			for port in self.ports.values():
 				self.db.switch_port.insert_one({"switch_id": hex(self.id),
@@ -251,7 +251,7 @@ class MessageWatcherAgentThread(threading.Thread):
 
 			# time.sleep(60)
 
-			print("Send Features Request Message")
+			# print("Send Features Request Message")
 
 			# Send OFPFeaturesRequest for LLDP packet inject
 			ofp_parser = self.datapath.ofproto_parser
@@ -280,7 +280,7 @@ class MessageWatcherAgentThread(threading.Thread):
 						(port,) = struct.unpack('!I', lldp_msg.tlvs[1].port_id)
 						switch_src = str_to_dpid(lldp_msg.tlvs[0].chassis_id[5:])
 
-						print("Receive Proxy LLDP Packet")
+						# print("Receive Proxy LLDP Packet")
 						# print(lldp_msg)
 
 						# Write to database
@@ -392,6 +392,7 @@ class MessageWatcher(object):
 if __name__ == '__main__':
 
 	# log.init_log()
+	print("Monitor is running.")
 
 	LISTEN_HOST, LISTEN_PORT = '0.0.0.0', 6653
 	# FORWARD_HOST, FORWARD_PORT = 'sd-lemon.naist.jp', 6633

@@ -327,6 +327,33 @@ app.get('/dataquery', function (req, res, next) {
   res.json({'status': 200, 'msg': 'success'});
 });
 
+app.get('/gettime', function (req, res) {
+  getMinTime();
+
+  function getMinTime() {
+  	var minTime = [];
+
+  	MongoClient.connect(url, function(err, db) {
+  		assert.equal(null, err);
+
+  		var cursor = db.collection('topology').find().sort({"timestamp":1}).limit(1);
+  		cursor.each(function(err, doc) {
+  			assert.equal(err, null);
+  			if (doc != null) {
+  				minTime.push(doc);
+  			}
+  			else {
+          counter++;
+  				console.log(minTime);
+  				db.close();
+
+          res.json(minTime[0]["timestamp"]);
+  			}
+  		});
+  	});
+  }
+});
+
 app.listen(3000, function () {
   console.log('OpenFlow Monitor running on port 3000!');
 });

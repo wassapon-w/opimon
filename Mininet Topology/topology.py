@@ -41,6 +41,11 @@ class MyTopo( Topo ):
         Switch18 = self.addSwitch('s18')
         Switch19 = self.addSwitch('s19')
         Switch20 = self.addSwitch('s20')
+        Switch21 = self.addSwitch('s21')
+        Switch22 = self.addSwitch('s22')
+        Switch23 = self.addSwitch('s23')
+        Switch24 = self.addSwitch('s24')
+        Switch25 = self.addSwitch('s25')
 
         # Add links
         self.addLink(Host1, Switch1)
@@ -78,6 +83,11 @@ class MyTopo( Topo ):
         self.addLink(Switch16, Switch17)
         self.addLink(Switch16, Switch18)
         self.addLink(Switch16, Switch19)
+        self.addLink(Switch10, Switch21)
+        self.addLink(Switch10, Switch22)
+        self.addLink(Switch11, Switch23)
+        self.addLink(Switch14, Switch24)
+        self.addLink(Switch14, Switch25)
 
 
 topos = { 'mytopo': ( lambda: MyTopo() ) }

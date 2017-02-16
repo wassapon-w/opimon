@@ -18,36 +18,40 @@ var getJSON = function(url, callback) {
 };
 
 $(document).ready(function(){
-    $('#showfull').click(function(){
-      getJSON(dataURL + '/flowmods', function(err, output){
-          data["flowmods"] = output;
-          // showFlowTable($(document.getElementById("flowTable")), data);
-      });
+  getData();
+
+  $('#showfull').click(function(){
+    getJSON(dataURL + '/flowmods', function(err, output){
+        data["flowmods"] = output;
+        // showFlowTable($(document.getElementById("flowTable")), data);
     });
+  });
 });
 
-getJSON(dataURL + '/topology', function(err, output){
-    data["switch"] = output["node"];
-    data["connect"] = output["link"];
-    data["switchCounter"] = output["nodeCounter"];
-    getSettings();
-});
+function getData() {
+  getJSON(dataURL + '/topology', function(err, output){
+      data["switch"] = output["node"];
+      data["connect"] = output["link"];
+      data["switchCounter"] = output["nodeCounter"];
+      getSettings();
+  });
 
-getJSON(dataURL + '/flowmods', function(err, output){
-    data["flowmods"] = output;
-    // showFlowTable($(document.getElementById("flowTable")), data);
-});
+  getJSON(dataURL + '/flowmods', function(err, output){
+      data["flowmods"] = output;
+      // showFlowTable($(document.getElementById("flowTable")), data);
+  });
 
-getJSON(dataURL + '/gettime', function(err, output){
-    data["minTime"] = Date.parse(output);
-    console.log(data["minTime"]);
-    var minTime = new Date(data["minTime"]);
-    var currentTime = new Date(Date.now());
-    document.getElementById("showTime").textContent = currentTime;
-    $('#timeSlider').attr('min', minTime.valueOf());
-    $('#timeSlider').attr('max', currentTime.valueOf());
-    $('#timeSlider').attr('value', currentTime.valueOf());
-});
+  getJSON(dataURL + '/gettime', function(err, output){
+      data["minTime"] = Date.parse(output);
+      // console.log(data["minTime"]);
+      var minTime = new Date(data["minTime"]);
+      var currentTime = new Date(Date.now());
+      document.getElementById("showTime").textContent = currentTime;
+      $('#timeSlider').attr('min', minTime.valueOf());
+      $('#timeSlider').attr('max', currentTime.valueOf());
+      $('#timeSlider').attr('value', currentTime.valueOf());
+  });
+}
 
 function getSettings() {
     getJSON(dataURL + '/settings.json', function(err, output){
@@ -58,15 +62,15 @@ function getSettings() {
 }
 
 function getNewSwitchData(data, switch_id) {
-  getJSON(dataURL + '/flowmods', function(err, output){
-      data["flowmods"] = output;
-      showFlowTableByID($(document.getElementById("flowTable")), data, switch_id);
-  });
+    getJSON(dataURL + '/flowmods', function(err, output){
+        data["flowmods"] = output;
+        showFlowTableByID($(document.getElementById("flowTable")), data, switch_id);
+    });
 
-  getJSON(dataURL + '/switch', function(err, output){
-      data["switch"] = output;
-      showSwitchPort($(document.getElementById("portTable")), data, switch_id);
-  });
+    getJSON(dataURL + '/switch', function(err, output){
+        data["switch"] = output;
+        showSwitchPort($(document.getElementById("portTable")), data, switch_id);
+    });
 }
 
 function visualize() {
@@ -409,8 +413,7 @@ function showSwitchPort(container, data, switch_id) {
 }
 
 function sendDataToServer() {
-    console.log(document.getElementById("timeSlider").value);
-
+    // console.log(document.getElementById("timeSlider").value);
     $.get('/dataquery', { timeSecond : document.getElementById("timeSlider").value})
     .success(function(res){ console.log(res); })
     .error(function(err){ console.log(err); });
@@ -418,6 +421,6 @@ function sendDataToServer() {
 
 function timeUpdate(value) {
     var selectTime = new Date(parseInt(value))
-    console.log(selectTime);
+    // console.log(selectTime);
     document.getElementById("showTime").textContent = selectTime;
 }

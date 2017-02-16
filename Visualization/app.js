@@ -344,9 +344,7 @@ app.get('/gettime', function (req, res) {
   			}
   			else {
           counter++;
-  				console.log(minTime);
   				db.close();
-
           res.json(minTime[0]["timestamp"]);
   			}
   		});

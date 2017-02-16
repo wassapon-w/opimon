@@ -38,6 +38,17 @@ getJSON(dataURL + '/flowmods', function(err, output){
     // showFlowTable($(document.getElementById("flowTable")), data);
 });
 
+getJSON(dataURL + '/gettime', function(err, output){
+    data["minTime"] = Date.parse(output);
+    console.log(data["minTime"]);
+    var minTime = new Date(data["minTime"]);
+    var currentTime = new Date(Date.now());
+    document.getElementById("showTime").textContent = currentTime;
+    $('#timeSlider').attr('min', minTime.valueOf());
+    $('#timeSlider').attr('max', currentTime.valueOf());
+    $('#timeSlider').attr('value', currentTime.valueOf());
+});
+
 function getSettings() {
     getJSON(dataURL + '/settings.json', function(err, output){
         data["settings"] = output;
@@ -398,13 +409,15 @@ function showSwitchPort(container, data, switch_id) {
 }
 
 function sendDataToServer() {
-    console.log(document.getElementById("timeHistory").value);
+    console.log(document.getElementById("timeSlider").value);
 
-    $.get('/dataquery', { timeSecond : document.getElementById("timeHistory").value})
+    $.get('/dataquery', { timeSecond : document.getElementById("timeSlider").value})
     .success(function(res){ console.log(res); })
     .error(function(err){ console.log(err); });
 }
 
 function timeUpdate(value) {
-    document.getElementById("showTime").textContent = value;
+    var selectTime = new Date(parseInt(value))
+    console.log(selectTime);
+    document.getElementById("showTime").textContent = selectTime;
 }

@@ -68,7 +68,8 @@ function getNewSwitchData(data, switch_id) {
     });
 
     getJSON(dataURL + '/switch', function(err, output){
-        data["switch"] = output;
+        // data["switch"] = output;
+        // console.log(data["switch"]);
         showSwitchPort($(document.getElementById("portTable")), data, switch_id);
     });
 }
@@ -401,7 +402,7 @@ function showSwitchPort(container, data, switch_id) {
     table.append(head);
 
     var body = $("<tbody/>");
-    $.each(data["switch"][switch_id]["ports"], function(rowIndex, r) {
+    $.each(data["switch_mac"][switch_id]["ports"], function(rowIndex, r) {
         var row = $("<tr/>");
         row.append($("<td/>").text(r["port_no"]));
         row.append($("<td/>").text(r["hw_addr"]));
@@ -420,6 +421,7 @@ function sendDataToServer() {
         data["connect"] = res["topology"]["link"];
         data["switchCounter"] = res["topology"]["nodeCounter"];
         data["flowmods"] = res["flowTable"];
+        data["switch_mac"] = res["switch"];
         console.log(data);
         $("#topology").empty();
         visualize();

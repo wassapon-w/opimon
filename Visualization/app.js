@@ -323,8 +323,226 @@ app.get('/switchdata', function (req, res) {
 });
 
 app.get('/dataquery', function (req, res, next) {
-  console.log(req.query);
-  res.json({'status': 200, 'msg': 'success'});
+  console.log(req.query["timeSecond"]);
+  // res.json({'status': 200, 'msg': 'success'});
+  var queryData = {};
+  var queryTime = new Date(parseInt(req.query["timeSecond"]));
+  var fromTime = new Date(parseInt(req.query["timeSecond"]) - 5 * 1000);
+  var toTime = new Date(parseInt(req.query["timeSecond"]) + 5 * 1000);
+  queryTopology();
+
+  function queryTopology() {
+  	var topologyDatabase = [];
+
+  	MongoClient.connect(url, function(err, db) {
+  		assert.equal(null, err);
+
+  		var cursor = db.collection('topology').find( { timestamp: { $gte: fromTime, $lt: toTime } } );
+      // var cursor = db.collection('topology').find();
+  		cursor.each(function(err, doc) {
+  			assert.equal(err, null);
+  			if (doc != null) {
+  				// console.dir(doc);
+  				topologyDatabase.push(doc);
+  			}
+  			else {
+          counter++;
+  				console.log(counter + " : Request Topology from webpage");
+  				db.close();
+
+          var topology = {};
+          topology["node"] = [];
+          topology["link"] = [];
+
+          var checkSwitch = {};
+
+          var nodeCounter = 0;
+          for(var i = 0; i < topologyDatabase.length; i++) {
+            var isNew = true;
+            for(var j = 0; j < topology["node"].length; j++) {
+              if(topology["node"][j]["id"] == topologyDatabase[i]["switch_dst"]) {
+                for(var k = 0; k < topology["node"][j]["connect_to"].length; k++) {
+                  if(topology["node"][j]["connect_to"][k] == topologyDatabase[i]["switch_src"]) {
+                    isNew = false;
+                    break;
+                  }
+                }
+                if(isNew) {
+                  topology["node"][j]["connect_to"].push(topologyDatabase[i]["switch_src"] + '');
+
+                  if(checkSwitch[topologyDatabase[i]["switch_src"] + ''] != 1) {
+                    var node = {};
+                    node["id"] = topologyDatabase[i]["switch_src"] + '';
+                    node["group"] = 1;
+                    node["connect_to"] = [];
+                    topology["node"].push(node);
+                    checkSwitch[topologyDatabase[i]["switch_src"] + ''] = 1;
+                  }
+
+                  topologyDatabase[i]["source"] = topologyDatabase[i]["switch_src"] + '';
+                  topologyDatabase[i]["target"] = topologyDatabase[i]["switch_dst"] + '';
+                  topologyDatabase[i]["value"] = 1;
+                  topology["link"].push(topologyDatabase[i]);
+                  isNew = false;
+                  break;
+                }
+              }
+            }
+
+            if(isNew) {
+              nodeCounter++;
+              var node = {};
+              node["id"] = topologyDatabase[i]["switch_dst"] + '';
+              node["group"] = 1;
+              node["connect_to"] = [];
+              node["connect_to"].push(topologyDatabase[i]["switch_src"] + '');
+              topology["node"].push(node);
+              checkSwitch[topologyDatabase[i]["switch_dst"] + ''] = 1;
+
+              if(checkSwitch[topologyDatabase[i]["switch_src"] + ''] != 1) {
+                var node = {};
+                node["id"] = topologyDatabase[i]["switch_src"] + '';
+                node["group"] = 1;
+                node["connect_to"] = [];
+                topology["node"].push(node);
+                checkSwitch[topologyDatabase[i]["switch_src"] + ''] = 1;
+              }
+
+              topologyDatabase[i]["source"] = topologyDatabase[i]["switch_src"] + '';
+              topologyDatabase[i]["target"] = topologyDatabase[i]["switch_dst"] + '';
+              topologyDatabase[i]["value"] = 1;
+              topology["link"].push(topologyDatabase[i]);
+            }
+          }
+
+          topology["nodeCounter"] = nodeCounter;
+
+          queryData["topology"] = topology;
+
+          querySwitchPort()
+  			}
+  		});
+  	});
+  }
+
+  function querySwitchPort() {
+  	var switchDatabase = [];
+
+  	MongoClient.connect(url, function(err, db) {
+  		assert.equal(null, err);
+
+  		var cursor = db.collection('switch_port').find( { timestamp: { $gte: fromTime, $lt: toTime } } );
+  		cursor.each(function(err, doc) {
+  			assert.equal(err, null);
+  			if (doc != null) {
+  				switchDatabase.push(doc);
+  			}
+  			else {
+          counter++;
+  				console.log(counter + " : Request Switch Port from webpage");
+  				db.close();
+
+          var switchPort = {};
+          var portChecker = {};
+
+          for(var i = 0; i < switchDatabase.length; i++) {
+            if(switchPort[switchDatabase[i]["switch_id"]] != undefined) {
+              if(portChecker[switchDatabase[i]["switch_id"]][switchDatabase[i]["port_no"]] != 1) {
+                var port = {};
+                port["port_no"] = switchDatabase[i]["port_no"];
+                port["hw_addr"] = switchDatabase[i]["hw_addr"];
+                switchPort[switchDatabase[i]["switch_id"]]["ports"].push(port);
+
+                portChecker[switchDatabase[i]["switch_id"]][switchDatabase[i]["port_no"]] = 1;
+              }
+            }
+            else {
+              switchPort[switchDatabase[i]["switch_id"]] = {};
+              switchPort[switchDatabase[i]["switch_id"]]["switch_id"] = switchDatabase[i]["switch_id"];
+              switchPort[switchDatabase[i]["switch_id"]]["ports"] = [];
+
+              var port = {};
+              port["port_no"] = switchDatabase[i]["port_no"];
+              port["hw_addr"] = switchDatabase[i]["hw_addr"];
+              switchPort[switchDatabase[i]["switch_id"]]["ports"].push(port);
+
+              portChecker[switchDatabase[i]["switch_id"]] = {}
+              portChecker[switchDatabase[i]["switch_id"]][switchDatabase[i]["port_no"]] = 1;
+            }
+          }
+
+          for(var eachSwitch in switchPort) {
+              switchPort[eachSwitch]["ports"].sort(function(a,b) {return (a.port_no > b.port_no) ? 1 : ((b.port_no > a.port_no) ? -1 : 0);} );
+          }
+
+          queryData["switch"] = switchPort;
+
+          queryFlowMods();
+  			}
+  		});
+  	});
+  }
+
+  function queryFlowMods() {
+  	var flowModsDatabase = [];
+
+  	MongoClient.connect(url, function(err, db) {
+  		assert.equal(null, err);
+
+  		var cursor = db.collection('flow_mods').find();
+  		cursor.each(function(err, doc) {
+  			assert.equal(err, null);
+  			if (doc != null) {
+  				// console.dir(doc);
+  				flowModsDatabase.push(doc);
+  			}
+  			else {
+          counter++;
+  				console.log(counter + " : Request FlowMod from webpage");
+  				db.close();
+
+          var flowTable = {};
+          var switchFlowTable = [];
+
+          for(var i = 0; i < flowModsDatabase.length; i++) {
+            if(flowTable[flowModsDatabase[i]["switch"]] != undefined) {
+              if(flowModsDatabase[i]["message"]["actions"][0] != undefined) {
+                var flow = {};
+                flow["switch_id"] = flowModsDatabase[i]["switch"];
+                flow["match"] = flowModsDatabase[i]["message"]["match"];
+                flow["actions"] = flowModsDatabase[i]["message"]["actions"];
+                flow["hard_timeout"] = flowModsDatabase[i]["message"]["hard_timeout"];
+                flow["idle_timeout"] = flowModsDatabase[i]["message"]["idle_timeout"];
+                flow["timestamp"] = flowModsDatabase[i]["timestamp"];
+                flowTable[flowModsDatabase[i]["switch"]].push(flow);
+              }
+            }
+            else {
+              flowTable[flowModsDatabase[i]["switch"]] = [];
+              switchFlowTable.push(flowModsDatabase[i]["switch"]);
+
+              if(flowModsDatabase[i]["message"]["actions"][0] != undefined) {
+                var flow = {};
+                flow["switch_id"] = flowModsDatabase[i]["switch"];
+                flow["match"] = flowModsDatabase[i]["message"]["match"];
+                flow["actions"] = flowModsDatabase[i]["message"]["actions"];
+                flow["hard_timeout"] = flowModsDatabase[i]["message"]["hard_timeout"];
+                flow["idle_timeout"] = flowModsDatabase[i]["message"]["idle_timeout"];
+                flow["timestamp"] = flowModsDatabase[i]["timestamp"];
+                flowTable[flowModsDatabase[i]["switch"]].push(flow);
+              }
+            }
+          }
+
+          flowTable["switchFlowTable"] = switchFlowTable.sort(function(a,b) { return a - b; });
+
+          queryData["flowTable"] = flowTable;
+
+          res.json(queryData);
+  			}
+  		});
+  	});
+  }
 });
 
 app.get('/gettime', function (req, res) {

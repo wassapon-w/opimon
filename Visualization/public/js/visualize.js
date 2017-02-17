@@ -414,7 +414,7 @@ function showSwitchPort(container, data, switch_id) {
 
 function sendDataToServer() {
     // console.log(document.getElementById("timeSlider").value);
-    $.get('/dataquery', { timeSecond : document.getElementById("timeSlider").value})
+    $.get('/dataquery', { timeSecond : document.getElementById("timeSlider").value })
     .success(function(res){ console.log(res); })
     .error(function(err){ console.log(err); });
 }

@@ -415,7 +415,15 @@ function showSwitchPort(container, data, switch_id) {
 function sendDataToServer() {
     // console.log(document.getElementById("timeSlider").value);
     $.get('/dataquery', { timeSecond : document.getElementById("timeSlider").value })
-    .success(function(res){ console.log(res); })
+    .success(function(res){
+        data["switch"] = res["topology"]["node"];
+        data["connect"] = res["topology"]["link"];
+        data["switchCounter"] = res["topology"]["nodeCounter"];
+        data["flowmods"] = res["flowTable"];
+        console.log(data);
+        $("#topology").empty();
+        visualize();
+      })
     .error(function(err){ console.log(err); });
 }
 

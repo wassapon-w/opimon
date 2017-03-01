@@ -259,8 +259,33 @@ class MessageWatcherAgentThread(threading.Thread):
 			out.serialize()
 			self.switch_socket.send(out.buf)
 
+			# Test Send Stat Request
+			ofp = self.datapath.ofproto
+			ofp_parser = self.datapath.ofproto_parser
+			match = ofp_parser.OFPMatch(in_port=1)
+			table_id = 0xff
+			out_port = ofp.OFPP_NONE
+			out = ofp_parser.OFPFlowStatsRequest(self.datapath, 0, match, table_id, out_port)
+			out.serialize()
+			self.switch_socket.send(out.buf)
+
+			ofp = self.datapath.ofproto
+			ofp_parser = self.datapath.ofproto_parser
+			out = ofp_parser.OFPPortStatsRequest(self.datapath, 0, ofp.OFPP_NONE)
+			out.serialize()
+			self.switch_socket.send(out.buf)
+
 			# t = threading.Timer(1, self.switch_socket.sendall, (out.buf,))
 			# t.start()
+
+		elif msg_type == ofproto_v1_0.OFPT_STATS_REPLY:
+			msg = ofproto_v1_0_parser.OFPPortStatsReply.parser(self.datapath, version, msg_type, msg_len, xid, pkt)
+			if(type(msg) is ofproto_v1_0_parser.OFPFlowStatsReply):
+				print(type(msg))
+				print("----------1")
+			if(type(msg) is ofproto_v1_0_parser.OFPPortStatsReply):
+				print(type(msg))
+				print("----------2")
 
 		# Asynchronous messages
 		elif msg_type == ofproto_v1_0.OFPT_PACKET_IN:

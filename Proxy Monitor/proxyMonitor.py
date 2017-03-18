@@ -20,7 +20,7 @@ from ryu.lib.dpid import dpid_to_str, str_to_dpid
 from ryu.ofproto import ofproto_v1_0_parser
 # from ofproto import ofproto_v1_0_parser_extention
 
-from ryu.ofproto import ofproto_v1_0_parser
+# from ryu.ofproto import ofproto_v1_0_parser
 from ryu.lib import addrconv, ip, mac
 
 from pymongo import MongoClient
@@ -55,7 +55,7 @@ class MessageWatcherAgentThread(threading.Thread):
 
 		# Connect to database
 		# client = MongoClient('sd-lemon.naist.jp', 9999)
-		client = MongoClient('localhost', 27017)
+		client = MongoClient('127.0.0.1', 27017)
 		self.db = client.opimon
 
 	def run(self):
@@ -90,7 +90,6 @@ class MessageWatcherAgentThread(threading.Thread):
 				self.upstream_buf = self._parse(self.upstream_buf, self._upstream_parse)
 
 		if(time.time() > self.timeloop + 10):
-			print(self.id, self.timeloop)
 			self.inject_request_message()
 			self.timeloop = time.time()
 
@@ -114,6 +113,7 @@ class MessageWatcherAgentThread(threading.Thread):
 		return buf
 
 	def inject_request_message(self):
+		print(str(self.id) + " : Sent Message")
 		ofp_parser = self.datapath.ofproto_parser
 		out = ofp_parser.OFPFeaturesRequest(self.datapath)
 		out.serialize()
@@ -136,7 +136,10 @@ class MessageWatcherAgentThread(threading.Thread):
 
 	# Controller to Switch
 	def _downstream_parse(self, pkt):
-		self.switch_socket.send(pkt)
+		try:
+			self.switch_socket.send(pkt)
+		except:
+			pass
 
 		(version, msg_type, msg_len, xid) = ofproto_parser.header(pkt)
 
@@ -146,7 +149,7 @@ class MessageWatcherAgentThread(threading.Thread):
 
 			msg = ofproto_v1_0_parser.OFPFlowMod.parser(self.datapath, version, msg_type, msg_len, xid, pkt)
 
-			print("Receive Flow Mod Message")
+			print(str(self.id) + " : Receive Flow Mod Message")
 
 			# Write to database
 			db_message = {"switch": hex(self.id),
@@ -188,7 +191,7 @@ class MessageWatcherAgentThread(threading.Thread):
 				db_message["message"]["actions"].append(vars(action));
 
 			# Insert to database
-			self.db.flow_mods.insert_one(db_message)
+			# self.db.flow_mods.insert_one(db_message)
 
 		# elif msg_type == ofproto_v1_0.OFPT_PACKET_OUT:
 		# 	self.db.packet_out.insert_one({"Switch": self.id, "Type": msg_type, "Timestamp": datetime.datetime.utcnow()})
@@ -231,13 +234,16 @@ class MessageWatcherAgentThread(threading.Thread):
 			self.id = msg.datapath_id
 			self.ports = msg.ports
 
-			print("Receive Features Reply Message")
+			print(str(self.id) + " : Receive Features Reply Message")
+
+			# print(msg)
 
 			for port in self.ports.values():
-				self.db.switch_port.insert_one({"switch_id": hex(self.id),
-											 	"port_no": port.port_no,
-											 	"hw_addr": port.hw_addr,
-											 	"timestamp": datetime.datetime.utcnow()})
+				db_message = {"switch_id": hex(self.id),
+							  "port_no": port.port_no,
+							  "hw_addr": port.hw_addr,
+							  "timestamp": datetime.datetime.utcnow()}
+				self.db.switch_port.insert_one(db_message)
 
 				pkt_lldp = packet.Packet()
 
@@ -280,48 +286,63 @@ class MessageWatcherAgentThread(threading.Thread):
 
 			# print("Send Features Request Message")
 
-			# Send OFPFeaturesRequest for LLDP packet inject
-			# ofp_parser = self.datapath.ofproto_parser
-			# out = ofp_parser.OFPFeaturesRequest(self.datapath)
-			# out.serialize()
-			# self.switch_socket.send(out.buf)
-			#
-			# Test Send Stat Request
-			# ofp = self.datapath.ofproto
-			# ofp_parser = self.datapath.ofproto_parser
-			# match = ofp_parser.OFPMatch(in_port=1)
-			# table_id = 0xff
-			# out_port = ofp.OFPP_NONE
-			# out = ofp_parser.OFPFlowStatsRequest(self.datapath, 0, match, table_id, out_port)
-			# out.serialize()
-			# self.switch_socket.send(out.buf)
-			#
-			# ofp = self.datapath.ofproto
-			# ofp_parser = self.datapath.ofproto_parser
-			# out = ofp_parser.OFPPortStatsRequest(self.datapath, 0, ofp.OFPP_NONE)
-			# out.serialize()
-			# self.switch_socket.send(out.buf)
-
 			# t = threading.Timer(1, self.switch_socket.sendall, (out.buf,))
 			# t.start()
 
 		elif msg_type == ofproto_v1_0.OFPT_STATS_REPLY:
 			msg = ofproto_v1_0_parser.OFPPortStatsReply.parser(self.datapath, version, msg_type, msg_len, xid, pkt)
 			if(type(msg) is ofproto_v1_0_parser.OFPFlowStatsReply):
-				print("Receive Flow Stats Message")
-				# print("----------1")
-				pass
+				print(str(self.id) + " : Receive Flow Stats Message")
+
+				# print(msg)
+				# print(msg.body)
+
+				for flow in msg.body:
+					db_message = {"switch": hex(self.id),
+								  "message": {
+									  "header": {
+										  "version": msg.version,
+										  "type": msg.msg_type,
+										  "length": msg.msg_len,
+										  "xid": msg.xid
+									  },
+									  "match": {
+										  "wildcards": flow.match.wildcards,
+										  "in_port": flow.match.in_port,
+										  "dl_src": mac.haddr_to_str(flow.match.dl_src),
+										  "dl_dst": mac.haddr_to_str(flow.match.dl_dst),
+										  "dl_vlan": flow.match.dl_vlan,
+										  "dl_vlan_pcp": flow.match.dl_vlan_pcp,
+										  "dl_type": flow.match.dl_type,
+										  "nw_tos": flow.match.nw_tos,
+										  "nw_proto": flow.match.nw_proto,
+										  "nw_src": ip.ipv4_to_str(flow.match.nw_src),
+										  "nw_dst": ip.ipv4_to_str(flow.match.nw_dst),
+										  "tp_src": flow.match.tp_src,
+										  "tp_dst": flow.match.tp_dst
+									  },
+									  "cookie": flow.cookie,
+									  "idle_timeout": flow.idle_timeout,
+									  "hard_timeout": flow.hard_timeout,
+									  "priority": flow.priority,
+									  "flags": msg.flags,
+									  "actions": []
+								  },
+								  "timestamp": datetime.datetime.utcnow()}
+
+					for action in flow.actions:
+						db_message["message"]["actions"].append(vars(action));
+
+					self.db.flow_mods.insert_one(db_message)
 			if(type(msg) is ofproto_v1_0_parser.OFPPortStatsReply):
-				print("Receive Port Stats Message")
-				# print("----------2")
+				print(str(self.id) + " : Receive Port Stats Message")
 				pass
 
 		# Asynchronous messages
 		elif msg_type == ofproto_v1_0.OFPT_PACKET_IN:
 			# LOG.info('Forward PACKET_IN Message at UPSTREAM')
 
-			msg = ofproto_v1_0_parser.OFPPacketIn.parser(
-				self.datapath, version, msg_type, msg_len, xid, pkt)
+			msg = ofproto_v1_0_parser.OFPPacketIn.parser(self.datapath, version, msg_type, msg_len, xid, pkt)
 			pkt_msg = packet.Packet(msg.data)
 
 			if pkt_msg.get_protocol(ethernet.ethernet).ethertype == ETH_TYPE_LLDP:
@@ -334,7 +355,7 @@ class MessageWatcherAgentThread(threading.Thread):
 						(port,) = struct.unpack('!I', lldp_msg.tlvs[1].port_id)
 						switch_src = str_to_dpid(lldp_msg.tlvs[0].chassis_id[5:])
 
-						print("Receive Proxy LLDP Packet")
+						print(str(self.id) + " : Receive Proxy LLDP Packet")
 						# print(lldp_msg)
 
 						# Write to database

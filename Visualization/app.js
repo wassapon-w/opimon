@@ -31,7 +31,7 @@ app.get('/flowmods', function (req, res) {
   	MongoClient.connect(url, function(err, db) {
   		assert.equal(null, err);
 
-  		var cursor = db.collection('flow_mods').find();
+  		var cursor = db.collection('flow_mods').find( { timestamp: { $gte: new Date(Date.now() - 10 * 1000), $lt: new Date(Date.now()) } } );
   		cursor.each(function(err, doc) {
   			assert.equal(err, null);
   			if (doc != null) {

@@ -139,14 +139,13 @@ class MessageWatcherAgentThread(threading.Thread):
 		try:
 			self.switch_socket.send(pkt)
 		except:
+			print(str(self.id) + " --- Broken Pipe")
 			pass
 
 		(version, msg_type, msg_len, xid) = ofproto_parser.header(pkt)
 
 		# Controller command messages
 		if msg_type == ofproto_v1_0.OFPT_FLOW_MOD:
-			# LOG.info('Forward FLOW_MOD Message at DOWNSTREAM')
-
 			msg = ofproto_v1_0_parser.OFPFlowMod.parser(self.datapath, version, msg_type, msg_len, xid, pkt)
 
 			print(str(self.id) + " : Receive Flow Mod Message")
@@ -193,31 +192,12 @@ class MessageWatcherAgentThread(threading.Thread):
 			# Insert to database
 			# self.db.flow_mods.insert_one(db_message)
 
-		# elif msg_type == ofproto_v1_0.OFPT_PACKET_OUT:
-		# 	self.db.packet_out.insert_one({"Switch": self.id, "Type": msg_type, "Timestamp": datetime.datetime.utcnow()})
-
-		# elif msg_type == ofproto_v1_0.OFPT_ECHO_REPLY:
-		# 	print("Send Features Request Message")
-		#
-		# 	# Send OFPFeaturesRequest for LLDP packet inject
-		# 	ofp_parser = self.datapath.ofproto_parser
-		# 	out = ofp_parser.OFPFeaturesRequest(self.datapath)
-		# 	out.serialize()
-		#
-		# 	t = threading.Timer(1, self.switch_socket.sendall, (out.buf,))
-		# 	t.start()
-
-		# self.db.all_packet.insert_one({"Switch": self.id, "Type": msg_type, "Timestamp": datetime.datetime.utcnow()})
-		# self.switch_socket.send(pkt)
-
 	# Switch to Controller
 	def _upstream_parse(self, pkt):
 		(version, msg_type, msg_len, xid) = ofproto_parser.header(pkt)
 
 		# Switch configuration messages
 		if msg_type == ofproto_v1_0.OFPT_FEATURES_REPLY:
-			# LOG.info('Forward FEATURES_REPLY Message at UPSTREAM')
-
 			msg = ofproto_v1_0_parser.OFPSwitchFeatures.parser(self.datapath, version, msg_type, msg_len, xid, pkt)
 			match = ofproto_v1_0_parser.OFPMatch(dl_type=ETH_TYPE_LLDP, dl_dst=lldp.LLDP_MAC_NEAREST_BRIDGE)
 			cookie = 0
@@ -278,17 +258,6 @@ class MessageWatcherAgentThread(threading.Thread):
 				out.serialize()
 				self.switch_socket.send(out.buf)
 
-				# t = threading.Timer(1, self.switch_socket.sendall, (out.buf,))
-				# t.start()
-				# LOG.info('Send LLDP Message to UPSTREAM')
-
-			# time.sleep(60)
-
-			# print("Send Features Request Message")
-
-			# t = threading.Timer(1, self.switch_socket.sendall, (out.buf,))
-			# t.start()
-
 		elif msg_type == ofproto_v1_0.OFPT_STATS_REPLY:
 			msg = ofproto_v1_0_parser.OFPPortStatsReply.parser(self.datapath, version, msg_type, msg_len, xid, pkt)
 			if(type(msg) is ofproto_v1_0_parser.OFPFlowStatsReply):
@@ -336,17 +305,17 @@ class MessageWatcherAgentThread(threading.Thread):
 					self.db.flow_mods.insert_one(db_message)
 			if(type(msg) is ofproto_v1_0_parser.OFPPortStatsReply):
 				print(str(self.id) + " : Receive Port Stats Message")
+				
+				print(msg.body)
+
 				pass
 
 		# Asynchronous messages
 		elif msg_type == ofproto_v1_0.OFPT_PACKET_IN:
-			# LOG.info('Forward PACKET_IN Message at UPSTREAM')
-
 			msg = ofproto_v1_0_parser.OFPPacketIn.parser(self.datapath, version, msg_type, msg_len, xid, pkt)
 			pkt_msg = packet.Packet(msg.data)
 
 			if pkt_msg.get_protocol(ethernet.ethernet).ethertype == ETH_TYPE_LLDP:
-				# LOG.info('Forward PACKET_IN LLDP Message at UPSTREAM')
 				lldp_msg = pkt_msg.get_protocol(lldp.lldp)
 
 				if lldp_msg != None:
@@ -373,63 +342,6 @@ class MessageWatcherAgentThread(threading.Thread):
 						pass
 
 		self.controller_socket.send(pkt)
-
-		# Asynchronous messages
-		#elif msg_type == ofproto_v1_0.OFPT_FLOW_REMOVED:
-		#    LOG.info('Forward FLOW_REMOVED Message at UPSTREAM')
-
-		#    msg = ofproto_v1_0_parser.OFPFlowRemoved.parser(
-		#        self.datapath, version, msg_type, msg_len, xid, pkt)
-
-		#    db_message = {"switch": self.id,
-		#                  "message.match": {
-		#                      "wildcards": msg.match.wildcards,
-		#                      "in_port": msg.match.in_port,
-		#                      "dl_src": hexlify(msg.match.dl_src.encode()),
-		#                      "dl_dst": hexlify(msg.match.dl_dst.encode()),
-		#                      "dl_vlan": msg.match.dl_vlan,
-		#                      "dl_type": msg.match.dl_type,
-		#                      "nw_tos": msg.match.nw_tos,
-		#                      "nw_proto": msg.match.nw_proto,
-		#                      "nw_src": msg.match.nw_src,
-		#                      "nw_dst": msg.match.nw_dst,
-		#                      "tp_src": msg.match.tp_src,
-		#                      "tp_dst": msg.match.tp_dst}
-		#                      }
-
-		#    self.db.flow_mods.remove(db_message)
-
-		# elif msg_type == ofproto_v1_0.OFPT_PACKET_IN:
-		# 	self.db.packet_in.insert_one({"Switch": self.id, "Type": msg_type, "Timestamp": datetime.datetime.utcnow()})
-		#    LOG.info('Forward PACKET_IN Message at UPSTREAM')
-
-		#    msg = ofproto_v1_0_parser.OFPPacketIn.parser(
-		#        self.datapath, version, msg_type, msg_len, xid, pkt)
-
-		#    db_message = {"switch": self.id,
-		#                  "message": {
-		#                      "header": {
-		#                          "version": version,
-		#                          "type": msg_type,
-		#                          "length": msg_len,
-		#                          "xid": xid
-		#                      },
-		#                      "buffer_id": msg.buffer_id,
-		#                      "total_len": msg.total_len,
-		#                      "in_port": msg.in_port,
-		#                      "reason": msg.reason,
-		#                      "data": hexlify(msg.data)}
-		#                  }
-
-		#    self.db.packet_in.insert_one(db_message)
-
-		# elif msg_type == ofproto_v1_0.OFPT_ECHO_REQUEST:
-		# 	self.db.echo_request.insert_one({"Switch": self.id, "Type": msg_type, "Timestamp": datetime.datetime.utcnow()})
-
-		# self.db.all_packet.insert_one({"Switch": self.id, "Type": msg_type, "Timestamp": datetime.datetime.utcnow()})
-
-		# self.controller_socket.send(pkt)
-
 
 class MessageWatcher(object):
 

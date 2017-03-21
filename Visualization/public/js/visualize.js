@@ -402,10 +402,21 @@ function showSwitchPort(container, data, switch_id) {
     table.append(head);
 
     var body = $("<tbody/>");
+    var temp = 0
     $.each(data["switch_mac"][switch_id]["ports"], function(rowIndex, r) {
-        var row = $("<tr/>");
+        var row = $("<tr/>").addClass('accordion-toggle');
+        row.attr('data-toggle', 'collapse');
+        row.attr('data-target', '#port'+temp);
         row.append($("<td/>").text(r["port_no"]));
         row.append($("<td/>").text(r["hw_addr"]));
+        body.append(row);
+
+        var row = $("<tr/>")
+        var collapseTable = $("<div/>").addClass('accordion-body collapse hiddenRow');
+        collapseTable.attr('id', 'port'+temp);
+        collapseTable.text("Test"+temp);
+        row.append(collapseTable);
+        temp++;
         body.append(row);
     });
     table.append(body);

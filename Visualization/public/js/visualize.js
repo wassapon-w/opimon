@@ -50,6 +50,7 @@ function getData() {
       $('#timeSlider').attr('min', minTime.valueOf());
       $('#timeSlider').attr('max', currentTime.valueOf());
       $('#timeSlider').attr('value', currentTime.valueOf());
+      sendDataToServer()
   });
 }
 
@@ -57,7 +58,7 @@ function getSettings() {
     getJSON(dataURL + '/settings.json', function(err, output){
         data["settings"] = output;
         console.log(data);
-        visualize();
+        // visualize();
     });
 }
 

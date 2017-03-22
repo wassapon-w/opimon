@@ -305,8 +305,26 @@ class MessageWatcherAgentThread(threading.Thread):
 					self.db.flow_mods.insert_one(db_message)
 			if(type(msg) is ofproto_v1_0_parser.OFPPortStatsReply):
 				print(str(self.id) + " : Receive Port Stats Message")
-				
-				print(msg.body)
+				# print(msg.body)
+
+				for port in msg.body:
+					# print(port)
+					db_message = {"switch": hex(self.id),
+								  "port_no": port.port_no,
+								  "rx_packets": port.rx_packets,
+								  "tx_packets": port.tx_packets,
+								  "rx_bytes": port.rx_bytes,
+								  "tx_bytes": port.tx_bytes,
+								  "rx_dropped": port.rx_dropped,
+								  "tx_dropped": port.tx_dropped,
+								  "rx_errors": port.rx_errors,
+								  "tx_errors": port.tx_errors,
+								  "rx_frame_err": port.rx_frame_err,
+								  "rx_over_err": port.rx_over_err,
+								  "rx_crc_err": port.rx_crc_err,
+								  "collisions": port.collisions,
+								  "timestamp": datetime.datetime.utcnow()}
+					self.db.port_stat.insert_one(db_message)
 
 				pass
 

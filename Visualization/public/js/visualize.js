@@ -29,17 +29,17 @@ $(document).ready(function(){
 });
 
 function getData() {
-  getJSON(dataURL + '/topology', function(err, output){
-      data["switch"] = output["node"];
-      data["connect"] = output["link"];
-      data["switchCounter"] = output["nodeCounter"];
-      getSettings();
-  });
+  // getJSON(dataURL + '/topology', function(err, output){
+  //     data["switch"] = output["node"];
+  //     data["connect"] = output["link"];
+  //     data["switchCounter"] = output["nodeCounter"];
+  //     getSettings();
+  // });
 
-  getJSON(dataURL + '/flowmods', function(err, output){
-      data["flowmods"] = output;
-      // showFlowTable($(document.getElementById("flowTable")), data);
-  });
+  // getJSON(dataURL + '/flowmods', function(err, output){
+  //     data["flowmods"] = output;
+  //     // showFlowTable($(document.getElementById("flowTable")), data);
+  // });
 
   getJSON(dataURL + '/gettime', function(err, output){
       data["minTime"] = Date.parse(output);
@@ -50,8 +50,10 @@ function getData() {
       $('#timeSlider').attr('min', minTime.valueOf());
       $('#timeSlider').attr('max', currentTime.valueOf());
       $('#timeSlider').attr('value', currentTime.valueOf());
-      sendDataToServer()
+      sendDataToServer();
   });
+
+  getSettings();
 }
 
 function getSettings() {
@@ -434,6 +436,7 @@ function sendDataToServer() {
         data["switchCounter"] = res["topology"]["nodeCounter"];
         data["flowmods"] = res["flowTable"];
         data["switch_mac"] = res["switch"];
+        data["port"] = res["port"];
         console.log(data);
         $("#topology").empty();
         visualize();

@@ -324,7 +324,7 @@ class MessageWatcherAgentThread(threading.Thread):
 								  "rx_crc_err": port.rx_crc_err,
 								  "collisions": port.collisions,
 								  "timestamp": datetime.datetime.utcnow()}
-					self.db.port_stat.insert_one(db_message)
+					self.db.port_stats.insert_one(db_message)
 
 				pass
 

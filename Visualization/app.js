@@ -489,7 +489,7 @@ app.get('/dataquery', function (req, res, next) {
   	MongoClient.connect(url, function(err, db) {
   		assert.equal(null, err);
 
-  		var cursor = db.collection('flow_mods').find();
+  		var cursor = db.collection('flow_mods').find( { timestamp: { $gte: fromTime, $lt: toTime } } );
   		cursor.each(function(err, doc) {
   			assert.equal(err, null);
   			if (doc != null) {
@@ -537,6 +537,55 @@ app.get('/dataquery', function (req, res, next) {
           flowTable["switchFlowTable"] = switchFlowTable.sort(function(a,b) { return a - b; });
 
           queryData["flowTable"] = flowTable;
+
+          queryPortStat();
+  			}
+  		});
+  	});
+  }
+
+  function queryPortStat() {
+  	var portDatabase = [];
+
+  	MongoClient.connect(url, function(err, db) {
+  		assert.equal(null, err);
+
+  		var cursor = db.collection('port_stats').find( { timestamp: { $gte: fromTime, $lt: toTime } } );
+  		cursor.each(function(err, doc) {
+  			assert.equal(err, null);
+  			if (doc != null) {
+  				portDatabase.push(doc);
+  			}
+  			else {
+          counter++;
+  				console.log(counter + " : Request Port Stats from webpage");
+  				db.close();
+
+          console.log(portDatabase);
+
+          var portDetail = {};
+
+          for(var i = 0; i < portDatabase.length; i++) {
+            if(portDetail[portDatabase[i]["switch"]] == undefined) {
+                portDetail[portDatabase[i]["switch"]] = {}
+            }
+
+            portDetail[portDatabase[i]["switch"]][portDatabase[i]["port_no"]] = {}
+            portDetail[portDatabase[i]["switch"]][portDatabase[i]["port_no"]]["rx_packets"] = portDatabase[i]["rx_packets"]
+            portDetail[portDatabase[i]["switch"]][portDatabase[i]["port_no"]]["tx_packets"] = portDatabase[i]["tx_packets"]
+            portDetail[portDatabase[i]["switch"]][portDatabase[i]["port_no"]]["rx_bytes"] = portDatabase[i]["rx_bytes"]
+            portDetail[portDatabase[i]["switch"]][portDatabase[i]["port_no"]]["tx_bytes"] = portDatabase[i]["tx_bytes"]
+            portDetail[portDatabase[i]["switch"]][portDatabase[i]["port_no"]]["rx_dropped"] = portDatabase[i]["rx_dropped"]
+            portDetail[portDatabase[i]["switch"]][portDatabase[i]["port_no"]]["tx_dropped"] = portDatabase[i]["tx_dropped"]
+            portDetail[portDatabase[i]["switch"]][portDatabase[i]["port_no"]]["rx_errors"] = portDatabase[i]["rx_errors"]
+            portDetail[portDatabase[i]["switch"]][portDatabase[i]["port_no"]]["tx_errors"] = portDatabase[i]["tx_errors"]
+            portDetail[portDatabase[i]["switch"]][portDatabase[i]["port_no"]]["rx_frame_err"] = portDatabase[i]["rx_frame_err"]
+            portDetail[portDatabase[i]["switch"]][portDatabase[i]["port_no"]]["rx_over_err"] = portDatabase[i]["rx_over_err"]
+            portDetail[portDatabase[i]["switch"]][portDatabase[i]["port_no"]]["rx_crc_err"] = portDatabase[i]["rx_crc_err"]
+            portDetail[portDatabase[i]["switch"]][portDatabase[i]["port_no"]]["collisions"] = portDatabase[i]["collisions"]
+          }
+
+          queryData["port"] = portDetail;
 
           res.json(queryData);
   			}

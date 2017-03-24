@@ -101,7 +101,7 @@ function visualize() {
     var color = d3.scaleOrdinal(d3.schemeCategory20);
 
     var simulation = d3.forceSimulation()
-                       .force("link", d3.forceLink().id(function(d) { return d.id; }).distance(70).strength(2))
+                       .force("link", d3.forceLink().id(function(d) { return d.id; }).distance(75))
                        .force("charge", d3.forceManyBody())
                        .force("center", d3.forceCenter(width / 2, height / 2));
 
@@ -208,7 +208,7 @@ function visualize() {
                   if(data["settings"][d.id]["x"] != undefined && data["settings"][d.id]["y"] != undefined) { return 'translate(' + [data["settings"][d.id]["x"], data["settings"][d.id]["y"]] + ')'; }
                   else { return 'translate(' + [d.x, d.y] + ')'; }
               }
-              else { return 'translate(' + [d.x, d.y] + ')'; } });
+              else { return 'translate(' + [d.x-13, d.y-10] + ')'; } });
     }
 
     function dragstarted(d) {

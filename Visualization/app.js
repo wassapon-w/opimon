@@ -561,8 +561,6 @@ app.get('/dataquery', function (req, res, next) {
   				console.log(counter + " : Request Port Stats from webpage");
   				db.close();
 
-          console.log(portDatabase);
-
           var portDetail = {};
 
           for(var i = 0; i < portDatabase.length; i++) {
@@ -585,7 +583,7 @@ app.get('/dataquery', function (req, res, next) {
             portDetail[portDatabase[i]["switch"]][portDatabase[i]["port_no"]]["collisions"] = portDatabase[i]["collisions"]
           }
 
-          queryData["port"] = portDetail;
+          queryData["ports"] = portDetail;
 
           res.json(queryData);
   			}

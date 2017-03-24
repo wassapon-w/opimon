@@ -101,7 +101,7 @@ function visualize() {
     var color = d3.scaleOrdinal(d3.schemeCategory20);
 
     var simulation = d3.forceSimulation()
-                       .force("link", d3.forceLink().id(function(d) { return d.id; }))
+                       .force("link", d3.forceLink().id(function(d) { return d.id; }).distance(70).strength(2))
                        .force("charge", d3.forceManyBody())
                        .force("center", d3.forceCenter(width / 2, height / 2));
 
@@ -414,13 +414,38 @@ function showSwitchPort(container, data, switch_id) {
         row.append($("<td/>").text(r["hw_addr"]));
         body.append(row);
 
-        var row = $("<tr/>")
-        var collapseTable = $("<div/>").addClass('accordion-body collapse hiddenRow');
-        collapseTable.attr('id', 'port'+temp);
-        collapseTable.text("Test"+temp);
-        row.append(collapseTable);
+        var rowInfo = $("<tr/>");
+        var portInfo = $("<td/>").attr('colspan', 2);
+        var collapseDiv = $("<div/>").addClass('accordion-body collapse hiddenRow');
+        var portInfoTable = $("<table/>").addClass('table table-hover');
+        var row = $("<tr/>");
+
+        var column = $("<td/>");
+        column.append($("<li/>").text("Received packets : " + data["ports"][switch_id][r["port_no"]]["rx_packets"] + "\n"));
+        column.append($("<li/>").text("Transmitted packets : " + data["ports"][switch_id][r["port_no"]]["tx_packets"] + "\n"));
+        column.append($("<li/>").text("Received bytes : " + data["ports"][switch_id][r["port_no"]]["rx_bytes"] + "\n"));
+        column.append($("<li/>").text("Transmitted bytes : " + data["ports"][switch_id][r["port_no"]]["tx_bytes"] + "\n"));
+        column.append($("<li/>").text("Packets dropped by RX : " + data["ports"][switch_id][r["port_no"]]["rx_dropped"] + "\n"));
+        column.append($("<li/>").text("Packets dropped by TX : " + data["ports"][switch_id][r["port_no"]]["tx_dropped"] + "\n"));
+        row.append(column);
+
+        var column = $("<td/>");
+        column.append($("<li/>").text("Receive errors : " + data["ports"][switch_id][r["port_no"]]["rx_errors"] + "\n"));
+        column.append($("<li/>").text("Transmit errors : " + data["ports"][switch_id][r["port_no"]]["tx_errors"] + "\n"));
+        column.append($("<li/>").text("Frame alignment errors : " + data["ports"][switch_id][r["port_no"]]["rx_frame_err"] + "\n"));
+        column.append($("<li/>").text("Packet with RX overrun : " + data["ports"][switch_id][r["port_no"]]["rx_over_err"] + "\n"));
+        column.append($("<li/>").text("CRC errors : " + data["ports"][switch_id][r["port_no"]]["rx_crc_err"] + "\n"));
+        column.append($("<li/>").text("Collisions : " + data["ports"][switch_id][r["port_no"]]["collisions"] + "\n"));
+        row.append(column);
+
+        portInfoTable.append(row);
+        collapseDiv.attr('id', 'port'+temp);
+        collapseDiv.append(portInfoTable)
+        portInfo.append(collapseDiv);
+        rowInfo.append(portInfo);
+        body.append(portInfo);
+
         temp++;
-        body.append(row);
     });
     table.append(body);
 
@@ -436,7 +461,7 @@ function sendDataToServer() {
         data["switchCounter"] = res["topology"]["nodeCounter"];
         data["flowmods"] = res["flowTable"];
         data["switch_mac"] = res["switch"];
-        data["port"] = res["port"];
+        data["ports"] = res["ports"];
         console.log(data);
         $("#topology").empty();
         visualize();

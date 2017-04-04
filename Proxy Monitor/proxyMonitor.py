@@ -113,7 +113,7 @@ class MessageWatcherAgentThread(threading.Thread):
 		return buf
 
 	def inject_request_message(self):
-		print(str(self.id) + " : Sent Message")
+		# print(str(self.id) + " : Sent Message")
 		ofp_parser = self.datapath.ofproto_parser
 		out = ofp_parser.OFPFeaturesRequest(self.datapath)
 		out.serialize()
@@ -139,7 +139,7 @@ class MessageWatcherAgentThread(threading.Thread):
 		try:
 			self.switch_socket.send(pkt)
 		except:
-			print(str(self.id) + " --- Broken Pipe")
+			print(str(self.id) + " --- Broken Pipe [" + datetime.datetime.utcnow().strftime('%Y/%m/%d %H:%M:%S') + "]")
 			pass
 
 		(version, msg_type, msg_len, xid) = ofproto_parser.header(pkt)
@@ -148,7 +148,7 @@ class MessageWatcherAgentThread(threading.Thread):
 		if msg_type == ofproto_v1_0.OFPT_FLOW_MOD:
 			msg = ofproto_v1_0_parser.OFPFlowMod.parser(self.datapath, version, msg_type, msg_len, xid, pkt)
 
-			print(str(self.id) + " : Receive Flow Mod Message")
+			# print(str(self.id) + " : Receive Flow Mod Message")
 
 			# Write to database
 			db_message = {"switch": hex(self.id),
@@ -214,7 +214,7 @@ class MessageWatcherAgentThread(threading.Thread):
 			self.id = msg.datapath_id
 			self.ports = msg.ports
 
-			print(str(self.id) + " : Receive Features Reply Message")
+			# print(str(self.id) + " : Receive Features Reply Message")
 
 			# print(msg)
 
@@ -261,8 +261,7 @@ class MessageWatcherAgentThread(threading.Thread):
 		elif msg_type == ofproto_v1_0.OFPT_STATS_REPLY:
 			msg = ofproto_v1_0_parser.OFPPortStatsReply.parser(self.datapath, version, msg_type, msg_len, xid, pkt)
 			if(type(msg) is ofproto_v1_0_parser.OFPFlowStatsReply):
-				print(str(self.id) + " : Receive Flow Stats Message")
-
+				# print(str(self.id) + " : Receive Flow Stats Message")
 				# print(msg)
 				# print(msg.body)
 
@@ -304,7 +303,7 @@ class MessageWatcherAgentThread(threading.Thread):
 
 					self.db.flow_mods.insert_one(db_message)
 			if(type(msg) is ofproto_v1_0_parser.OFPPortStatsReply):
-				print(str(self.id) + " : Receive Port Stats Message")
+				# print(str(self.id) + " : Receive Port Stats Message")
 				# print(msg.body)
 
 				for port in msg.body:
@@ -342,7 +341,7 @@ class MessageWatcherAgentThread(threading.Thread):
 						(port,) = struct.unpack('!I', lldp_msg.tlvs[1].port_id)
 						switch_src = str_to_dpid(lldp_msg.tlvs[0].chassis_id[5:])
 
-						print(str(self.id) + " : Receive Proxy LLDP Packet")
+						# print(str(self.id) + " : Receive Proxy LLDP Packet")
 						# print(lldp_msg)
 
 						# Write to database

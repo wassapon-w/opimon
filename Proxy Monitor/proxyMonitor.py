@@ -357,7 +357,11 @@ class MessageWatcherAgentThread(threading.Thread):
 						# print("Controller LLDP packet")
 						pass
 
-		self.controller_socket.send(pkt)
+		try:
+			self.controller_socket.send(pkt)
+		except:
+			print(str(self.id) + " --- Broken Pipe [" + datetime.datetime.utcnow().strftime('%Y/%m/%d %H:%M:%S') + "]")
+			pass
 
 class MessageWatcher(object):
 

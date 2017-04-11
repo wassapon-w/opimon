@@ -20,6 +20,10 @@ var getJSON = function(url, callback) {
 $(document).ready(function(){
   getData();
 
+  setInterval(function() {
+    getData();
+  }, 60 * 1000);
+
   $('#showfull').click(function(){
     getJSON(dataURL + '/flowmods', function(err, output){
         data["flowmods"] = output;

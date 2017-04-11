@@ -8,6 +8,8 @@
 
 ### Install Command
 
+Recommended OS : Ubuntu Server 16.04
+
 Install Mininet & Open vSwitch
 ```
 # sudo apt-get install -y mininet

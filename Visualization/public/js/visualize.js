@@ -65,16 +65,18 @@ function getSettings() {
 }
 
 function getNewSwitchData(data, switch_id) {
-    getJSON(dataURL + '/flowmods', function(err, output){
-        data["flowmods"] = output;
-        showFlowTableByID($(document.getElementById("flowTable")), data, switch_id);
-    });
+    // getJSON(dataURL + '/flowmods', function(err, output){
+    //     data["flowmods"] = output;
+    //     showFlowTableByID($(document.getElementById("flowTable")), data, switch_id);
+    // });
+    showFlowTableByID($(document.getElementById("flowTable")), data, switch_id);
 
-    getJSON(dataURL + '/switch', function(err, output){
-        // data["switch"] = output;
-        // console.log(data["switch"]);
-        showSwitchPort($(document.getElementById("portTable")), data, switch_id);
-    });
+    // getJSON(dataURL + '/switch', function(err, output){
+    //     // data["switch"] = output;
+    //     // console.log(data["switch"]);
+    //     showSwitchPort($(document.getElementById("portTable")), data, switch_id);
+    // });
+    showSwitchPort($(document.getElementById("portTable")), data, switch_id);
 }
 
 function visualize() {
@@ -302,7 +304,7 @@ function showFlowTable(container, data) {
               row.append($("<td/>").text(expireTime.toString()));
               body.append(row);
           }
-      });
+        });
     }
     table.append(body);
 
@@ -328,21 +330,29 @@ function showFlowTableByID(container, data, switch_id) {
     table.append(head);
 
     var body = $("<tbody/>");
+    var hasFlow = false;
     $.each(data["flowmods"][switch_id], function(rowIndex, r) {
         var isActive = false;
 
         if(r["hard_timeout"] != 0) {
             var expireMillisec = Date.parse(r["timestamp"]) + (r["hard_timeout"] * 1000);
             var expireTime = new Date(expireMillisec);
-            if(expireTime > Date.now()) { isActive = true; }
+            if(expireTime > Date.now()) {
+              isActive = true;
+              hasFlow = true;
+            }
         }
         else if(r["hard_timeout"] == 0 && r["idle_timeout"] != 0) {
             var expireMillisec = Date.parse(r["timestamp"]) + ((r["idle_timeout"] + 1000) * 1000);
             var expireTime = new Date(expireMillisec);
-            if(expireTime > Date.now()) { isActive = true; }
+            if(expireTime > Date.now()) {
+              isActive = true;
+              hasFlow = true;
+            }
         }
         else if(r["hard_timeout"] == 0 && r["idle_timeout"] == 0) {
             isActive = true;
+            hasFlow = true;
         }
 
         if(isActive) {
@@ -380,7 +390,14 @@ function showFlowTableByID(container, data, switch_id) {
     });
     table.append(body);
 
-    return container.html(table);
+    var showStatus = document.getElementById("showStatus");
+    if(hasFlow) {
+      showStatus.textContent = "";
+      return container.html(table);
+    }
+    else {
+      showStatus.textContent = "No flow in this switch.";
+    }
 }
 
 function showSwitchPort(container, data, switch_id) {

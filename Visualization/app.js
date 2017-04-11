@@ -8,6 +8,7 @@ var ObjectId = require('mongodb').ObjectID;
 // var url = 'mongodb://sd-lemon.naist.jp:9999/test';
 var url = 'mongodb://localhost:27017/opimon';
 var counter = 0;
+var startTime = 0;
 
 app.get('/', function(req, res){
     res.setHeader('Content-Type', 'text/html');
@@ -323,12 +324,13 @@ app.get('/switchdata', function (req, res) {
 });
 
 app.get('/dataquery', function (req, res, next) {
-  console.log(req.query["timeSecond"]);
+  // console.log(req.query["timeSecond"]);
   // res.json({'status': 200, 'msg': 'success'});
   var queryData = {};
   var queryTime = new Date(parseInt(req.query["timeSecond"]));
   var fromTime = new Date(parseInt(req.query["timeSecond"]) - 15 * 1000);
   var toTime = new Date(parseInt(req.query["timeSecond"]) + 15 * 1000);
+  console.log(queryTime);
   queryTopology();
 
   function queryTopology() {
@@ -489,7 +491,7 @@ app.get('/dataquery', function (req, res, next) {
   	MongoClient.connect(url, function(err, db) {
   		assert.equal(null, err);
 
-  		var cursor = db.collection('flow_mods').find( { timestamp: { $gte: fromTime, $lt: toTime } } );
+  		var cursor = db.collection('flow_mods').find( { timestamp: { $gte: startTime, $lt: queryTime } } );
   		cursor.each(function(err, doc) {
   			assert.equal(err, null);
   			if (doc != null) {
@@ -611,6 +613,8 @@ app.get('/gettime', function (req, res) {
           counter++;
   				db.close();
           res.json(minTime[0]["timestamp"]);
+          startTime = minTime[0]["timestamp"];
+          // console.log(startTime);
   			}
   		});
   	});

@@ -189,8 +189,7 @@ class MessageWatcherAgentThread(threading.Thread):
 			for action in msg.actions:
 				db_message["message"]["actions"].append(vars(action));
 
-			# Insert to database
-			# self.db.flow_mods.insert_one(db_message)
+			self.db.flow_mods.insert_one(db_message)
 
 	# Switch to Controller
 	def _upstream_parse(self, pkt):
@@ -301,7 +300,7 @@ class MessageWatcherAgentThread(threading.Thread):
 					for action in flow.actions:
 						db_message["message"]["actions"].append(vars(action));
 
-					self.db.flow_mods.insert_one(db_message)
+					# self.db.flow_mods.insert_one(db_message)
 			if(type(msg) is ofproto_v1_0_parser.OFPPortStatsReply):
 				# print(str(self.id) + " : Receive Port Stats Message")
 				# print(msg.body)

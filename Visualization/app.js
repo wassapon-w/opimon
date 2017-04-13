@@ -611,7 +611,7 @@ app.get('/gettime', function (req, res) {
   				minTime.push(doc);
   			}
   			else {
-          counter++;
+          // counter++;
   				db.close();
           res.json(minTime[0]["timestamp"]);
           startTime = minTime[0]["timestamp"];

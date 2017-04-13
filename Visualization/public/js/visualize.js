@@ -1,6 +1,7 @@
 var dataURL = '';
 var data = {};
 var currentSelectSwitch = "";
+var isSelected = false;
 var getJSON = function(url, callback) {
     var xhr = new XMLHttpRequest();
     xhr.open("get", url, true);
@@ -21,7 +22,9 @@ $(document).ready(function(){
 
   setInterval(function() {
     getData();
-    getNewSwitchData(data, currentSelectSwitch);
+    if(isSelected) {
+      getNewSwitchData(data, currentSelectSwitch);
+    }
   }, 60 * 1000);
 
   $('#showfull').click(function(){
@@ -251,6 +254,7 @@ function visualize() {
         document.getElementById("currentTime").textContent = "";
 
         currentSelectSwitch = d.id;
+        isSelected = true;
         getNewSwitchData(data, d.id);
     }
 }

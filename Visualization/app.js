@@ -6,7 +6,8 @@ var MongoClient = require('mongodb').MongoClient;
 var assert = require('assert');
 var ObjectId = require('mongodb').ObjectID;
 // var url = 'mongodb://sd-lemon.naist.jp:9999/test';
-var url = 'mongodb://localhost:27017/opimon';
+// var url = 'mongodb://localhost:27017/opimon';
+var url = 'mongodb://opimon:H62uTDnEtBFEiQrN1Qmktfj8XZVAuixX5YnyeA7TPIB36DDHu5KAncsJAyuqcNJqFaDVwymxHPKSGpGZ3fkgcg==@opimon.documents.azure.com:10250/opimon?ssl=true';
 var counter = 0;
 var startTime = 0;
 
@@ -330,7 +331,6 @@ app.get('/dataquery', function (req, res, next) {
   var queryTime = new Date(parseInt(req.query["timeSecond"]));
   var fromTime = new Date(parseInt(req.query["timeSecond"]) - 15 * 1000);
   var toTime = new Date(parseInt(req.query["timeSecond"]) + 15 * 1000);
-  console.log(queryTime);
   queryTopology();
 
   function queryTopology() {
@@ -344,7 +344,7 @@ app.get('/dataquery', function (req, res, next) {
   		cursor.each(function(err, doc) {
   			assert.equal(err, null);
   			if (doc != null) {
-  				// console.dir(doc);
+  				// console.log(doc);
   				topologyDatabase.push(doc);
   			}
   			else {
@@ -607,6 +607,7 @@ app.get('/gettime', function (req, res) {
   		cursor.each(function(err, doc) {
   			assert.equal(err, null);
   			if (doc != null) {
+          // console.dir(doc);
   				minTime.push(doc);
   			}
   			else {
@@ -614,7 +615,6 @@ app.get('/gettime', function (req, res) {
   				db.close();
           res.json(minTime[0]["timestamp"]);
           startTime = minTime[0]["timestamp"];
-          // console.log(startTime);
   			}
   		});
   	});

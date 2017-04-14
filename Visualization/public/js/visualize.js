@@ -225,7 +225,7 @@ function visualize() {
       switchLabel
           .attr("transform", function(d) {
               if(data["settings"][d.id] != undefined) {
-                  if(data["settings"][d.id]["x"] != undefined && data["settings"][d.id]["y"] != undefined) { return 'translate(' + [data["settings"][d.id]["x"], data["settings"][d.id]["y"]] + ')'; }
+                  if(data["settings"][d.id]["x"] != undefined && data["settings"][d.id]["y"] != undefined) { return 'translate(' + [data["settings"][d.id]["x"]-13, data["settings"][d.id]["y"]-10] + ')'; }
                   else { return 'translate(' + [d.x, d.y] + ')'; }
               }
               else { return 'translate(' + [d.x-13, d.y-10] + ')'; } });

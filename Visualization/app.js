@@ -1,5 +1,6 @@
 var express = require('express');
 var path =  require("path");
+var fs = require('fs');
 var app = express();
 
 var MongoClient = require('mongodb').MongoClient;
@@ -619,6 +620,30 @@ app.get('/gettime', function (req, res) {
   		});
   	});
   }
+});
+
+app.get('/savenode', function (req, res, next) {
+  // console.log(req.query["switchNode"]);
+  var switchNode = req.query["switchNode"];
+  var settings = require('./public/settings.json');
+
+  for(var i in switchNode) {
+    if(settings[switchNode[i]["id"]] != undefined) {
+      settings[switchNode[i]["id"]]["x"] = switchNode[i]["x"];
+      settings[switchNode[i]["id"]]["y"] = switchNode[i]["y"];
+    }
+    else {
+      settings[switchNode[i]["id"]] = {};
+      settings[switchNode[i]["id"]]["x"] = switchNode[i]["x"];
+      settings[switchNode[i]["id"]]["y"] = switchNode[i]["y"];
+    }
+  }
+
+  var settingJSON = JSON.stringify(settings);
+  fs.writeFile('./packetMonitor/Visualization/public/settings.json', settingJSON, 'utf8', function(err) {
+    console.log(err);
+    res.json({'status': 200, 'msg': 'success'});
+  });
 });
 
 app.listen(3000, function () {

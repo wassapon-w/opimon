@@ -500,3 +500,12 @@ function timeUpdate(value) {
     // console.log(selectTime);
     document.getElementById("showTime").textContent = selectTime;
 }
+
+function sendNodeLocation() {
+  var switchNode = data["switch"];
+  $.get('/savenode', { switchNode : switchNode })
+  .success(function(res){
+      console.log("Complete");
+    })
+  .error(function(err){ console.log(err); });
+}

@@ -140,7 +140,7 @@ class MessageWatcherAgentThread(threading.Thread):
 		try:
 			self.switch_socket.send(pkt)
 		except:
-			print(str(self.id) + " --- Broken Pipe [" + datetime.datetime.utcnow().strftime('%Y/%m/%d %H:%M:%S') + "]")
+			print(str(self.id) + " --- Broken Pipe (Downstream) [" + datetime.datetime.utcnow().strftime('%Y/%m/%d %H:%M:%S') + "]")
 			pass
 
 		(version, msg_type, msg_len, xid) = ofproto_parser.header(pkt)
@@ -256,7 +256,12 @@ class MessageWatcherAgentThread(threading.Thread):
 					buffer_id=ofproto_v1_0.OFP_NO_BUFFER, actions=actions,
 					data=pkt_lldp.data)
 				out.serialize()
-				self.switch_socket.send(out.buf)
+
+				try:
+					self.switch_socket.send(out.buf)
+				except:
+					print(str(self.id) + " --- Broken Pipe (Downstream) [" + datetime.datetime.utcnow().strftime('%Y/%m/%d %H:%M:%S') + "]")
+					pass
 
 		elif msg_type == ofproto_v1_0.OFPT_STATS_REPLY:
 			msg = ofproto_v1_0_parser.OFPPortStatsReply.parser(self.datapath, version, msg_type, msg_len, xid, pkt)
@@ -361,7 +366,7 @@ class MessageWatcherAgentThread(threading.Thread):
 		try:
 			self.controller_socket.send(pkt)
 		except:
-			print(str(self.id) + " --- Broken Pipe [" + datetime.datetime.utcnow().strftime('%Y/%m/%d %H:%M:%S') + "]")
+			print(str(self.id) + " --- Broken Pipe (Upstream) [" + datetime.datetime.utcnow().strftime('%Y/%m/%d %H:%M:%S') + "]")
 			pass
 
 class MessageWatcher(object):

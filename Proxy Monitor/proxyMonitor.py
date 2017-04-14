@@ -118,7 +118,11 @@ class MessageWatcherAgentThread(threading.Thread):
 		ofp_parser = self.datapath.ofproto_parser
 		out = ofp_parser.OFPFeaturesRequest(self.datapath)
 		out.serialize()
-		self.switch_socket.send(out.buf)
+		try:
+			self.switch_socket.send(out.buf)
+		except:
+			print(str(self.id) + " --- Broken Pipe (Downstream : Send Message) [" + datetime.datetime.utcnow().strftime('%Y/%m/%d %H:%M:%S') + "]")
+			pass
 
 		ofp = self.datapath.ofproto
 		ofp_parser = self.datapath.ofproto_parser
@@ -127,13 +131,21 @@ class MessageWatcherAgentThread(threading.Thread):
 		out_port = ofp.OFPP_NONE
 		out = ofp_parser.OFPFlowStatsRequest(self.datapath, 0, match, table_id, out_port)
 		out.serialize()
-		self.switch_socket.send(out.buf)
+		try:
+			self.switch_socket.send(out.buf)
+		except:
+			print(str(self.id) + " --- Broken Pipe (Downstream : Send Message) [" + datetime.datetime.utcnow().strftime('%Y/%m/%d %H:%M:%S') + "]")
+			pass
 
 		ofp = self.datapath.ofproto
 		ofp_parser = self.datapath.ofproto_parser
 		out = ofp_parser.OFPPortStatsRequest(self.datapath, 0, ofp.OFPP_NONE)
 		out.serialize()
-		self.switch_socket.send(out.buf)
+		try:
+			self.switch_socket.send(out.buf)
+		except:
+			print(str(self.id) + " --- Broken Pipe (Downstream : Send Message) [" + datetime.datetime.utcnow().strftime('%Y/%m/%d %H:%M:%S') + "]")
+			pass
 
 	# Controller to Switch
 	def _downstream_parse(self, pkt):
@@ -260,7 +272,7 @@ class MessageWatcherAgentThread(threading.Thread):
 				try:
 					self.switch_socket.send(out.buf)
 				except:
-					print(str(self.id) + " --- Broken Pipe (Downstream) [" + datetime.datetime.utcnow().strftime('%Y/%m/%d %H:%M:%S') + "]")
+					print(str(self.id) + " --- Broken Pipe (Downstream : LLDP Message) [" + datetime.datetime.utcnow().strftime('%Y/%m/%d %H:%M:%S') + "]")
 					pass
 
 		elif msg_type == ofproto_v1_0.OFPT_STATS_REPLY:

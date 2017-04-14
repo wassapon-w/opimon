@@ -21,6 +21,7 @@ $(document).ready(function(){
   getData();
 
   setInterval(function() {
+    sendNodeLocation();
     getData();
     if(isSelected) {
       getNewSwitchData(data, currentSelectSwitch);

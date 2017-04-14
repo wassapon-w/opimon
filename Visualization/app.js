@@ -629,19 +629,19 @@ app.get('/savenode', function (req, res, next) {
 
   for(var i in switchNode) {
     if(settings[switchNode[i]["id"]] != undefined) {
-      settings[switchNode[i]["id"]]["x"] = switchNode[i]["x"];
-      settings[switchNode[i]["id"]]["y"] = switchNode[i]["y"];
+      settings[switchNode[i]["id"]]["x"] = parseFloat(switchNode[i]["x"]);
+      settings[switchNode[i]["id"]]["y"] = parseFloat(switchNode[i]["y"]);
     }
     else {
       settings[switchNode[i]["id"]] = {};
-      settings[switchNode[i]["id"]]["x"] = switchNode[i]["x"];
-      settings[switchNode[i]["id"]]["y"] = switchNode[i]["y"];
+      settings[switchNode[i]["id"]]["x"] = parseFloat(switchNode[i]["x"]);
+      settings[switchNode[i]["id"]]["y"] = parseFloat(switchNode[i]["y"]);
     }
   }
 
   var settingJSON = JSON.stringify(settings);
   fs.writeFile('./packetMonitor/Visualization/public/settings.json', settingJSON, 'utf8', function(err) {
-    console.log(err);
+    // console.log(err);
     res.json({'status': 200, 'msg': 'success'});
   });
 });

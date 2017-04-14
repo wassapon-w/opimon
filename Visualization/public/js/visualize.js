@@ -170,8 +170,6 @@ function visualize() {
                       var dy_source = data["settings"][d.source.id]["y"];
                       d.source.x = data["settings"][d.source.id]["x"];
                       d.source.y = data["settings"][d.source.id]["y"];
-                      // var dx_source = d.source.x;
-                      // var dy_source = d.source.y;
                   }
                   else {
                       var dx_source = d.source.x;
@@ -189,8 +187,6 @@ function visualize() {
                       var dy_target = data["settings"][d.target.id]["y"];
                       d.target.x = data["settings"][d.target.id]["x"];
                       d.target.y = data["settings"][d.target.id]["y"];
-                      // var dx_target = d.target.x;
-                      // var dy_target = d.target.y;
                   }
                   else {
                       var dx_target = d.target.x;
@@ -209,9 +205,7 @@ function visualize() {
           .attr("cx", function(d) {
               if(data["settings"][d.id] != undefined) {
                   if(data["settings"][d.id]["x"] != undefined) {
-                    // return data["settings"][d.id]["x"];
                     d.x = data["settings"][d.id]["x"];
-                    // return data["settings"][d.id]["x"];
                     return d.x;
                   }
                   else { return d.x; }
@@ -220,9 +214,7 @@ function visualize() {
           .attr("cy", function(d) {
               if(data["settings"][d.id] != undefined) {
                   if(data["settings"][d.id]["y"] != undefined) {
-                    // return data["settings"][d.id]["y"];
                     d.y = data["settings"][d.id]["y"];
-                    // return data["settings"][d.id]["y"];
                     return d.y;
                   }
                   else { return d.y; }
@@ -247,8 +239,10 @@ function visualize() {
         d.py += d3.event.dy;
         d.x += d3.event.dx;
         d.y += d3.event.dy;
-        data["settings"][d.id]["x"] += d3.event.dx;
-        data["settings"][d.id]["y"] += d3.event.dy;
+        if(data["settings"][d.id] != undefined) {
+          data["settings"][d.id]["x"] += d3.event.dx;
+          data["settings"][d.id]["y"] += d3.event.dy;
+        }
         ticked();
     }
 
@@ -510,12 +504,6 @@ function sendDataToServer() {
         data["ports"] = res["ports"];
         console.log(data);
         $("#topology").empty();
-
-        // for(var i = 0; i > data["switch"].length; i++) {
-        //   if(data["settings"][data["switch"][i]["id"]] != undefined) {
-        //     data["switch"][i]["id"] =
-        //   }
-        // }
 
         visualize();
       })

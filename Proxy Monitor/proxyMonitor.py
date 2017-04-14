@@ -202,7 +202,10 @@ class MessageWatcherAgentThread(threading.Thread):
 			for action in msg.actions:
 				db_message["message"]["actions"].append(vars(action));
 
-			self.db.flow_mods.insert_one(db_message)
+			try:
+				self.db.flow_mods.insert_one(db_message)
+			except:
+				print(str(self.id) + " --- Failed to write data into database [" + datetime.datetime.utcnow().strftime('%Y/%m/%d %H:%M:%S') + "]")
 
 	# Switch to Controller
 	def _upstream_parse(self, pkt):
@@ -235,7 +238,11 @@ class MessageWatcherAgentThread(threading.Thread):
 							  "port_no": port.port_no,
 							  "hw_addr": port.hw_addr,
 							  "timestamp": datetime.datetime.utcnow()}
-				self.db.switch_port.insert_one(db_message)
+
+				try:
+					self.db.switch_port.insert_one(db_message)
+				except:
+					print(str(self.id) + " --- Failed to write data into database [" + datetime.datetime.utcnow().strftime('%Y/%m/%d %H:%M:%S') + "]")
 
 				pkt_lldp = packet.Packet()
 
@@ -340,7 +347,11 @@ class MessageWatcherAgentThread(threading.Thread):
 								  "rx_crc_err": port.rx_crc_err,
 								  "collisions": port.collisions,
 								  "timestamp": datetime.datetime.utcnow()}
-					self.db.port_stats.insert_one(db_message)
+
+					try:
+						self.db.port_stats.insert_one(db_message)
+					except:
+						print(str(self.id) + " --- Failed to write data into database [" + datetime.datetime.utcnow().strftime('%Y/%m/%d %H:%M:%S') + "]")
 
 				pass
 
@@ -362,11 +373,14 @@ class MessageWatcherAgentThread(threading.Thread):
 						# print(lldp_msg)
 
 						# Write to database
-						self.db.topology.insert_one({"switch_dst": hex(self.id),
-												 	 "port_dst": port,
-												 	 "switch_src": hex(switch_src),
-												 	 "port_src": msg.in_port,
-												 	 "timestamp": datetime.datetime.utcnow()})
+						try:
+							self.db.topology.insert_one({"switch_dst": hex(self.id),
+													 	 "port_dst": port,
+													 	 "switch_src": hex(switch_src),
+													 	 "port_src": msg.in_port,
+													 	 "timestamp": datetime.datetime.utcnow()})
+						except:
+							print(str(self.id) + " --- Failed to write data into database [" + datetime.datetime.utcnow().strftime('%Y/%m/%d %H:%M:%S') + "]")
 
 						return
 

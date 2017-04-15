@@ -24,10 +24,6 @@ $(document).ready(function(){
   setInterval(function() {
     resetLocation = false;
     sendNodeLocation();
-    getData();
-    if(isSelected) {
-      getNewSwitchData(data, currentSelectSwitch);
-    }
   }, 60 * 1000);
 
   $('#showfull').click(function(){
@@ -149,7 +145,7 @@ function visualize() {
      var labels = switchLabel.append("text")
                              .on("click", mouseClick)
                              .text(function(d) {
-                               if(data["settings"][d.id] != undefined) {
+                               if(data["settings"][d.id] != undefined && !resetLocation) {
                                  if(data["settings"][d.id]["name"] != undefined) { return data["settings"][d.id]["name"]; }
                                  else { return d.id; }
                                }
@@ -505,10 +501,14 @@ function sendDataToServer() {
         data["flowmods"] = res["flowTable"];
         data["switch_mac"] = res["switch"];
         data["ports"] = res["ports"];
+
         console.log(data);
         $("#topology").empty();
-
         visualize();
+
+        if(isSelected) {
+          getNewSwitchData(data, currentSelectSwitch);
+        }
       })
     .error(function(err){ console.log(err); });
 }
@@ -523,7 +523,7 @@ function sendNodeLocation() {
   var switchNode = data["switch"];
   $.get('/savenode', { switchNode : switchNode })
   .success(function(res){
-      console.log("Complete");
+      getData();
     })
   .error(function(err){ console.log(err); });
 }

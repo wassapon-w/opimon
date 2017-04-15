@@ -629,13 +629,17 @@ app.get('/savenode', function (req, res, next) {
 
   for(var i in switchNode) {
     if(settings[switchNode[i]["id"]] != undefined) {
-      settings[switchNode[i]["id"]]["x"] = parseFloat(switchNode[i]["x"]);
-      settings[switchNode[i]["id"]]["y"] = parseFloat(switchNode[i]["y"]);
+      // if(switchNode[i]["x"] != null && switchNode[i]["y"] != null) {
+        settings[switchNode[i]["id"]]["x"] = parseFloat(switchNode[i]["x"]);
+        settings[switchNode[i]["id"]]["y"] = parseFloat(switchNode[i]["y"]);
+      // }
     }
     else {
       settings[switchNode[i]["id"]] = {};
-      settings[switchNode[i]["id"]]["x"] = parseFloat(switchNode[i]["x"]);
-      settings[switchNode[i]["id"]]["y"] = parseFloat(switchNode[i]["y"]);
+      // if(switchNode[i]["x"] != null && switchNode[i]["y"] != null) {
+        settings[switchNode[i]["id"]]["x"] = parseFloat(switchNode[i]["x"]);
+        settings[switchNode[i]["id"]]["y"] = parseFloat(switchNode[i]["y"]);
+      // }
     }
   }
 

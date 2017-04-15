@@ -2,6 +2,7 @@ var dataURL = '';
 var data = {};
 var currentSelectSwitch = "";
 var isSelected = false;
+var resetLocation = false;
 var getJSON = function(url, callback) {
     var xhr = new XMLHttpRequest();
     xhr.open("get", url, true);
@@ -21,6 +22,7 @@ $(document).ready(function(){
   getData();
 
   setInterval(function() {
+    resetLocation = false;
     sendNodeLocation();
     getData();
     if(isSelected) {
@@ -166,7 +168,7 @@ function visualize() {
       path
           .attr("d", function(d) {
               if(data["settings"][d.source.id] != undefined) {
-                  if(data["settings"][d.source.id]["x"] != undefined && data["settings"][d.source.id]["y"] != undefined) {
+                  if(data["settings"][d.source.id]["x"] != undefined && data["settings"][d.source.id]["y"] != undefined && !resetLocation) {
                       var dx_source = data["settings"][d.source.id]["x"];
                       var dy_source = data["settings"][d.source.id]["y"];
                       d.source.x = data["settings"][d.source.id]["x"];
@@ -183,7 +185,7 @@ function visualize() {
               }
 
               if(data["settings"][d.target.id] != undefined) {
-                  if(data["settings"][d.target.id]["x"] != undefined && data["settings"][d.target.id]["y"] != undefined) {
+                  if(data["settings"][d.target.id]["x"] != undefined && data["settings"][d.target.id]["y"] != undefined && !resetLocation) {
                       var dx_target = data["settings"][d.target.id]["x"];
                       var dy_target = data["settings"][d.target.id]["y"];
                       d.target.x = data["settings"][d.target.id]["x"];
@@ -204,7 +206,7 @@ function visualize() {
 
       node
           .attr("cx", function(d) {
-              if(data["settings"][d.id] != undefined) {
+              if(data["settings"][d.id] != undefined && !resetLocation) {
                   if(data["settings"][d.id]["x"] != undefined) {
                     d.x = data["settings"][d.id]["x"];
                     return d.x;
@@ -213,7 +215,7 @@ function visualize() {
               }
               else { return d.x; } })
           .attr("cy", function(d) {
-              if(data["settings"][d.id] != undefined) {
+              if(data["settings"][d.id] != undefined && !resetLocation) {
                   if(data["settings"][d.id]["y"] != undefined) {
                     d.y = data["settings"][d.id]["y"];
                     return d.y;
@@ -224,7 +226,7 @@ function visualize() {
 
       switchLabel
           .attr("transform", function(d) {
-              if(data["settings"][d.id] != undefined) {
+              if(data["settings"][d.id] != undefined && !resetLocation) {
                   if(data["settings"][d.id]["x"] != undefined && data["settings"][d.id]["y"] != undefined) { return 'translate(' + [data["settings"][d.id]["x"]-13, data["settings"][d.id]["y"]-10] + ')'; }
                   else { return 'translate(' + [d.x, d.y] + ')'; }
               }
@@ -240,7 +242,7 @@ function visualize() {
         d.py += d3.event.dy;
         d.x += d3.event.dx;
         d.y += d3.event.dy;
-        if(data["settings"][d.id] != undefined) {
+        if(data["settings"][d.id] != undefined && !resetLocation) {
           data["settings"][d.id]["x"] += d3.event.dx;
           data["settings"][d.id]["y"] += d3.event.dy;
         }
@@ -524,4 +526,10 @@ function sendNodeLocation() {
       console.log("Complete");
     })
   .error(function(err){ console.log(err); });
+}
+
+function resetTopo() {
+  resetLocation = true;
+  $("#topology").empty();
+  visualize();
 }

@@ -520,12 +520,24 @@ function timeUpdate(value) {
 }
 
 function sendNodeLocation() {
-  var switchNode = data["switch"];
+  // var switchNode = data["switch"];
+  var switchNode = [];
+  for(var i = 0; i < data["switch"].length; i++) {
+    var temp = {};
+    temp["id"] = data["switch"][i]["id"];
+    temp["x"] = data["switch"][i]["x"];
+    temp["y"] = data["switch"][i]["y"];
+    switchNode.push(temp);
+  }
+
   $.get('/savenode', { switchNode : switchNode })
   .success(function(res){
       getData();
     })
-  .error(function(err){ console.log(err); });
+  .error(function(err){
+      console.log(err);
+      getData();
+  });
 }
 
 function resetTopo() {

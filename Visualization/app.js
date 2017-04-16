@@ -628,6 +628,7 @@ app.get('/savenode', function (req, res, next) {
   var settings = require('./public/settings.json');
 
   for(var i in switchNode) {
+    // console.log(switchNode[i]);
     if(settings[switchNode[i]["id"]] != undefined) {
       if(switchNode[i]["x"] != null && switchNode[i]["y"] != null) {
         settings[switchNode[i]["id"]]["x"] = parseFloat(switchNode[i]["x"]);

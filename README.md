@@ -39,8 +39,7 @@ Install Node.js & Express.js
 ```
 # sudo apt-get install -y npm
 # sudo npm install express --save
-# sudo npm install -g mongodb
-# sudo npm link mongodb
+# sudo npm install mongodb --save
 ```
 
 ### Running Command

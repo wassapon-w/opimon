@@ -121,7 +121,10 @@ class MessageWatcherAgentThread(threading.Thread):
 		try:
 			self.switch_socket.send(out.buf)
 		except:
-			print(datetime.datetime.utcnow().strftime('%Y/%m/%d %H:%M:%S') + " : [" + str(self.id) + "] --- Broken Pipe (Downstream : Send Message)")
+			if(self.id != None):
+				print(datetime.datetime.utcnow().strftime('%Y/%m/%d %H:%M:%S') + " : ERROR [" + str(hex(self.id)) + "] --- Broken Pipe (Downstream : Send monitor message)")
+			else:
+				print(datetime.datetime.utcnow().strftime('%Y/%m/%d %H:%M:%S') + " : ERROR [" + str(self.id) + "] --- Broken Pipe (Downstream : Send monitor message)")
 			pass
 
 		ofp = self.datapath.ofproto
@@ -134,7 +137,10 @@ class MessageWatcherAgentThread(threading.Thread):
 		try:
 			self.switch_socket.send(out.buf)
 		except:
-			print(datetime.datetime.utcnow().strftime('%Y/%m/%d %H:%M:%S') + " : [" + str(self.id) + "] --- Broken Pipe (Downstream : Send Message)")
+			if(self.id != None):
+				print(datetime.datetime.utcnow().strftime('%Y/%m/%d %H:%M:%S') + " : ERROR [" + str(hex(self.id)) + "] --- Broken Pipe (Downstream : Send monitor message)")
+			else:
+				print(datetime.datetime.utcnow().strftime('%Y/%m/%d %H:%M:%S') + " : ERROR [" + str(self.id) + "] --- Broken Pipe (Downstream : Send monitor message)")
 			pass
 
 		ofp = self.datapath.ofproto
@@ -144,15 +150,26 @@ class MessageWatcherAgentThread(threading.Thread):
 		try:
 			self.switch_socket.send(out.buf)
 		except:
-			print(datetime.datetime.utcnow().strftime('%Y/%m/%d %H:%M:%S') + " : [" + str(self.id) + "] --- Broken Pipe (Downstream : Send Message)")
+			if(self.id != None):
+				print(datetime.datetime.utcnow().strftime('%Y/%m/%d %H:%M:%S') + " : ERROR [" + str(hex(self.id)) + "] --- Broken Pipe (Downstream : Send monitor message)")
+			else:
+				print(datetime.datetime.utcnow().strftime('%Y/%m/%d %H:%M:%S') + " : ERROR [" + str(self.id) + "] --- Broken Pipe (Downstream : Send monitor message)")
 			pass
+
+		if(self.id != None):
+			print(datetime.datetime.utcnow().strftime('%Y/%m/%d %H:%M:%S') + " : [" + str(hex(self.id)) + "] --- Sent monitor messages")
+		else:
+			print(datetime.datetime.utcnow().strftime('%Y/%m/%d %H:%M:%S') + " : [" + str(self.id) + "] --- Sent monitor messages")
 
 	# Controller to Switch
 	def _downstream_parse(self, pkt):
 		try:
 			self.switch_socket.send(pkt)
 		except:
-			print(datetime.datetime.utcnow().strftime('%Y/%m/%d %H:%M:%S') + " : [" + str(self.id) + "] --- Broken Pipe (Downstream)")
+			if(self.id != None):
+				print(datetime.datetime.utcnow().strftime('%Y/%m/%d %H:%M:%S') + " : ERROR [" + str(hex(self.id)) + "] --- Broken Pipe (Downstream)")
+			else:
+				print(datetime.datetime.utcnow().strftime('%Y/%m/%d %H:%M:%S') + " : ERROR [" + str(self.id) + "] --- Broken Pipe (Downstream)")
 			pass
 
 		(version, msg_type, msg_len, xid) = ofproto_parser.header(pkt)
@@ -204,8 +221,16 @@ class MessageWatcherAgentThread(threading.Thread):
 
 			try:
 				self.db.flow_mods.insert_one(db_message)
+				if(self.id != None):
+					print(datetime.datetime.utcnow().strftime('%Y/%m/%d %H:%M:%S') + " : [" + str(hex(self.id)) + "] --- Received FlowMod message")
+				else:
+					print(datetime.datetime.utcnow().strftime('%Y/%m/%d %H:%M:%S') + " : [" + str(self.id) + "] --- Received FlowMod message")
 			except:
-				print(datetime.datetime.utcnow().strftime('%Y/%m/%d %H:%M:%S') + " : [" + str(self.id) + "] --- Failed to write data into database")
+				if(self.id != None):
+					print(datetime.datetime.utcnow().strftime('%Y/%m/%d %H:%M:%S') + " : ERROR [" + str(hex(self.id)) + "] --- Failed to write data into database")
+				else:
+					print(datetime.datetime.utcnow().strftime('%Y/%m/%d %H:%M:%S') + " : ERROR [" + str(self.id) + "] --- Failed to write data into database")
+				pass
 
 	# Switch to Controller
 	def _upstream_parse(self, pkt):
@@ -243,7 +268,10 @@ class MessageWatcherAgentThread(threading.Thread):
 
 					self.db.switch_port.insert_one(db_message)
 				except:
-					print(datetime.datetime.utcnow().strftime('%Y/%m/%d %H:%M:%S') + " : [" + str(self.id) + "] --- Failed to write data into database")
+					if(self.id != None):
+						print(datetime.datetime.utcnow().strftime('%Y/%m/%d %H:%M:%S') + " : ERROR [" + str(hex(self.id)) + "] --- Failed to write data into database")
+					else:
+						print(datetime.datetime.utcnow().strftime('%Y/%m/%d %H:%M:%S') + " : ERROR [" + str(self.id) + "] --- Failed to write data into database")
 
 				pkt_lldp = packet.Packet()
 
@@ -280,7 +308,11 @@ class MessageWatcherAgentThread(threading.Thread):
 				try:
 					self.switch_socket.send(out.buf)
 				except:
-					print(datetime.datetime.utcnow().strftime('%Y/%m/%d %H:%M:%S') + " : [" + str(self.id) + "] --- Broken Pipe (Downstream : LLDP Message)")
+					if(self.id != None):
+						print(datetime.datetime.utcnow().strftime('%Y/%m/%d %H:%M:%S') + " : ERROR [" + str(hex(self.id)) + "] --- Broken Pipe (Downstream : LLDP Message)")
+					else:
+						print(datetime.datetime.utcnow().strftime('%Y/%m/%d %H:%M:%S') + " : ERROR [" + str(self.id) + "] --- Broken Pipe (Downstream : LLDP Message)")
+					self._close()
 					pass
 
 		elif msg_type == ofproto_v1_0.OFPT_STATS_REPLY:
@@ -352,7 +384,10 @@ class MessageWatcherAgentThread(threading.Thread):
 					try:
 						self.db.port_stats.insert_one(db_message)
 					except:
-						print(datetime.datetime.utcnow().strftime('%Y/%m/%d %H:%M:%S') + " : [" + str(self.id) + "] --- Failed to write data into database")
+						if(self.id != None):
+							print(datetime.datetime.utcnow().strftime('%Y/%m/%d %H:%M:%S') + " : ERROR [" + str(hex(self.id)) + "] --- Failed to write data into database")
+						else:
+							print(datetime.datetime.utcnow().strftime('%Y/%m/%d %H:%M:%S') + " : ERROR [" + str(self.id) + "] --- Failed to write data into database")
 
 				pass
 
@@ -381,7 +416,10 @@ class MessageWatcherAgentThread(threading.Thread):
 													 	 "port_src": msg.in_port,
 													 	 "timestamp": datetime.datetime.utcnow()})
 						except:
-							print(datetime.datetime.utcnow().strftime('%Y/%m/%d %H:%M:%S') + " : [" + str(self.id) + "] --- Failed to write data into database")
+							if(self.id != None):
+								print(datetime.datetime.utcnow().strftime('%Y/%m/%d %H:%M:%S') + " : ERROR [" + str(hex(self.id)) + "] --- Failed to write data into database")
+							else:
+								print(datetime.datetime.utcnow().strftime('%Y/%m/%d %H:%M:%S') + " : ERROR [" + str(self.id) + "] --- Failed to write data into database")
 
 						return
 
@@ -393,7 +431,10 @@ class MessageWatcherAgentThread(threading.Thread):
 		try:
 			self.controller_socket.send(pkt)
 		except:
-			print(datetime.datetime.utcnow().strftime('%Y/%m/%d %H:%M:%S') + " : [" + str(self.id) + "] --- Broken Pipe (Upstream)")
+			if(self.id != None):
+				print(datetime.datetime.utcnow().strftime('%Y/%m/%d %H:%M:%S') + " : ERROR [" + str(hex(self.id)) + "] --- Broken Pipe (Upstream)")
+			else:
+				print(datetime.datetime.utcnow().strftime('%Y/%m/%d %H:%M:%S') + " : ERROR [" + str(self.id) + "] --- Broken Pipe (Upstream)")
 			pass
 
 class MessageWatcher(object):
@@ -434,8 +475,8 @@ if __name__ == '__main__':
 	# log.init_log()
 	print("Monitor is running.")
 
-	LISTEN_HOST, LISTEN_PORT = '0.0.0.0', 6753
+	LISTEN_HOST, LISTEN_PORT = '0.0.0.0', 6653
 	# FORWARD_HOST, FORWARD_PORT = 'sd-lemon.naist.jp', 6633
-	FORWARD_HOST, FORWARD_PORT = 'localhost', 6733
+	FORWARD_HOST, FORWARD_PORT = 'localhost', 6633
 	manager = MessageWatcher(LISTEN_HOST, LISTEN_PORT, FORWARD_HOST, FORWARD_PORT)
 	manager.start()

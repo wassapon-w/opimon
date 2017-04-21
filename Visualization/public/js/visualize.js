@@ -3,6 +3,8 @@ var data = {};
 var currentSelectSwitch = "";
 var isSelected = false;
 var resetLocation = false;
+var refreshData = true;
+var refreshTime;
 var getJSON = function(url, callback) {
     var xhr = new XMLHttpRequest();
     xhr.open("get", url, true);
@@ -52,6 +54,7 @@ function getData() {
       // console.log(data["minTime"]);
       var minTime = new Date(data["minTime"]);
       var currentTime = new Date(Date.now());
+      refreshTime = currentTime;
       document.getElementById("showTime").textContent = currentTime;
       $('#timeSlider').attr('min', minTime.valueOf());
       $('#timeSlider').attr('max', currentTime.valueOf());
@@ -493,8 +496,17 @@ function showSwitchPort(container, data, switch_id) {
 
 function sendDataToServer() {
     // console.log(document.getElementById("timeSlider").value);
+    var loadLabel = document.getElementById("loading");
+    loadLabel.textContent = "Loading...";
+
     $.get('/dataquery', { timeSecond : document.getElementById("timeSlider").value })
     .success(function(res){
+        var submitTime = new Date(parseInt(document.getElementById("timeSlider").value));
+
+        if(submitTime < refreshTime) {
+          refreshData = false;
+        }
+
         data["switch"] = res["topology"]["node"];
         data["connect"] = res["topology"]["link"];
         data["switchCounter"] = res["topology"]["nodeCounter"];
@@ -504,6 +516,7 @@ function sendDataToServer() {
 
         console.log(data);
         $("#topology").empty();
+        resetLocation = false;
         visualize();
 
         if(isSelected) {
@@ -532,16 +545,28 @@ function sendNodeLocation() {
 
   $.get('/savenode', { switchNode : switchNode })
   .success(function(res){
-      getData();
+      if(refreshData) {
+        getData();
+      }
     })
   .error(function(err){
       console.log(err);
-      getData();
+      if(refreshData) {
+        getData();
+      }
   });
+
 }
 
 function resetTopo() {
   resetLocation = true;
-  $("#topology").empty();
-  visualize();
+
+  if(!refreshData) {
+    refreshData = true;
+    getData();
+  }
+  else {
+    $("#topology").empty();
+    visualize();
+  }
 }

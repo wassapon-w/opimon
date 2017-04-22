@@ -91,7 +91,7 @@ class MessageWatcherAgentThread(threading.Thread):
 				self.upstream_buf = self._parse(self.upstream_buf, self._upstream_parse)
 
 		if(time.time() > self.timeloop + 10):
-			self.inject_request_message()
+			# self.inject_request_message()
 			self.timeloop = time.time()
 
 	def _close(self):

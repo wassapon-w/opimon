@@ -25,6 +25,14 @@ app.get('/settings.json', function(req, res){
     res.sendFile(path.join(__dirname, './public', 'settings.json'));
 });
 
+app.get('/ku.png', function(req, res){
+    res.sendFile(path.join(__dirname, './public/img', 'KU.png'));
+});
+
+app.get('/naist.png', function(req, res){
+    res.sendFile(path.join(__dirname, './public/img', 'NAIST.png'));
+});
+
 app.get('/flowmods', function (req, res) {
   getFlowMods();
 

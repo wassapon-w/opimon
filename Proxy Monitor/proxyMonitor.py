@@ -476,7 +476,7 @@ if __name__ == '__main__':
 	print("Monitor is running.")
 
 	LISTEN_HOST, LISTEN_PORT = '0.0.0.0', 6653
-	# FORWARD_HOST, FORWARD_PORT = 'sd-lemon.naist.jp', 6633
-	FORWARD_HOST, FORWARD_PORT = 'localhost', 6633
+	FORWARD_HOST, FORWARD_PORT = 'sd-lemon.naist.jp', 6633
+	# FORWARD_HOST, FORWARD_PORT = 'localhost', 6633
 	manager = MessageWatcher(LISTEN_HOST, LISTEN_PORT, FORWARD_HOST, FORWARD_PORT)
 	manager.start()

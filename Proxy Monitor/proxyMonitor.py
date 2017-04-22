@@ -182,43 +182,43 @@ class MessageWatcherAgentThread(threading.Thread):
 			# print(str(self.id) + " : Receive Flow Mod Message")
 
 			# Write to database
-			db_message = {"switch": hex(self.id),
-						  "message": {
-							  "header": {
-								  "version": version,
-								  "type": msg_type,
-								  "length": msg_len,
-								  "xid": xid
-							  },
-							  "match": {
-								  "wildcards": msg.match.wildcards,
-								  "in_port": msg.match.in_port,
-								  "dl_src": mac.haddr_to_str(msg.match.dl_src),
-								  "dl_dst": mac.haddr_to_str(msg.match.dl_dst),
-								  "dl_vlan": msg.match.dl_vlan,
-								  "dl_vlan_pcp": msg.match.dl_vlan_pcp,
-								  "dl_type": msg.match.dl_type,
-								  "nw_tos": msg.match.nw_tos,
-								  "nw_proto": msg.match.nw_proto,
-								  "nw_src": ip.ipv4_to_str(msg.match.nw_src),
-								  "nw_dst": ip.ipv4_to_str(msg.match.nw_dst),
-								  "tp_src": msg.match.tp_src,
-								  "tp_dst": msg.match.tp_dst
-							  },
-							  "cookie": msg.cookie,
-							  "command": msg.command,
-							  "idle_timeout": msg.idle_timeout,
-							  "hard_timeout": msg.hard_timeout,
-							  "priority": msg.priority,
-							  "buffer_id": msg.buffer_id,
-							  "out_port": msg.out_port,
-							  "flags": msg.flags,
-							  "actions": []
-						  },
-						  "timestamp": datetime.datetime.utcnow()}
-
-			for action in msg.actions:
-				db_message["message"]["actions"].append(vars(action));
+			# db_message = {"switch": hex(self.id),
+			# 			  "message": {
+			# 				  "header": {
+			# 					  "version": version,
+			# 					  "type": msg_type,
+			# 					  "length": msg_len,
+			# 					  "xid": xid
+			# 				  },
+			# 				  "match": {
+			# 					  "wildcards": msg.match.wildcards,
+			# 					  "in_port": msg.match.in_port,
+			# 					  "dl_src": mac.haddr_to_str(msg.match.dl_src),
+			# 					  "dl_dst": mac.haddr_to_str(msg.match.dl_dst),
+			# 					  "dl_vlan": msg.match.dl_vlan,
+			# 					  "dl_vlan_pcp": msg.match.dl_vlan_pcp,
+			# 					  "dl_type": msg.match.dl_type,
+			# 					  "nw_tos": msg.match.nw_tos,
+			# 					  "nw_proto": msg.match.nw_proto,
+			# 					  "nw_src": ip.ipv4_to_str(msg.match.nw_src),
+			# 					  "nw_dst": ip.ipv4_to_str(msg.match.nw_dst),
+			# 					  "tp_src": msg.match.tp_src,
+			# 					  "tp_dst": msg.match.tp_dst
+			# 				  },
+			# 				  "cookie": msg.cookie,
+			# 				  "command": msg.command,
+			# 				  "idle_timeout": msg.idle_timeout,
+			# 				  "hard_timeout": msg.hard_timeout,
+			# 				  "priority": msg.priority,
+			# 				  "buffer_id": msg.buffer_id,
+			# 				  "out_port": msg.out_port,
+			# 				  "flags": msg.flags,
+			# 				  "actions": []
+			# 			  },
+			# 			  "timestamp": datetime.datetime.utcnow()}
+			#
+			# for action in msg.actions:
+			# 	db_message["message"]["actions"].append(vars(action));
 
 			# print(db_message)
 
@@ -486,8 +486,8 @@ if __name__ == '__main__':
 	# log.init_log()
 	print("Monitor is running.")
 
-	LISTEN_HOST, LISTEN_PORT = '0.0.0.0', 6653
+	LISTEN_HOST, LISTEN_PORT = '0.0.0.0', 6753
 	# FORWARD_HOST, FORWARD_PORT = 'sd-lemon.naist.jp', 3000
-	FORWARD_HOST, FORWARD_PORT = 'localhost', 6633
+	FORWARD_HOST, FORWARD_PORT = 'localhost', 6733
 	manager = MessageWatcher(LISTEN_HOST, LISTEN_PORT, FORWARD_HOST, FORWARD_PORT)
 	manager.start()

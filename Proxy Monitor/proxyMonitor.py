@@ -91,7 +91,7 @@ class MessageWatcherAgentThread(threading.Thread):
 				self.upstream_buf = self._parse(self.upstream_buf, self._upstream_parse)
 
 		if(time.time() > self.timeloop + 10):
-			# self.inject_request_message()
+			self.inject_request_message()
 			self.timeloop = time.time()
 
 	def _close(self):
@@ -127,22 +127,22 @@ class MessageWatcherAgentThread(threading.Thread):
 				print(datetime.datetime.utcnow().strftime('%Y/%m/%d %H:%M:%S') + " : ERROR [" + str(self.id) + "] --- Broken Pipe (Downstream : Send monitor message)")
 			pass
 
-		ofp = self.datapath.ofproto
-		ofp_parser = self.datapath.ofproto_parser
-		match = ofp_parser.OFPMatch(in_port=1)
-		table_id = 0xff
-		out_port = ofp.OFPP_NONE
-		out = ofp_parser.OFPFlowStatsRequest(self.datapath, 0, match, table_id, out_port)
-		out.serialize()
-		try:
-			self.switch_socket.send(out.buf)
-		except:
-			if(self.id != None):
-				print(datetime.datetime.utcnow().strftime('%Y/%m/%d %H:%M:%S') + " : ERROR [" + str(hex(self.id)) + "] --- Broken Pipe (Downstream : Send monitor message)")
-			else:
-				print(datetime.datetime.utcnow().strftime('%Y/%m/%d %H:%M:%S') + " : ERROR [" + str(self.id) + "] --- Broken Pipe (Downstream : Send monitor message)")
-			pass
-
+		# ofp = self.datapath.ofproto
+		# ofp_parser = self.datapath.ofproto_parser
+		# match = ofp_parser.OFPMatch(in_port=1)
+		# table_id = 0xff
+		# out_port = ofp.OFPP_NONE
+		# out = ofp_parser.OFPFlowStatsRequest(self.datapath, 0, match, table_id, out_port)
+		# out.serialize()
+		# try:
+		# 	self.switch_socket.send(out.buf)
+		# except:
+		# 	if(self.id != None):
+		# 		print(datetime.datetime.utcnow().strftime('%Y/%m/%d %H:%M:%S') + " : ERROR [" + str(hex(self.id)) + "] --- Broken Pipe (Downstream : Send monitor message)")
+		# 	else:
+		# 		print(datetime.datetime.utcnow().strftime('%Y/%m/%d %H:%M:%S') + " : ERROR [" + str(self.id) + "] --- Broken Pipe (Downstream : Send monitor message)")
+		# 	pass
+		
 		ofp = self.datapath.ofproto
 		ofp_parser = self.datapath.ofproto_parser
 		out = ofp_parser.OFPPortStatsRequest(self.datapath, 0, ofp.OFPP_NONE)

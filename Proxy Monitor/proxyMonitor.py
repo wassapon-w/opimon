@@ -90,7 +90,7 @@ class MessageWatcherAgentThread(threading.Thread):
 				self.upstream_buf += ret
 				self.upstream_buf = self._parse(self.upstream_buf, self._upstream_parse)
 
-		if(time.time() > self.timeloop + 10):
+		if(time.time() > self.timeloop + 60):
 			self.inject_request_message()
 			self.timeloop = time.time()
 
@@ -127,22 +127,22 @@ class MessageWatcherAgentThread(threading.Thread):
 				print(datetime.datetime.utcnow().strftime('%Y/%m/%d %H:%M:%S') + " : ERROR [" + str(self.id) + "] --- Broken Pipe (Downstream : Send monitor message)")
 			pass
 
-		# ofp = self.datapath.ofproto
-		# ofp_parser = self.datapath.ofproto_parser
-		# match = ofp_parser.OFPMatch(in_port=1)
-		# table_id = 0xff
-		# out_port = ofp.OFPP_NONE
-		# out = ofp_parser.OFPFlowStatsRequest(self.datapath, 0, match, table_id, out_port)
-		# out.serialize()
-		# try:
-		# 	self.switch_socket.send(out.buf)
-		# except:
-		# 	if(self.id != None):
-		# 		print(datetime.datetime.utcnow().strftime('%Y/%m/%d %H:%M:%S') + " : ERROR [" + str(hex(self.id)) + "] --- Broken Pipe (Downstream : Send monitor message)")
-		# 	else:
-		# 		print(datetime.datetime.utcnow().strftime('%Y/%m/%d %H:%M:%S') + " : ERROR [" + str(self.id) + "] --- Broken Pipe (Downstream : Send monitor message)")
-		# 	pass
-		
+		ofp = self.datapath.ofproto
+		ofp_parser = self.datapath.ofproto_parser
+		match = ofp_parser.OFPMatch()
+		table_id = 0xff
+		out_port = ofp.OFPP_NONE
+		out = ofp_parser.OFPFlowStatsRequest(self.datapath, 0, match, table_id, out_port)
+		out.serialize()
+		try:
+			self.switch_socket.send(out.buf)
+		except:
+			if(self.id != None):
+				print(datetime.datetime.utcnow().strftime('%Y/%m/%d %H:%M:%S') + " : ERROR [" + str(hex(self.id)) + "] --- Broken Pipe (Downstream : Send monitor message)")
+			else:
+				print(datetime.datetime.utcnow().strftime('%Y/%m/%d %H:%M:%S') + " : ERROR [" + str(self.id) + "] --- Broken Pipe (Downstream : Send monitor message)")
+			pass
+
 		ofp = self.datapath.ofproto
 		ofp_parser = self.datapath.ofproto_parser
 		out = ofp_parser.OFPPortStatsRequest(self.datapath, 0, ofp.OFPP_NONE)
@@ -220,20 +220,20 @@ class MessageWatcherAgentThread(threading.Thread):
 			for action in msg.actions:
 				db_message["message"]["actions"].append(vars(action));
 
-			print(db_message)
+			# print(db_message)
 
-			try:
-				self.db.flow_mods.insert_one(db_message)
-				if(self.id != None):
-					print(datetime.datetime.utcnow().strftime('%Y/%m/%d %H:%M:%S') + " : [" + str(hex(self.id)) + "] --- Received FlowMod message")
-				else:
-					print(datetime.datetime.utcnow().strftime('%Y/%m/%d %H:%M:%S') + " : [" + str(self.id) + "] --- Received FlowMod message")
-			except:
-				if(self.id != None):
-					print(datetime.datetime.utcnow().strftime('%Y/%m/%d %H:%M:%S') + " : ERROR [" + str(hex(self.id)) + "] --- Failed to write data into database")
-				else:
-					print(datetime.datetime.utcnow().strftime('%Y/%m/%d %H:%M:%S') + " : ERROR [" + str(self.id) + "] --- Failed to write data into database")
-				pass
+			# try:
+			# 	self.db.flow_mods.insert_one(db_message)
+			# 	if(self.id != None):
+			# 		print(datetime.datetime.utcnow().strftime('%Y/%m/%d %H:%M:%S') + " : [" + str(hex(self.id)) + "] --- Received FlowMod message")
+			# 	else:
+			# 		print(datetime.datetime.utcnow().strftime('%Y/%m/%d %H:%M:%S') + " : [" + str(self.id) + "] --- Received FlowMod message")
+			# except:
+			# 	if(self.id != None):
+			# 		print(datetime.datetime.utcnow().strftime('%Y/%m/%d %H:%M:%S') + " : ERROR [" + str(hex(self.id)) + "] --- Failed to write data into database")
+			# 	else:
+			# 		print(datetime.datetime.utcnow().strftime('%Y/%m/%d %H:%M:%S') + " : ERROR [" + str(self.id) + "] --- Failed to write data into database")
+			# 	pass
 
 	# Switch to Controller
 	def _upstream_parse(self, pkt):
@@ -326,6 +326,7 @@ class MessageWatcherAgentThread(threading.Thread):
 				# print(msg.body)
 
 				for flow in msg.body:
+					print(flow)
 					db_message = {"switch": hex(self.id),
 								  "message": {
 									  "header": {
@@ -361,7 +362,15 @@ class MessageWatcherAgentThread(threading.Thread):
 					for action in flow.actions:
 						db_message["message"]["actions"].append(vars(action));
 
-					# self.db.flow_mods.insert_one(db_message)
+					try:
+						self.db.flow_mods.insert_one(db_message)
+					except:
+						if(self.id != None):
+							print(datetime.datetime.utcnow().strftime('%Y/%m/%d %H:%M:%S') + " : ERROR [" + str(hex(self.id)) + "] --- Failed to write data into database")
+						else:
+							print(datetime.datetime.utcnow().strftime('%Y/%m/%d %H:%M:%S') + " : ERROR [" + str(self.id) + "] --- Failed to write data into database")
+						pass
+
 			if(type(msg) is ofproto_v1_0_parser.OFPPortStatsReply):
 				# print(str(self.id) + " : Receive Port Stats Message")
 				# print(msg.body)
@@ -480,7 +489,7 @@ if __name__ == '__main__':
 	print("Monitor is running.")
 
 	LISTEN_HOST, LISTEN_PORT = '0.0.0.0', 6653
-	FORWARD_HOST, FORWARD_PORT = 'sd-lemon.naist.jp', 6633
-	# FORWARD_HOST, FORWARD_PORT = 'localhost', 6633
+	# FORWARD_HOST, FORWARD_PORT = 'sd-lemon.naist.jp', 3000
+	FORWARD_HOST, FORWARD_PORT = 'localhost', 6633
 	manager = MessageWatcher(LISTEN_HOST, LISTEN_PORT, FORWARD_HOST, FORWARD_PORT)
 	manager.start()

@@ -322,11 +322,9 @@ class MessageWatcherAgentThread(threading.Thread):
 			msg = ofproto_v1_0_parser.OFPPortStatsReply.parser(self.datapath, version, msg_type, msg_len, xid, pkt)
 			if(type(msg) is ofproto_v1_0_parser.OFPFlowStatsReply):
 				# print(str(self.id) + " : Receive Flow Stats Message")
-				# print(msg)
 				# print(msg.body)
 
 				for flow in msg.body:
-					print(flow)
 					db_message = {"switch": hex(self.id),
 								  "message": {
 									  "header": {

@@ -492,7 +492,7 @@ app.get('/dataquery', function (req, res, next) {
   	MongoClient.connect(url, function(err, db) {
   		assert.equal(null, err);
 
-  		var cursor = db.collection('flow_mods').find( { timestamp: { $gte: startTime, $lt: queryTime } } );
+  		var cursor = db.collection('flow_mods').find( { timestamp: { $gte: fromTime, $lt: toTime } } );
   		cursor.each(function(err, doc) {
   			assert.equal(err, null);
   			if (doc != null) {

@@ -6,9 +6,9 @@ var app = express();
 var MongoClient = require('mongodb').MongoClient;
 var assert = require('assert');
 var ObjectId = require('mongodb').ObjectID;
-// var url = 'mongodb://sd-lemon.naist.jp:9999/test';
+var url = 'mongodb://sd-lemon.naist.jp:9999/opimon';
 // var url = 'mongodb://localhost:27017/opimon';
-var url = 'mongodb://opimon:H62uTDnEtBFEiQrN1Qmktfj8XZVAuixX5YnyeA7TPIB36DDHu5KAncsJAyuqcNJqFaDVwymxHPKSGpGZ3fkgcg==@opimon.documents.azure.com:10250/opimon?ssl=true';
+// var url = 'mongodb://opimon:H62uTDnEtBFEiQrN1Qmktfj8XZVAuixX5YnyeA7TPIB36DDHu5KAncsJAyuqcNJqFaDVwymxHPKSGpGZ3fkgcg==@opimon.documents.azure.com:10250/opimon?ssl=true';
 var counter = 0;
 var startTime = 0;
 

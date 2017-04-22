@@ -220,6 +220,8 @@ class MessageWatcherAgentThread(threading.Thread):
 			for action in msg.actions:
 				db_message["message"]["actions"].append(vars(action));
 
+			print(db_message)
+
 			try:
 				self.db.flow_mods.insert_one(db_message)
 				if(self.id != None):

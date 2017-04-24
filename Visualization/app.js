@@ -338,7 +338,7 @@ app.get('/dataquery', function (req, res, next) {
   // res.json({'status': 200, 'msg': 'success'});
   var queryData = {};
   var queryTime = new Date(parseInt(req.query["timeSecond"]));
-  var fromTime = new Date(parseInt(req.query["timeSecond"]) - 45 * 1000);
+  var fromTime = new Date(parseInt(req.query["timeSecond"]) - 60 * 1000);
   var toTime = new Date(parseInt(req.query["timeSecond"]) + 30 * 1000);
   queryTopology();
 

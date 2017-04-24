@@ -7,8 +7,8 @@ var MongoClient = require('mongodb').MongoClient;
 var assert = require('assert');
 var ObjectId = require('mongodb').ObjectID;
 // var url = 'mongodb://sd-lemon.naist.jp:9999/opimon';
-// var url = 'mongodb://localhost:27017/opimon';
-var url = 'mongodb://opimon:KFJaJSdVHbRFU3e0DOEcsmobGz5Nd8krM7sUIi17nmCwYm39eGK1ap5uomgB6EYNoVvkD9VQ79wrn1XAGop5cg==@opimon.documents.azure.com:10250/opimon?ssl=true';
+var url = 'mongodb://localhost:27017/opimon';
+// var url = 'mongodb://opimon:KFJaJSdVHbRFU3e0DOEcsmobGz5Nd8krM7sUIi17nmCwYm39eGK1ap5uomgB6EYNoVvkD9VQ79wrn1XAGop5cg==@opimon.documents.azure.com:10250/opimon?ssl=true';
 var counter = 0;
 var startTime = 0;
 

@@ -55,8 +55,8 @@ class MessageWatcherAgentThread(threading.Thread):
 
 		# Connect to database
 		# client = MongoClient('sd-lemon.naist.jp', 9999)
-		# client = MongoClient('127.0.0.1', 27017)
-		client = MongoClient('mongodb://opimon:KFJaJSdVHbRFU3e0DOEcsmobGz5Nd8krM7sUIi17nmCwYm39eGK1ap5uomgB6EYNoVvkD9VQ79wrn1XAGop5cg==@opimon.documents.azure.com:10250/?ssl=true&ssl_cert_reqs=CERT_NONE')
+		client = MongoClient('127.0.0.1', 27017)
+		# client = MongoClient('mongodb://opimon:KFJaJSdVHbRFU3e0DOEcsmobGz5Nd8krM7sUIi17nmCwYm39eGK1ap5uomgB6EYNoVvkD9VQ79wrn1XAGop5cg==@opimon.documents.azure.com:10250/?ssl=true&ssl_cert_reqs=CERT_NONE')
 		self.db = client.opimon
 
 	def run(self):

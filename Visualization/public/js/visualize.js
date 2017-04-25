@@ -340,9 +340,9 @@ function showFlowTableByID(container, data, switch_id) {
     var showHeader = document.getElementById("flowTableHead");
     showHeader.textContent = "Flow Table";
 
-    var showTime = document.getElementById("currentTime");
-    var currentTime = new Date(Date.now());
-    showTime.textContent = "Time : " + currentTime.toString();
+    // var showTime = document.getElementById("currentTime");
+    // var currentTime = new Date(Date.now());
+    // showTime.textContent = "Time : " + currentTime.toString();
 
     var table = $("<table/>").addClass('table table-hover');
     var head = $("<thead/>");

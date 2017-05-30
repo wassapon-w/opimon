@@ -55,8 +55,8 @@ class MessageWatcherAgentThread(threading.Thread):
 
 		# Connect to database
 		# client = MongoClient('sd-lemon.naist.jp', 9999)
-		# client = MongoClient('127.0.0.1', 27017)
-		client = MongoClient('mongodb://opimon:KFJaJSdVHbRFU3e0DOEcsmobGz5Nd8krM7sUIi17nmCwYm39eGK1ap5uomgB6EYNoVvkD9VQ79wrn1XAGop5cg==@opimon.documents.azure.com:10250/?ssl=true&ssl_cert_reqs=CERT_NONE')
+		client = MongoClient('127.0.0.1', 27017)
+		# client = MongoClient('mongodb://opimon:KFJaJSdVHbRFU3e0DOEcsmobGz5Nd8krM7sUIi17nmCwYm39eGK1ap5uomgB6EYNoVvkD9VQ79wrn1XAGop5cg==@opimon.documents.azure.com:10250/?ssl=true&ssl_cert_reqs=CERT_NONE')
 		self.db = client.opimon
 
 	def run(self):
@@ -154,7 +154,7 @@ class MessageWatcherAgentThread(threading.Thread):
 				print(datetime.datetime.utcnow().strftime('%Y/%m/%d %H:%M:%S') + " : ERROR [" + str(hex(self.id)) + "] --- Broken Pipe (Downstream : Send monitor message)")
 			else:
 				print(datetime.datetime.utcnow().strftime('%Y/%m/%d %H:%M:%S') + " : ERROR [" + str(self.id) + "] --- Broken Pipe (Downstream : Send monitor message)")
-			self._close()
+			# self._close()
 
 		if(self.id != None):
 			print(datetime.datetime.utcnow().strftime('%Y/%m/%d %H:%M:%S') + " : [" + str(hex(self.id)) + "] --- Sent monitor messages")
@@ -170,7 +170,7 @@ class MessageWatcherAgentThread(threading.Thread):
 				print(datetime.datetime.utcnow().strftime('%Y/%m/%d %H:%M:%S') + " : ERROR [" + str(hex(self.id)) + "] --- Broken Pipe (Downstream)")
 			else:
 				print(datetime.datetime.utcnow().strftime('%Y/%m/%d %H:%M:%S') + " : ERROR [" + str(self.id) + "] --- Broken Pipe (Downstream)")
-			self._close()
+			# self._close()
 			pass
 
 		(version, msg_type, msg_len, xid) = ofproto_parser.header(pkt)
@@ -315,7 +315,7 @@ class MessageWatcherAgentThread(threading.Thread):
 						print(datetime.datetime.utcnow().strftime('%Y/%m/%d %H:%M:%S') + " : ERROR [" + str(hex(self.id)) + "] --- Broken Pipe (Downstream : LLDP Message)")
 					else:
 						print(datetime.datetime.utcnow().strftime('%Y/%m/%d %H:%M:%S') + " : ERROR [" + str(self.id) + "] --- Broken Pipe (Downstream : LLDP Message)")
-					self._close()
+					# self._close()
 					pass
 
 		elif msg_type == ofproto_v1_0.OFPT_STATS_REPLY:
@@ -445,7 +445,7 @@ class MessageWatcherAgentThread(threading.Thread):
 				print(datetime.datetime.utcnow().strftime('%Y/%m/%d %H:%M:%S') + " : ERROR [" + str(hex(self.id)) + "] --- Broken Pipe (Upstream)")
 			else:
 				print(datetime.datetime.utcnow().strftime('%Y/%m/%d %H:%M:%S') + " : ERROR [" + str(self.id) + "] --- Broken Pipe (Upstream)")
-			self._close()
+			# self._close()
 			pass
 
 class MessageWatcher(object):
@@ -486,8 +486,8 @@ if __name__ == '__main__':
 	# log.init_log()
 	print("Monitor is running.")
 
-	LISTEN_HOST, LISTEN_PORT = '0.0.0.0', 6653
-	FORWARD_HOST, FORWARD_PORT = 'sd-lemon.naist.jp', 3000
-	# FORWARD_HOST, FORWARD_PORT = 'localhost', 6733
+	LISTEN_HOST, LISTEN_PORT = '0.0.0.0', 6753
+	# FORWARD_HOST, FORWARD_PORT = 'sd-lemon.naist.jp', 3000
+	FORWARD_HOST, FORWARD_PORT = 'localhost', 6733
 	manager = MessageWatcher(LISTEN_HOST, LISTEN_PORT, FORWARD_HOST, FORWARD_PORT)
 	manager.start()

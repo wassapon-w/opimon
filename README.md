@@ -39,27 +39,27 @@ Install Node.js & Express.js
 ```
 # sudo apt-get install -y npm
 # sudo npm install express --save
-# sudo npm install mongodb --save
+# sudo npm install mongodb@2.2.33 --save
 ```
 
 ### Running Command
 
 Run simulation of OpenFlow network
 ```
-# sudo mn --custom ryuPacketMonitor/Mininet\ Topology/topology.py --topo mytopo --controller=remote,ip=127.0.0.1,port=6753
+# sudo mn --custom opimon/Mininet\ Topology/topology.py --topo mytopo --controller=remote,ip=127.0.0.1,port=6753
 ```
 
 Run simple controller
 ```
-# ryu-manager --ofp-tcp-listen-port 6733 ryuPacketMonitor/Controller/controller.py
+# ryu-manager --ofp-tcp-listen-port 6733 opimon/Controller/controller.py
 ```
 
 Run monitoring tool
 ```
-# python packetMonitor/Proxy\ Monitor/proxyMonitor.py
+# python opimon/Proxy\ Monitor/proxyMonitor.py
 ```
 
 Run visualization server
 ```
-# nodejs packetMonitor/Visualization/app.js
+# nodejs opimon/Visualization/app.js
 ```

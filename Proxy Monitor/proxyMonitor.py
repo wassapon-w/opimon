@@ -179,61 +179,61 @@ class MessageWatcherAgentThread(threading.Thread):
 		if msg_type == ofproto_v1_0.OFPT_FLOW_MOD:
 			msg = ofproto_v1_0_parser.OFPFlowMod.parser(self.datapath, version, msg_type, msg_len, xid, pkt)
 
-			# print(str(self.id) + " : Receive Flow Mod Message")
+			print(str(self.id) + " : Receive Flow Mod Message")
 
 			# Write to database
-			# db_message = {"switch": hex(self.id),
-			# 			  "message": {
-			# 				  "header": {
-			# 					  "version": version,
-			# 					  "type": msg_type,
-			# 					  "length": msg_len,
-			# 					  "xid": xid
-			# 				  },
-			# 				  "match": {
-			# 					  "wildcards": msg.match.wildcards,
-			# 					  "in_port": msg.match.in_port,
-			# 					  "dl_src": mac.haddr_to_str(msg.match.dl_src),
-			# 					  "dl_dst": mac.haddr_to_str(msg.match.dl_dst),
-			# 					  "dl_vlan": msg.match.dl_vlan,
-			# 					  "dl_vlan_pcp": msg.match.dl_vlan_pcp,
-			# 					  "dl_type": msg.match.dl_type,
-			# 					  "nw_tos": msg.match.nw_tos,
-			# 					  "nw_proto": msg.match.nw_proto,
-			# 					  "nw_src": ip.ipv4_to_str(msg.match.nw_src),
-			# 					  "nw_dst": ip.ipv4_to_str(msg.match.nw_dst),
-			# 					  "tp_src": msg.match.tp_src,
-			# 					  "tp_dst": msg.match.tp_dst
-			# 				  },
-			# 				  "cookie": msg.cookie,
-			# 				  "command": msg.command,
-			# 				  "idle_timeout": msg.idle_timeout,
-			# 				  "hard_timeout": msg.hard_timeout,
-			# 				  "priority": msg.priority,
-			# 				  "buffer_id": msg.buffer_id,
-			# 				  "out_port": msg.out_port,
-			# 				  "flags": msg.flags,
-			# 				  "actions": []
-			# 			  },
-			# 			  "timestamp": datetime.datetime.utcnow()}
-			#
-			# for action in msg.actions:
-			# 	db_message["message"]["actions"].append(vars(action));
+			db_message = {"switch": hex(self.id),
+						  "message": {
+							  "header": {
+								  "version": version,
+								  "type": msg_type,
+								  "length": msg_len,
+								  "xid": xid
+							  },
+							  "match": {
+								  "wildcards": msg.match.wildcards,
+								  "in_port": msg.match.in_port,
+								  "dl_src": mac.haddr_to_str(msg.match.dl_src),
+								  "dl_dst": mac.haddr_to_str(msg.match.dl_dst),
+								  "dl_vlan": msg.match.dl_vlan,
+								  "dl_vlan_pcp": msg.match.dl_vlan_pcp,
+								  "dl_type": msg.match.dl_type,
+								  "nw_tos": msg.match.nw_tos,
+								  "nw_proto": msg.match.nw_proto,
+								  "nw_src": ip.ipv4_to_str(msg.match.nw_src),
+								  "nw_dst": ip.ipv4_to_str(msg.match.nw_dst),
+								  "tp_src": msg.match.tp_src,
+								  "tp_dst": msg.match.tp_dst
+							  },
+							  "cookie": msg.cookie,
+							  "command": msg.command,
+							  "idle_timeout": msg.idle_timeout,
+							  "hard_timeout": msg.hard_timeout,
+							  "priority": msg.priority,
+							  "buffer_id": msg.buffer_id,
+							  "out_port": msg.out_port,
+							  "flags": msg.flags,
+							  "actions": []
+						  },
+						  "timestamp": datetime.datetime.utcnow()}
+			
+			for action in msg.actions:
+				db_message["message"]["actions"].append(vars(action))
 
-			# print(db_message)
+			print(db_message)
 
-			# try:
-			# 	self.db.flow_mods.insert_one(db_message)
-			# 	if(self.id != None):
-			# 		print(datetime.datetime.utcnow().strftime('%Y/%m/%d %H:%M:%S') + " : [" + str(hex(self.id)) + "] --- Received FlowMod message")
-			# 	else:
-			# 		print(datetime.datetime.utcnow().strftime('%Y/%m/%d %H:%M:%S') + " : [" + str(self.id) + "] --- Received FlowMod message")
-			# except:
-			# 	if(self.id != None):
-			# 		print(datetime.datetime.utcnow().strftime('%Y/%m/%d %H:%M:%S') + " : ERROR [" + str(hex(self.id)) + "] --- Failed to write data into database")
-			# 	else:
-			# 		print(datetime.datetime.utcnow().strftime('%Y/%m/%d %H:%M:%S') + " : ERROR [" + str(self.id) + "] --- Failed to write data into database")
-			# 	pass
+			try:
+				self.db.flow_mods_message.insert_one(db_message)
+				if(self.id != None):
+					print(datetime.datetime.utcnow().strftime('%Y/%m/%d %H:%M:%S') + " : [" + str(hex(self.id)) + "] --- Received FlowMod message")
+				else:
+					print(datetime.datetime.utcnow().strftime('%Y/%m/%d %H:%M:%S') + " : [" + str(self.id) + "] --- Received FlowMod message")
+			except:
+				if(self.id != None):
+					print(datetime.datetime.utcnow().strftime('%Y/%m/%d %H:%M:%S') + " : ERROR [" + str(hex(self.id)) + "] --- Failed to write data into database")
+				else:
+					print(datetime.datetime.utcnow().strftime('%Y/%m/%d %H:%M:%S') + " : ERROR [" + str(self.id) + "] --- Failed to write data into database")
+				pass
 
 	# Switch to Controller
 	def _upstream_parse(self, pkt):

@@ -19,13 +19,8 @@ class SimpleSwitch(app_manager.RyuApp):
     def add_flow(self, datapath, in_port, dst, actions):
         ofproto = datapath.ofproto
 
-        print("tst 5")
-        # print(dir(ofproto))
-
         match = datapath.ofproto_parser.OFPMatch(
             in_port=in_port, dl_dst=haddr_to_bin(dst))
-
-        # instruction = [parser.OFPInstructionActions(proto.OFPIT_CLEAR_ACTIONS, [])]
 
         mod = datapath.ofproto_parser.OFPFlowMod(
             datapath=datapath, match=match, cookie=0,
@@ -62,19 +57,17 @@ class SimpleSwitch(app_manager.RyuApp):
         else:
             out_port = ofproto.OFPP_FLOOD
 
+        # print(dir(datapath.ofproto_parser))
         # actions = [datapath.ofproto_parser.OFPActionOutput(out_port)]
         actions = []
 
         # install a flow to avoid packet_in next time
         if out_port == ofproto.OFPP_FLOOD:
-            print("test2")
             self.add_flow(datapath, msg.in_port, dst, actions)
 
         data = None
         if msg.buffer_id == ofproto.OFP_NO_BUFFER:
             data = msg.data
-
-        print("test 1")
 
         out = datapath.ofproto_parser.OFPPacketOut(
             datapath=datapath, buffer_id=msg.buffer_id, in_port=msg.in_port,

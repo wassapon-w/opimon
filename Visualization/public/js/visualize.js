@@ -403,10 +403,15 @@ function showFlowTableByID(container, data, switch_id) {
             row.append(match);
 
             var action = $("<td/>");
-            if(r["actions"][0]["type"] == 0) { action.append($("<li/>").text("Type : " + r["actions"][0]["type"] + " (OFPActionOutput)" + "\n")); }
-            else { action.append($("<li/>").text("Type : " + r["actions"][0]["type"] + "\n")); }
-            action.append($("<li/>").text("Switch Output Port : " + r["actions"][0]["port"] + "\n"));
-            action.append($("<li/>").text("Max Length : " + r["actions"][0]["max_len"] + "\n"));
+            if(r["actions"][0] != undefined) {
+                if(r["actions"][0]["type"] == 0) { action.append($("<li/>").text("Type : " + r["actions"][0]["type"] + " (OFPActionOutput)" + "\n")); }
+                else { action.append($("<li/>").text("Type : " + r["actions"][0]["type"] + "\n")); }
+                action.append($("<li/>").text("Switch Output Port : " + r["actions"][0]["port"] + "\n"));
+                action.append($("<li/>").text("Max Length : " + r["actions"][0]["max_len"] + "\n"));
+            }
+            else {
+                action.append($("<li/>").text("Type : Drop" + "\n"));
+            }
             row.append(action);
 
             // row.append($("<td/>").text(expireTime.toString()));

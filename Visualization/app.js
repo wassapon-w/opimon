@@ -52,38 +52,40 @@ app.get('/flowmods', function (req, res) {
   			else {
           counter++;
   				console.log(counter + " : Request FlowMod from webpage");
-  				db.close();
+          db.close();
+          
+          console.log(flowModsDatabase);
 
           var flowTable = {};
           var switchFlowTable = [];
 
           for(var i = 0; i < flowModsDatabase.length; i++) {
             if(flowTable[flowModsDatabase[i]["switch"]] != undefined) {
-              if(flowModsDatabase[i]["message"]["actions"][0] != undefined) {
-                var flow = {};
-                flow["switch_id"] = flowModsDatabase[i]["switch"];
-                flow["match"] = flowModsDatabase[i]["message"]["match"];
-                flow["actions"] = flowModsDatabase[i]["message"]["actions"];
-                flow["hard_timeout"] = flowModsDatabase[i]["message"]["hard_timeout"];
-                flow["idle_timeout"] = flowModsDatabase[i]["message"]["idle_timeout"];
-                flow["timestamp"] = flowModsDatabase[i]["timestamp"];
-                flowTable[flowModsDatabase[i]["switch"]].push(flow);
-              }
+              // if(flowModsDatabase[i]["message"]["actions"][0] != undefined) {
+              var flow = {};
+              flow["switch_id"] = flowModsDatabase[i]["switch"];
+              flow["match"] = flowModsDatabase[i]["message"]["match"];
+              flow["actions"] = flowModsDatabase[i]["message"]["actions"];
+              flow["hard_timeout"] = flowModsDatabase[i]["message"]["hard_timeout"];
+              flow["idle_timeout"] = flowModsDatabase[i]["message"]["idle_timeout"];
+              flow["timestamp"] = flowModsDatabase[i]["timestamp"];
+              flowTable[flowModsDatabase[i]["switch"]].push(flow);
+              // }
             }
             else {
               flowTable[flowModsDatabase[i]["switch"]] = [];
               switchFlowTable.push(flowModsDatabase[i]["switch"]);
 
-              if(flowModsDatabase[i]["message"]["actions"][0] != undefined) {
-                var flow = {};
-                flow["switch_id"] = flowModsDatabase[i]["switch"];
-                flow["match"] = flowModsDatabase[i]["message"]["match"];
-                flow["actions"] = flowModsDatabase[i]["message"]["actions"];
-                flow["hard_timeout"] = flowModsDatabase[i]["message"]["hard_timeout"];
-                flow["idle_timeout"] = flowModsDatabase[i]["message"]["idle_timeout"];
-                flow["timestamp"] = flowModsDatabase[i]["timestamp"];
-                flowTable[flowModsDatabase[i]["switch"]].push(flow);
-              }
+              // if(flowModsDatabase[i]["message"]["actions"][0] != undefined) {
+              var flow = {};
+              flow["switch_id"] = flowModsDatabase[i]["switch"];
+              flow["match"] = flowModsDatabase[i]["message"]["match"];
+              flow["actions"] = flowModsDatabase[i]["message"]["actions"];
+              flow["hard_timeout"] = flowModsDatabase[i]["message"]["hard_timeout"];
+              flow["idle_timeout"] = flowModsDatabase[i]["message"]["idle_timeout"];
+              flow["timestamp"] = flowModsDatabase[i]["timestamp"];
+              flowTable[flowModsDatabase[i]["switch"]].push(flow);
+              // }
             }
           }
 
@@ -517,7 +519,7 @@ app.get('/dataquery', function (req, res, next) {
 
           for(var i = 0; i < flowModsDatabase.length; i++) {
             if(flowTable[flowModsDatabase[i]["switch"]] != undefined) {
-              if(flowModsDatabase[i]["message"]["actions"][0] != undefined) {
+              // if(flowModsDatabase[i]["message"]["actions"][0] != undefined) {
                 var flow = {};
                 flow["switch_id"] = flowModsDatabase[i]["switch"];
                 flow["match"] = flowModsDatabase[i]["message"]["match"];
@@ -526,13 +528,13 @@ app.get('/dataquery', function (req, res, next) {
                 flow["idle_timeout"] = flowModsDatabase[i]["message"]["idle_timeout"];
                 flow["timestamp"] = flowModsDatabase[i]["timestamp"];
                 flowTable[flowModsDatabase[i]["switch"]].push(flow);
-              }
+              // }
             }
             else {
               flowTable[flowModsDatabase[i]["switch"]] = [];
               switchFlowTable.push(flowModsDatabase[i]["switch"]);
 
-              if(flowModsDatabase[i]["message"]["actions"][0] != undefined) {
+              // if(flowModsDatabase[i]["message"]["actions"][0] != undefined) {
                 var flow = {};
                 flow["switch_id"] = flowModsDatabase[i]["switch"];
                 flow["match"] = flowModsDatabase[i]["message"]["match"];
@@ -541,7 +543,7 @@ app.get('/dataquery', function (req, res, next) {
                 flow["idle_timeout"] = flowModsDatabase[i]["message"]["idle_timeout"];
                 flow["timestamp"] = flowModsDatabase[i]["timestamp"];
                 flowTable[flowModsDatabase[i]["switch"]].push(flow);
-              }
+              // }
             }
           }
 

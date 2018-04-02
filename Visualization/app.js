@@ -653,8 +653,8 @@ app.get('/savenode', function (req, res, next) {
   }
 
   var settingJSON = JSON.stringify(settings);
-  fs.writeFile('./packetMonitor/Visualization/public/settings.json', settingJSON, 'utf8', function(err) {
-    // console.log(err);
+  fs.writeFile('./opimon/Visualization/public/settings.json', settingJSON, 'utf8', function(err) {
+    if(err != null) { console.log(err); }
     res.json({'status': 200, 'msg': 'success'});
   });
 });

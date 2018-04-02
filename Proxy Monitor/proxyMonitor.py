@@ -179,7 +179,7 @@ class MessageWatcherAgentThread(threading.Thread):
 		if msg_type == ofproto_v1_0.OFPT_FLOW_MOD:
 			msg = ofproto_v1_0_parser.OFPFlowMod.parser(self.datapath, version, msg_type, msg_len, xid, pkt)
 
-			print(str(self.id) + " : Receive Flow Mod Message")
+			# print(str(self.id) + " : Receive Flow Mod Message")
 
 			# Write to database
 			db_message = {"switch": hex(self.id),
@@ -220,14 +220,14 @@ class MessageWatcherAgentThread(threading.Thread):
 			for action in msg.actions:
 				db_message["message"]["actions"].append(vars(action))
 
-			print(db_message)
+			# print(db_message)
 
 			try:
 				self.db.flow_mods_message.insert_one(db_message)
-				if(self.id != None):
-					print(datetime.datetime.utcnow().strftime('%Y/%m/%d %H:%M:%S') + " : [" + str(hex(self.id)) + "] --- Received FlowMod message")
-				else:
-					print(datetime.datetime.utcnow().strftime('%Y/%m/%d %H:%M:%S') + " : [" + str(self.id) + "] --- Received FlowMod message")
+				# if(self.id != None):
+				# 	print(datetime.datetime.utcnow().strftime('%Y/%m/%d %H:%M:%S') + " : [" + str(hex(self.id)) + "] --- Received FlowMod message")
+				# else:
+				# 	print(datetime.datetime.utcnow().strftime('%Y/%m/%d %H:%M:%S') + " : [" + str(self.id) + "] --- Received FlowMod message")
 			except:
 				if(self.id != None):
 					print(datetime.datetime.utcnow().strftime('%Y/%m/%d %H:%M:%S') + " : ERROR [" + str(hex(self.id)) + "] --- Failed to write data into database")

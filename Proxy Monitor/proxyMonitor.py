@@ -223,7 +223,7 @@ class MessageWatcherAgentThread(threading.Thread):
 			# print(db_message)
 
 			try:
-				self.db.flow_mods_message.insert_one(db_message)
+				self.db.flow_mods.insert_one(db_message)
 				# if(self.id != None):
 				# 	print(datetime.datetime.utcnow().strftime('%Y/%m/%d %H:%M:%S') + " : [" + str(hex(self.id)) + "] --- Received FlowMod message")
 				# else:
@@ -361,7 +361,7 @@ class MessageWatcherAgentThread(threading.Thread):
 						db_message["message"]["actions"].append(vars(action));
 
 					try:
-						self.db.flow_mods.insert_one(db_message)
+						self.db.flow_stats.insert_one(db_message)
 					except:
 						if(self.id != None):
 							print(datetime.datetime.utcnow().strftime('%Y/%m/%d %H:%M:%S') + " : ERROR [" + str(hex(self.id)) + "] --- Failed to write data into database")

@@ -27,6 +27,8 @@ from pymongo import MongoClient
 
 from ryu.lib.mac import BROADCAST_STR
 
+from pprint import pprint
+
 # import log
 
 LOG = logging.getLogger('OpenFlow Monitor')
@@ -117,7 +119,9 @@ class MessageWatcherAgentThread(threading.Thread):
 		# print(str(self.id) + " : Sent Message")
 		ofp_parser = self.datapath.ofproto_parser
 		out = ofp_parser.OFPFeaturesRequest(self.datapath)
+		out.xid = 0xffffffff
 		out.serialize()
+		self.parse_pkt(out, "FeaturesRequest")
 		try:
 			self.switch_socket.send(out.buf)
 		except:
@@ -133,7 +137,9 @@ class MessageWatcherAgentThread(threading.Thread):
 		table_id = 0xff
 		out_port = ofp.OFPP_NONE
 		out = ofp_parser.OFPFlowStatsRequest(self.datapath, 0, match, table_id, out_port)
+		out.xid = 0xffffffff
 		out.serialize()
+		self.parse_pkt(out, "FlowStatsRequest")
 		try:
 			self.switch_socket.send(out.buf)
 		except:
@@ -146,7 +152,9 @@ class MessageWatcherAgentThread(threading.Thread):
 		ofp = self.datapath.ofproto
 		ofp_parser = self.datapath.ofproto_parser
 		out = ofp_parser.OFPPortStatsRequest(self.datapath, 0, ofp.OFPP_NONE)
+		out.xid = 0xffffffff
 		out.serialize()
+		self.parse_pkt(out, "PortStatsRequest")
 		try:
 			self.switch_socket.send(out.buf)
 		except:
@@ -160,6 +168,10 @@ class MessageWatcherAgentThread(threading.Thread):
 			print(datetime.datetime.utcnow().strftime('%Y/%m/%d %H:%M:%S') + " : [" + str(hex(self.id)) + "] --- Sent monitor messages")
 		else:
 			print(datetime.datetime.utcnow().strftime('%Y/%m/%d %H:%M:%S') + " : [" + str(self.id) + "] --- Sent monitor messages")
+
+	def parse_pkt(self, pkt, type):
+		# print(pkt)
+		print("Request " + hex(pkt.msg_type) + "(" + type + ") " + "xid: " + hex(pkt.xid))
 
 	# Controller to Switch
 	def _downstream_parse(self, pkt):
@@ -239,8 +251,11 @@ class MessageWatcherAgentThread(threading.Thread):
 	def _upstream_parse(self, pkt):
 		(version, msg_type, msg_len, xid) = ofproto_parser.header(pkt)
 
+		# print("Receive xid: " + hex(xid))
+
 		# Switch configuration messages
 		if msg_type == ofproto_v1_0.OFPT_FEATURES_REPLY:
+			print("Reply xid: " + hex(xid))
 			msg = ofproto_v1_0_parser.OFPSwitchFeatures.parser(self.datapath, version, msg_type, msg_len, xid, pkt)
 			match = ofproto_v1_0_parser.OFPMatch(dl_type=ETH_TYPE_LLDP, dl_dst=lldp.LLDP_MAC_NEAREST_BRIDGE)
 			cookie = 0
@@ -258,7 +273,6 @@ class MessageWatcherAgentThread(threading.Thread):
 			self.ports = msg.ports
 
 			# print(str(self.id) + " : Receive Features Reply Message")
-
 			# print(msg)
 
 			for port in self.ports.values():
@@ -268,7 +282,6 @@ class MessageWatcherAgentThread(threading.Thread):
 							  "timestamp": datetime.datetime.utcnow()}
 
 				try:
-
 					self.db.switch_port.insert_one(db_message)
 				except:
 					if(self.id != None):

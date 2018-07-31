@@ -652,6 +652,7 @@ app.get('/savenode', function (req, res, next) {
     }
   }
 
+  // console.log(settings);
   var settingJSON = JSON.stringify(settings);
   fs.writeFile('./opimon/Visualization/public/settings.json', settingJSON, 'utf8', function(err) {
     if(err != null) { console.log(err); }

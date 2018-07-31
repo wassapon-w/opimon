@@ -252,8 +252,6 @@ class MessageWatcherAgentThread(threading.Thread):
 		(version, msg_type, msg_len, xid) = ofproto_parser.header(pkt)
 
 		# print("Receive xid: " + hex(xid))
-		if(xid == 0xffffffff):
-			return
 
 		# Switch configuration messages
 		if msg_type == ofproto_v1_0.OFPT_FEATURES_REPLY:
@@ -453,15 +451,18 @@ class MessageWatcherAgentThread(threading.Thread):
 						# print("Controller LLDP packet")
 						pass
 
-		try:
-			self.controller_socket.send(pkt)
-		except:
-			if(self.id != None):
-				print(datetime.datetime.utcnow().strftime('%Y/%m/%d %H:%M:%S') + " : ERROR [" + str(hex(self.id)) + "] --- Broken Pipe (Upstream)")
-			else:
-				print(datetime.datetime.utcnow().strftime('%Y/%m/%d %H:%M:%S') + " : ERROR [" + str(self.id) + "] --- Broken Pipe (Upstream)")
-			# self._close()
-			pass
+		if(xid == 0xffffffff):
+			return
+		else:
+			try:
+				self.controller_socket.send(pkt)
+			except:
+				if(self.id != None):
+					print(datetime.datetime.utcnow().strftime('%Y/%m/%d %H:%M:%S') + " : ERROR [" + str(hex(self.id)) + "] --- Broken Pipe (Upstream)")
+				else:
+					print(datetime.datetime.utcnow().strftime('%Y/%m/%d %H:%M:%S') + " : ERROR [" + str(self.id) + "] --- Broken Pipe (Upstream)")
+				# self._close()
+				pass
 
 class MessageWatcher(object):
 

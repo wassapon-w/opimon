@@ -252,6 +252,8 @@ class MessageWatcherAgentThread(threading.Thread):
 		(version, msg_type, msg_len, xid) = ofproto_parser.header(pkt)
 
 		# print("Receive xid: " + hex(xid))
+		if(xid == 0xffffffff):
+			return
 
 		# Switch configuration messages
 		if msg_type == ofproto_v1_0.OFPT_FEATURES_REPLY:

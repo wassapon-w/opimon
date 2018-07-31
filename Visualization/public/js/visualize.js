@@ -59,7 +59,7 @@ function getData() {
       $('#timeSlider').attr('min', minTime.valueOf());
       $('#timeSlider').attr('max', currentTime.valueOf());
       $('#timeSlider').attr('value', currentTime.valueOf());
-      sendDataToServer();
+      getDataFromServer();
   });
 
   getSettings();
@@ -499,7 +499,7 @@ function showSwitchPort(container, data, switch_id) {
     return container.html(table);
 }
 
-function sendDataToServer() {
+function getDataFromServer() {
     // console.log(document.getElementById("timeSlider").value);
     var loadLabel = document.getElementById("loading");
     loadLabel.textContent = "Loading...";

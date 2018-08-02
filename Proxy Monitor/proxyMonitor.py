@@ -121,7 +121,7 @@ class MessageWatcherAgentThread(threading.Thread):
 		out = ofp_parser.OFPFeaturesRequest(self.datapath)
 		out.xid = 0xffffffff
 		out.serialize()
-		self.parse_pkt(out, "FeaturesRequest")
+		# self.parse_pkt(out, "FeaturesRequest")
 		try:
 			self.switch_socket.send(out.buf)
 		except:
@@ -139,7 +139,7 @@ class MessageWatcherAgentThread(threading.Thread):
 		out = ofp_parser.OFPFlowStatsRequest(self.datapath, 0, match, table_id, out_port)
 		out.xid = 0xffffffff
 		out.serialize()
-		self.parse_pkt(out, "FlowStatsRequest")
+		# self.parse_pkt(out, "FlowStatsRequest")
 		try:
 			self.switch_socket.send(out.buf)
 		except:
@@ -154,7 +154,7 @@ class MessageWatcherAgentThread(threading.Thread):
 		out = ofp_parser.OFPPortStatsRequest(self.datapath, 0, ofp.OFPP_NONE)
 		out.xid = 0xffffffff
 		out.serialize()
-		self.parse_pkt(out, "PortStatsRequest")
+		# self.parse_pkt(out, "PortStatsRequest")
 		try:
 			self.switch_socket.send(out.buf)
 		except:
@@ -271,7 +271,7 @@ class MessageWatcherAgentThread(threading.Thread):
 
 		# Switch configuration messages
 		if msg_type == ofproto_v1_0.OFPT_FEATURES_REPLY:
-			print("Reply xid: " + hex(xid))
+			# print("Reply xid: " + hex(xid))
 			msg = ofproto_v1_0_parser.OFPSwitchFeatures.parser(self.datapath, version, msg_type, msg_len, xid, pkt)
 			match = ofproto_v1_0_parser.OFPMatch(dl_type=ETH_TYPE_LLDP, dl_dst=lldp.LLDP_MAC_NEAREST_BRIDGE)
 			cookie = 0

@@ -73,12 +73,7 @@ class MessageWatcherAgentThread(threading.Thread):
 			self._loop()
 
 			pr.disable()
-			s = io.StringIO()
-			ps = pstats.Stats(pr, stream=s).sort_stats('cumtime')
-			ps.print_stats()
-
-			with open('test.txt', 'w+') as f:
-				f.write(s.getvalue())
+			pr.dump_stats("profile-thread.dat")
 
 	def _drop_collections(self):
 		self.db.flow_mods.drop()

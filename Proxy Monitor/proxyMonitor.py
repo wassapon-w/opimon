@@ -78,7 +78,7 @@ class MessageWatcherAgentThread(threading.Thread):
 			ps.print_stats()
 
 			with open('test.txt', 'w+') as f:
-    			f.write(s.getvalue())
+				f.write(s.getvalue())
 
 	def _drop_collections(self):
 		self.db.flow_mods.drop()

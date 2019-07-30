@@ -9,6 +9,10 @@ import time
 import logging
 from binascii import hexlify, unhexlify
 
+import cProfile
+import pstats
+import io
+
 from ryu.ofproto import ofproto_common
 from ryu.ofproto import ofproto_parser
 from ryu.ofproto import ofproto_v1_0
@@ -63,7 +67,18 @@ class MessageWatcherAgentThread(threading.Thread):
 
 	def run(self):
 		while(self.is_alive):
+			pr = cProfile.Profile()
+			pr.enable()
+
 			self._loop()
+
+			pr.disable()
+			s = io.StringIO()
+			ps = pstats.Stats(pr, stream=s).sort_stats('cumtime')
+			ps.print_stats()
+
+			with open('test.txt', 'w+') as f:
+    			f.write(s.getvalue())
 
 	def _drop_collections(self):
 		self.db.flow_mods.drop()

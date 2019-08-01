@@ -50,7 +50,7 @@ class MyTopo( Topo ):
         self.addLink(Switch9, Switch15)
 
         # Host
-        self.addLink(Host1, Switch11)
+        self.addLink(Host1, Switch4)
         self.addLink(Host2, Switch11)
         self.addLink(Host3, Switch12)
         self.addLink(Host4, Switch12)

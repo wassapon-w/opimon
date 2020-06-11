@@ -28,7 +28,7 @@ Install Ryu SDN Library
 
 Install MongoDB
 ```
-# sudo apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv 0C49F3730359A14518585931BC711F9BA15703C6
+# wget -qO - https://www.mongodb.org/static/pgp/server-3.4.asc | sudo apt-key add -
 # echo "deb [ arch=amd64,arm64 ] http://repo.mongodb.org/apt/ubuntu xenial/mongodb-org/3.4 multiverse" | sudo tee /etc/apt/sources.list.d/mongodb-org-3.4.list
 # sudo apt-get update
 # sudo apt-get install -y mongodb-org
@@ -63,3 +63,7 @@ Run visualization server
 ```
 # nodejs opimon/Visualization/app.js
 ```
+
+### Reference
+
+[1] Wassapon, W., Uthayopas, P., Chantrapornchai, C., & Ichikawa, K. (2018). Real-Time monitoring and visualization software for OpenFlow network. In International Conference on ICT and Knowledge Engineering (pp. 1–5). IEEE Computer Society. https://doi.org/10.1109/ICTKE.2017.8259622

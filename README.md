@@ -26,7 +26,7 @@ Install Ryu SDN Library
 # sudo python -m pip install pymongo
 ```
 
-Install MongoDB
+Install MongoDB 3.4
 ```
 # wget -qO - https://www.mongodb.org/static/pgp/server-3.4.asc | sudo apt-key add -
 # echo "deb [ arch=amd64,arm64 ] http://repo.mongodb.org/apt/ubuntu xenial/mongodb-org/3.4 multiverse" | sudo tee /etc/apt/sources.list.d/mongodb-org-3.4.list

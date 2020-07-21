@@ -1,6 +1,7 @@
 import socket
 import select
 import threading
+import multiprocessing
 import struct
 
 import datetime
@@ -10,6 +11,7 @@ import logging
 from binascii import hexlify, unhexlify
 
 import cProfile
+import yappi
 import pstats
 import io
 
@@ -26,11 +28,9 @@ from ryu.ofproto import ofproto_v1_0_parser
 
 # from ryu.ofproto import ofproto_v1_0_parser
 from ryu.lib import addrconv, ip, mac
-
-from pymongo import MongoClient
-
 from ryu.lib.mac import BROADCAST_STR
 
+from pymongo import MongoClient
 from pprint import pprint
 
 # import log
@@ -62,18 +62,17 @@ class MessageWatcherAgentThread(threading.Thread):
 		# Connect to database
 		# client = MongoClient('sd-lemon.naist.jp', 9999)
 		client = MongoClient('127.0.0.1', 27017)
-		# client = MongoClient('mongodb://opimon:KFJaJSdVHbRFU3e0DOEcsmobGz5Nd8krM7sUIi17nmCwYm39eGK1ap5uomgB6EYNoVvkD9VQ79wrn1XAGop5cg==@opimon.documents.azure.com:10250/?ssl=true&ssl_cert_reqs=CERT_NONE')
 		self.db = client.opimon
 
 	def run(self):
+		pr = cProfile.Profile()
 		while(self.is_alive):
-			pr = cProfile.Profile()
-			pr.enable()
+			# pr.enable()
 
 			self._loop()
 
-			pr.disable()
-			pr.dump_stats("profile-thread.dat")
+			# pr.disable()
+			# pr.dump_stats("profile-thread-%d.dat")
 
 	def _drop_collections(self):
 		self.db.flow_mods.drop()
@@ -245,7 +244,8 @@ class MessageWatcherAgentThread(threading.Thread):
 			# print(db_message)
 
 			try:
-				self.db.flow_mods.insert_one(db_message)
+				# self.db.flow_mods.insert_one(db_message)
+				pass
 				# if(self.id != None):
 				# 	print(datetime.datetime.utcnow().strftime('%Y/%m/%d %H:%M:%S') + " : [" + str(hex(self.id)) + "] --- Received FlowMod message")
 				# else:
@@ -278,6 +278,8 @@ class MessageWatcherAgentThread(threading.Thread):
 	
 	def _upstream_collector(self, pkt):
 		(version, msg_type, msg_len, xid) = ofproto_parser.header(pkt)
+
+		# print(str(hex(xid)) + " - " + str(msg_type))
 
 		# Switch configuration messages
 		if msg_type == ofproto_v1_0.OFPT_FEATURES_REPLY:
@@ -361,7 +363,7 @@ class MessageWatcherAgentThread(threading.Thread):
 			msg = ofproto_v1_0_parser.OFPPortStatsReply.parser(self.datapath, version, msg_type, msg_len, xid, pkt)
 			if(type(msg) is ofproto_v1_0_parser.OFPFlowStatsReply):
 				# print(str(self.id) + " : Receive Flow Stats Message")
-				# print(msg.body)
+				# print(msg)
 
 				for flow in msg.body:
 					db_message = {"switch": hex(self.id),
@@ -397,7 +399,7 @@ class MessageWatcherAgentThread(threading.Thread):
 								  "timestamp": datetime.datetime.utcnow()}
 
 					for action in flow.actions:
-						db_message["message"]["actions"].append(vars(action));
+						db_message["message"]["actions"].append(vars(action))
 
 					try:
 						self.db.flow_stats.insert_one(db_message)
@@ -491,20 +493,34 @@ class MessageWatcher(object):
 		# Upstream host switch settings
 		self.forward_host = forward_host
 		self.forward_port = forward_port
-		self.threads = []
+		# self.threads = []
+		self.connection_list = []
 
 	def _handle(self, sock):
-		thread = MessageWatcherAgentThread(sock, self.forward_host, self.forward_port)
-		thread.start()
-		self.threads.append(thread)
+		# thread = MessageWatcherAgentThread(sock, self.forward_host, self.forward_port)
+		# thread.start()
+		# self.threads.append(thread)
+
+		print("Receiving new connection...")
+		connection = MessageWatcherAgentThread(sock, self.forward_host, self.forward_port)
+		connection_process = multiprocessing.Process(target=connection.run)
+		connection_process.start()
+		self.connection_list.append(connection_process)
 
 	def start(self):
 		# self.logger.info("Running")
 		self.run()
 
 	def run(self):
-		while(True):
-			self._loop()
+		global connection_list
+		try:
+			while(True):
+				self._loop()
+		except KeyboardInterrupt:
+			print("Exiting...")
+			for connection in self.connection_list:
+				connection.terminate()
+			print("Terminated")
 
 	def _loop(self):
 		conn, addr = self.listen_socket.accept()

@@ -38,68 +38,245 @@ from pprint import pprint
 LOG = logging.getLogger('OpenFlow Monitor')
 upstream_queue = multiprocessing.Queue()
 downstream_queue = multiprocessing.Queue()
+message_queue = multiprocessing.Queue()
 
-class UpstreamMessageParserAgentThread(multiprocessing.Process):
+class MessageParserAgentThread(multiprocessing.Process):
 	def __init__(self):
-		super(UpstreamMessageParserAgentThread, self).__init__()
+		super(MessageParserAgentThread, self).__init__()
 
-		self.timeloop = time.time()
+		self.datapath = ofproto_protocol.ProtocolDesc(version=0x01)
+		self.id = None
+
+	def run(self):
 		client = MongoClient('127.0.0.1', 27017)
 		self.db = client.opimon
 
-	def run(self):
 		while(True):
 			# print("Upstream Running")
-			print("UpstreamMessageParserAgentThread: " + str(upstream_queue.qsize()))
+			print("MessageParserAgentThread (" + str(multiprocessing.current_process().pid) + "): " + str(message_queue.qsize()))
 
-			# for pkt in iter(upstream_queue.get, None):
-			# while(not upstream_queue.empty):
-				pkt = upstream_queue.get(True, None)
-				(version, msg_type, msg_len, xid) = ofproto_parser.header(pkt)
-				# print(str(msg_type))
+			pkt = message_queue.get(True, None)
+			self._message_parse(pkt)
 
-			time.sleep(30)
-	
-	# def _loop(self):
-	# 	# if(time.time() > self.timeloop + 60):
-	# 	self.timeloop = time.time()
-	# 	print("UpstreamMessageParserAgentThread")
+	def _message_parse(self, pkt):
+		(version, msg_type, msg_len, xid) = ofproto_parser.header(pkt)
 
-	# 	if(not Queue.empty())
-	# 		pkt = upstream_queue.get()
-	# 		(version, msg_type, msg_len, xid) = ofproto_parser.header(pkt)
-	# 		print(str(msg_type))
+		# Controller command messages
+		if msg_type == ofproto_v1_0.OFPT_FLOW_MOD:
+			msg = ofproto_v1_0_parser.OFPFlowMod.parser(self.datapath, version, msg_type, msg_len, xid, pkt)
 
-class DownstreamMessageParserAgentThread(multiprocessing.Process):
-	def __init__(self):
-		super(DownstreamMessageParserAgentThread, self).__init__()
+			# print(str(self.id) + " : Receive Flow Mod Message")
 
-		self.timeloop = time.time()
-		client = MongoClient('127.0.0.1', 27017)
-		self.db = client.opimon
+			# Write to database
+			db_message = {"switch": hex(self.id),
+						  "message": {
+							  "header": {
+								  "version": version,
+								  "type": msg_type,
+								  "length": msg_len,
+								  "xid": xid
+							  },
+							  "match": {
+								  "wildcards": msg.match.wildcards,
+								  "in_port": msg.match.in_port,
+								  "dl_src": mac.haddr_to_str(msg.match.dl_src),
+								  "dl_dst": mac.haddr_to_str(msg.match.dl_dst),
+								  "dl_vlan": msg.match.dl_vlan,
+								  "dl_vlan_pcp": msg.match.dl_vlan_pcp,
+								  "dl_type": msg.match.dl_type,
+								  "nw_tos": msg.match.nw_tos,
+								  "nw_proto": msg.match.nw_proto,
+								  "nw_src": ip.ipv4_to_str(msg.match.nw_src),
+								  "nw_dst": ip.ipv4_to_str(msg.match.nw_dst),
+								  "tp_src": msg.match.tp_src,
+								  "tp_dst": msg.match.tp_dst
+							  },
+							  "cookie": msg.cookie,
+							  "command": msg.command,
+							  "idle_timeout": msg.idle_timeout,
+							  "hard_timeout": msg.hard_timeout,
+							  "priority": msg.priority,
+							  "buffer_id": msg.buffer_id,
+							  "out_port": msg.out_port,
+							  "flags": msg.flags,
+							  "actions": []
+						  },
+						  "timestamp": datetime.datetime.utcnow()}
+			
+			for action in msg.actions:
+				db_message["message"]["actions"].append(vars(action))
 
-	def run(self):
-		while(True):
-			# print("Downstream Running")
-			print("DownstreamMessageParserAgentThread: " + str(downstream_queue.qsize()))
+			# print(db_message)
 
-			# for pkt in iter(downstream_queue.get, None):
-			while(not downstream_queue.empty):
-				pkt = downstream_queue.get()
-				(version, msg_type, msg_len, xid) = ofproto_parser.header(pkt)
-				# print(str(msg_type))
+			try:
+				self.db.flow_mods.insert_one(db_message)
+				# pass
+				# if(self.id != None):
+				# 	print(datetime.datetime.utcnow().strftime('%Y/%m/%d %H:%M:%S') + " : [" + str(hex(self.id)) + "] --- Received FlowMod message")
+				# else:
+				# 	print(datetime.datetime.utcnow().strftime('%Y/%m/%d %H:%M:%S') + " : [" + str(self.id) + "] --- Received FlowMod message")
+			except:
+				if(self.id != None):
+					print(datetime.datetime.utcnow().strftime('%Y/%m/%d %H:%M:%S') + " : ERROR [" + str(hex(self.id)) + "] --- Failed to write data into database")
+				else:
+					print(datetime.datetime.utcnow().strftime('%Y/%m/%d %H:%M:%S') + " : ERROR [" + str(self.id) + "] --- Failed to write data into database")
+				pass
 
-			time.sleep(30)
-	
-	# def _loop(self):
-		# if(time.time() > self.timeloop + 60):
-		# print("DownstreamMessageParserAgentThread")
+		# Switch configuration messages
+		elif msg_type == ofproto_v1_0.OFPT_FEATURES_REPLY:
+			# print("Reply xid: " + hex(xid))
+			msg = ofproto_v1_0_parser.OFPSwitchFeatures.parser(self.datapath, version, msg_type, msg_len, xid, pkt)
+			match = ofproto_v1_0_parser.OFPMatch(dl_type=ETH_TYPE_LLDP, dl_dst=lldp.LLDP_MAC_NEAREST_BRIDGE)
+			cookie = 0
+			command = ofproto_v1_0.OFPFC_ADD
+			idle_timeout = hard_timeout = 0
+			priority = 0
+			buffer_id = ofproto_v1_0.OFP_NO_BUFFER
+			out_port = ofproto_v1_0.OFPP_NONE
+			flags = 0
+			actions = [ofproto_v1_0_parser.OFPActionOutput(ofproto_v1_0.OFPP_CONTROLLER)]
+			mod = ofproto_v1_0_parser.OFPFlowMod(self.datapath, match, cookie, command, idle_timeout, hard_timeout, priority, buffer_id, out_port, flags, actions)
+			mod.serialize()
 
-		# pkt = downstream_queue.get()
-		# (version, msg_type, msg_len, xid) = ofproto_parser.header(pkt)
-		# print(str(msg_type))
+			self.id = msg.datapath_id
+			self.ports = msg.ports
 
-		# self.timeloop = time.time()
+			# print(str(self.id) + " : Receive Features Reply Message")
+			# print(msg)
+
+			for port in self.ports.values():
+				db_message = {"switch_id": hex(self.id),
+							  "port_no": port.port_no,
+							  "hw_addr": port.hw_addr,
+							  "timestamp": datetime.datetime.utcnow()}
+
+				try:
+					self.db.switch_port.insert_one(db_message)
+				except:
+					if(self.id != None):
+						print(datetime.datetime.utcnow().strftime('%Y/%m/%d %H:%M:%S') + " : ERROR [" + str(hex(self.id)) + "] --- Failed to write data into database")
+					else:
+						print(datetime.datetime.utcnow().strftime('%Y/%m/%d %H:%M:%S') + " : ERROR [" + str(self.id) + "] --- Failed to write data into database")
+
+		elif msg_type == ofproto_v1_0.OFPT_STATS_REPLY:
+			msg = ofproto_v1_0_parser.OFPPortStatsReply.parser(self.datapath, version, msg_type, msg_len, xid, pkt)
+			if(type(msg) is ofproto_v1_0_parser.OFPFlowStatsReply):
+				# print(str(self.id) + " : Receive Flow Stats Message")
+				# print(msg)
+
+				for flow in msg.body:
+					db_message = {"switch": hex(self.id),
+								  "message": {
+									  "header": {
+										  "version": msg.version,
+										  "type": msg.msg_type,
+										  "length": msg.msg_len,
+										  "xid": msg.xid
+									  },
+									  "match": {
+										  "wildcards": flow.match.wildcards,
+										  "in_port": flow.match.in_port,
+										  "dl_src": mac.haddr_to_str(flow.match.dl_src),
+										  "dl_dst": mac.haddr_to_str(flow.match.dl_dst),
+										  "dl_vlan": flow.match.dl_vlan,
+										  "dl_vlan_pcp": flow.match.dl_vlan_pcp,
+										  "dl_type": flow.match.dl_type,
+										  "nw_tos": flow.match.nw_tos,
+										  "nw_proto": flow.match.nw_proto,
+										  "nw_src": ip.ipv4_to_str(flow.match.nw_src),
+										  "nw_dst": ip.ipv4_to_str(flow.match.nw_dst),
+										  "tp_src": flow.match.tp_src,
+										  "tp_dst": flow.match.tp_dst
+									  },
+									  "cookie": flow.cookie,
+									  "idle_timeout": flow.idle_timeout,
+									  "hard_timeout": flow.hard_timeout,
+									  "priority": flow.priority,
+									  "flags": msg.flags,
+									  "actions": []
+								  },
+								  "timestamp": datetime.datetime.utcnow()}
+
+					for action in flow.actions:
+						db_message["message"]["actions"].append(vars(action))
+
+					try:
+						self.db.flow_stats.insert_one(db_message)
+					except:
+						if(self.id != None):
+							print(datetime.datetime.utcnow().strftime('%Y/%m/%d %H:%M:%S') + " : ERROR [" + str(hex(self.id)) + "] --- Failed to write data into database")
+						else:
+							print(datetime.datetime.utcnow().strftime('%Y/%m/%d %H:%M:%S') + " : ERROR [" + str(self.id) + "] --- Failed to write data into database")
+						pass
+
+			if(type(msg) is ofproto_v1_0_parser.OFPPortStatsReply):
+				# print(str(self.id) + " : Receive Port Stats Message")
+				# print(msg.body)
+
+				for port in msg.body:
+					# print(port)
+					db_message = {"switch": hex(self.id),
+								  "port_no": port.port_no,
+								  "rx_packets": port.rx_packets,
+								  "tx_packets": port.tx_packets,
+								  "rx_bytes": port.rx_bytes,
+								  "tx_bytes": port.tx_bytes,
+								  "rx_dropped": port.rx_dropped,
+								  "tx_dropped": port.tx_dropped,
+								  "rx_errors": port.rx_errors,
+								  "tx_errors": port.tx_errors,
+								  "rx_frame_err": port.rx_frame_err,
+								  "rx_over_err": port.rx_over_err,
+								  "rx_crc_err": port.rx_crc_err,
+								  "collisions": port.collisions,
+								  "timestamp": datetime.datetime.utcnow()}
+
+					try:
+						self.db.port_stats.insert_one(db_message)
+					except:
+						if(self.id != None):
+							print(datetime.datetime.utcnow().strftime('%Y/%m/%d %H:%M:%S') + " : ERROR [" + str(hex(self.id)) + "] --- Failed to write data into database")
+						else:
+							print(datetime.datetime.utcnow().strftime('%Y/%m/%d %H:%M:%S') + " : ERROR [" + str(self.id) + "] --- Failed to write data into database")
+
+				pass
+
+		# Asynchronous messages
+		elif msg_type == ofproto_v1_0.OFPT_PACKET_IN:
+			msg = ofproto_v1_0_parser.OFPPacketIn.parser(self.datapath, version, msg_type, msg_len, xid, pkt)
+			pkt_msg = packet.Packet(msg.data)
+
+			if pkt_msg.get_protocol(ethernet.ethernet).ethertype == ETH_TYPE_LLDP:
+				lldp_msg = pkt_msg.get_protocol(lldp.lldp)
+
+				if lldp_msg != None:
+					if lldp_msg.tlvs[3].tlv_info == "ProxyTopologyMonitorLLDP":
+
+						(port,) = struct.unpack('!I', lldp_msg.tlvs[1].port_id)
+						switch_src = str_to_dpid(lldp_msg.tlvs[0].chassis_id[5:])
+
+						# print(str(self.id) + " : Receive Proxy LLDP Packet")
+						# print(lldp_msg)
+
+						# Write to database
+						try:
+							self.db.topology.insert_one({"switch_dst": hex(self.id),
+													 	 "port_dst": port,
+													 	 "switch_src": hex(switch_src),
+													 	 "port_src": msg.in_port,
+													 	 "timestamp": datetime.datetime.utcnow()})
+						except:
+							if(self.id != None):
+								print(datetime.datetime.utcnow().strftime('%Y/%m/%d %H:%M:%S') + " : ERROR [" + str(hex(self.id)) + "] --- Failed to write data into database")
+							else:
+								print(datetime.datetime.utcnow().strftime('%Y/%m/%d %H:%M:%S') + " : ERROR [" + str(self.id) + "] --- Failed to write data into database")
+
+						return
+
+					elif lldp_msg.tlvs[3].tlv_info != "ProxyTopologyMonitorLLDP":
+						# print(lldp_msg)
+						# print("Controller LLDP packet")
+						pass
 
 class MessageWatcherAgentThread(multiprocessing.Process):
 	def __init__(self, switch_socket, controller_host, controller_port):
@@ -118,15 +295,6 @@ class MessageWatcherAgentThread(multiprocessing.Process):
 		self.downstream_buf = bytearray()
 		self.upstream_buf = bytearray()
 		self.timeloop = time.time()
-
-		# Connect to database
-		# client = MongoClient('localhost', 27017)
-		# self.db = client['netspec']
-
-		# Connect to database
-		# client = MongoClient('sd-lemon.naist.jp', 9999)
-		client = MongoClient('127.0.0.1', 27017)
-		self.db = client.opimon
 
 	def run(self):
 		# pr = cProfile.Profile()
@@ -256,70 +424,7 @@ class MessageWatcherAgentThread(multiprocessing.Process):
 			# self._close()
 			# pass
 
-		downstream_queue.put(pkt)
-
-		(version, msg_type, msg_len, xid) = ofproto_parser.header(pkt)
-
-		# Controller command messages
-		if msg_type == ofproto_v1_0.OFPT_FLOW_MOD:
-			msg = ofproto_v1_0_parser.OFPFlowMod.parser(self.datapath, version, msg_type, msg_len, xid, pkt)
-
-			# print(str(self.id) + " : Receive Flow Mod Message")
-
-			# Write to database
-			db_message = {"switch": hex(self.id),
-						  "message": {
-							  "header": {
-								  "version": version,
-								  "type": msg_type,
-								  "length": msg_len,
-								  "xid": xid
-							  },
-							  "match": {
-								  "wildcards": msg.match.wildcards,
-								  "in_port": msg.match.in_port,
-								  "dl_src": mac.haddr_to_str(msg.match.dl_src),
-								  "dl_dst": mac.haddr_to_str(msg.match.dl_dst),
-								  "dl_vlan": msg.match.dl_vlan,
-								  "dl_vlan_pcp": msg.match.dl_vlan_pcp,
-								  "dl_type": msg.match.dl_type,
-								  "nw_tos": msg.match.nw_tos,
-								  "nw_proto": msg.match.nw_proto,
-								  "nw_src": ip.ipv4_to_str(msg.match.nw_src),
-								  "nw_dst": ip.ipv4_to_str(msg.match.nw_dst),
-								  "tp_src": msg.match.tp_src,
-								  "tp_dst": msg.match.tp_dst
-							  },
-							  "cookie": msg.cookie,
-							  "command": msg.command,
-							  "idle_timeout": msg.idle_timeout,
-							  "hard_timeout": msg.hard_timeout,
-							  "priority": msg.priority,
-							  "buffer_id": msg.buffer_id,
-							  "out_port": msg.out_port,
-							  "flags": msg.flags,
-							  "actions": []
-						  },
-						  "timestamp": datetime.datetime.utcnow()}
-			
-			for action in msg.actions:
-				db_message["message"]["actions"].append(vars(action))
-
-			# print(db_message)
-
-			try:
-				# self.db.flow_mods.insert_one(db_message)
-				pass
-				# if(self.id != None):
-				# 	print(datetime.datetime.utcnow().strftime('%Y/%m/%d %H:%M:%S') + " : [" + str(hex(self.id)) + "] --- Received FlowMod message")
-				# else:
-				# 	print(datetime.datetime.utcnow().strftime('%Y/%m/%d %H:%M:%S') + " : [" + str(self.id) + "] --- Received FlowMod message")
-			except:
-				if(self.id != None):
-					print(datetime.datetime.utcnow().strftime('%Y/%m/%d %H:%M:%S') + " : ERROR [" + str(hex(self.id)) + "] --- Failed to write data into database")
-				else:
-					print(datetime.datetime.utcnow().strftime('%Y/%m/%d %H:%M:%S') + " : ERROR [" + str(self.id) + "] --- Failed to write data into database")
-				pass
+		message_queue.put(pkt)
 
 	# Switch to Controller
 	def _upstream_parse(self, pkt):
@@ -341,7 +446,7 @@ class MessageWatcherAgentThread(multiprocessing.Process):
 			self._upstream_collector(pkt)
 	
 	def _upstream_collector(self, pkt):
-		upstream_queue.put(pkt)
+		message_queue.put(pkt)
 		(version, msg_type, msg_len, xid) = ofproto_parser.header(pkt)
 
 		# print(str(hex(xid)) + " - " + str(msg_type))
@@ -369,19 +474,6 @@ class MessageWatcherAgentThread(multiprocessing.Process):
 			# print(msg)
 
 			for port in self.ports.values():
-				db_message = {"switch_id": hex(self.id),
-							  "port_no": port.port_no,
-							  "hw_addr": port.hw_addr,
-							  "timestamp": datetime.datetime.utcnow()}
-
-				try:
-					self.db.switch_port.insert_one(db_message)
-				except:
-					if(self.id != None):
-						print(datetime.datetime.utcnow().strftime('%Y/%m/%d %H:%M:%S') + " : ERROR [" + str(hex(self.id)) + "] --- Failed to write data into database")
-					else:
-						print(datetime.datetime.utcnow().strftime('%Y/%m/%d %H:%M:%S') + " : ERROR [" + str(self.id) + "] --- Failed to write data into database")
-
 				pkt_lldp = packet.Packet()
 
 				dst = BROADCAST_STR
@@ -424,126 +516,6 @@ class MessageWatcherAgentThread(multiprocessing.Process):
 					# self._close()
 					pass
 
-		elif msg_type == ofproto_v1_0.OFPT_STATS_REPLY:
-			msg = ofproto_v1_0_parser.OFPPortStatsReply.parser(self.datapath, version, msg_type, msg_len, xid, pkt)
-			if(type(msg) is ofproto_v1_0_parser.OFPFlowStatsReply):
-				# print(str(self.id) + " : Receive Flow Stats Message")
-				# print(msg)
-
-				for flow in msg.body:
-					db_message = {"switch": hex(self.id),
-								  "message": {
-									  "header": {
-										  "version": msg.version,
-										  "type": msg.msg_type,
-										  "length": msg.msg_len,
-										  "xid": msg.xid
-									  },
-									  "match": {
-										  "wildcards": flow.match.wildcards,
-										  "in_port": flow.match.in_port,
-										  "dl_src": mac.haddr_to_str(flow.match.dl_src),
-										  "dl_dst": mac.haddr_to_str(flow.match.dl_dst),
-										  "dl_vlan": flow.match.dl_vlan,
-										  "dl_vlan_pcp": flow.match.dl_vlan_pcp,
-										  "dl_type": flow.match.dl_type,
-										  "nw_tos": flow.match.nw_tos,
-										  "nw_proto": flow.match.nw_proto,
-										  "nw_src": ip.ipv4_to_str(flow.match.nw_src),
-										  "nw_dst": ip.ipv4_to_str(flow.match.nw_dst),
-										  "tp_src": flow.match.tp_src,
-										  "tp_dst": flow.match.tp_dst
-									  },
-									  "cookie": flow.cookie,
-									  "idle_timeout": flow.idle_timeout,
-									  "hard_timeout": flow.hard_timeout,
-									  "priority": flow.priority,
-									  "flags": msg.flags,
-									  "actions": []
-								  },
-								  "timestamp": datetime.datetime.utcnow()}
-
-					for action in flow.actions:
-						db_message["message"]["actions"].append(vars(action))
-
-					try:
-						self.db.flow_stats.insert_one(db_message)
-					except:
-						if(self.id != None):
-							print(datetime.datetime.utcnow().strftime('%Y/%m/%d %H:%M:%S') + " : ERROR [" + str(hex(self.id)) + "] --- Failed to write data into database")
-						else:
-							print(datetime.datetime.utcnow().strftime('%Y/%m/%d %H:%M:%S') + " : ERROR [" + str(self.id) + "] --- Failed to write data into database")
-						pass
-
-			if(type(msg) is ofproto_v1_0_parser.OFPPortStatsReply):
-				# print(str(self.id) + " : Receive Port Stats Message")
-				# print(msg.body)
-
-				for port in msg.body:
-					# print(port)
-					db_message = {"switch": hex(self.id),
-								  "port_no": port.port_no,
-								  "rx_packets": port.rx_packets,
-								  "tx_packets": port.tx_packets,
-								  "rx_bytes": port.rx_bytes,
-								  "tx_bytes": port.tx_bytes,
-								  "rx_dropped": port.rx_dropped,
-								  "tx_dropped": port.tx_dropped,
-								  "rx_errors": port.rx_errors,
-								  "tx_errors": port.tx_errors,
-								  "rx_frame_err": port.rx_frame_err,
-								  "rx_over_err": port.rx_over_err,
-								  "rx_crc_err": port.rx_crc_err,
-								  "collisions": port.collisions,
-								  "timestamp": datetime.datetime.utcnow()}
-
-					try:
-						self.db.port_stats.insert_one(db_message)
-					except:
-						if(self.id != None):
-							print(datetime.datetime.utcnow().strftime('%Y/%m/%d %H:%M:%S') + " : ERROR [" + str(hex(self.id)) + "] --- Failed to write data into database")
-						else:
-							print(datetime.datetime.utcnow().strftime('%Y/%m/%d %H:%M:%S') + " : ERROR [" + str(self.id) + "] --- Failed to write data into database")
-
-				pass
-
-		# Asynchronous messages
-		elif msg_type == ofproto_v1_0.OFPT_PACKET_IN:
-			msg = ofproto_v1_0_parser.OFPPacketIn.parser(self.datapath, version, msg_type, msg_len, xid, pkt)
-			pkt_msg = packet.Packet(msg.data)
-
-			if pkt_msg.get_protocol(ethernet.ethernet).ethertype == ETH_TYPE_LLDP:
-				lldp_msg = pkt_msg.get_protocol(lldp.lldp)
-
-				if lldp_msg != None:
-					if lldp_msg.tlvs[3].tlv_info == "ProxyTopologyMonitorLLDP":
-
-						(port,) = struct.unpack('!I', lldp_msg.tlvs[1].port_id)
-						switch_src = str_to_dpid(lldp_msg.tlvs[0].chassis_id[5:])
-
-						# print(str(self.id) + " : Receive Proxy LLDP Packet")
-						# print(lldp_msg)
-
-						# Write to database
-						try:
-							self.db.topology.insert_one({"switch_dst": hex(self.id),
-													 	 "port_dst": port,
-													 	 "switch_src": hex(switch_src),
-													 	 "port_src": msg.in_port,
-													 	 "timestamp": datetime.datetime.utcnow()})
-						except:
-							if(self.id != None):
-								print(datetime.datetime.utcnow().strftime('%Y/%m/%d %H:%M:%S') + " : ERROR [" + str(hex(self.id)) + "] --- Failed to write data into database")
-							else:
-								print(datetime.datetime.utcnow().strftime('%Y/%m/%d %H:%M:%S') + " : ERROR [" + str(self.id) + "] --- Failed to write data into database")
-
-						return
-
-					elif lldp_msg.tlvs[3].tlv_info != "ProxyTopologyMonitorLLDP":
-						# print(lldp_msg)
-						# print("Controller LLDP packet")
-						pass
-
 class MessageWatcher(object):
 
 	def __init__(self, listen_host, listen_port, forward_host, forward_port):
@@ -560,6 +532,7 @@ class MessageWatcher(object):
 		self.forward_port = forward_port
 		# self.threads = []
 		self.connection_list = []
+		self.parser_list = []
 
 	def _handle(self, sock):
 		# thread = MessageWatcherAgentThread(sock, self.forward_host, self.forward_port)
@@ -577,13 +550,11 @@ class MessageWatcher(object):
 		self.run()
 
 	def run(self):
-		upstream_parser = UpstreamMessageParserAgentThread()
-		upstream_parser_process = multiprocessing.Process(target=upstream_parser.run)
-		upstream_parser_process.start()
-
-		downstream_parser = DownstreamMessageParserAgentThread()
-		downstream_parser_process = multiprocessing.Process(target=downstream_parser.run)
-		downstream_parser_process.start()
+		for i in range(5):
+			message_parser = MessageParserAgentThread()
+			message_parser_process = multiprocessing.Process(target=message_parser.run)
+			message_parser_process.start()
+			self.parser_list.append(message_parser_process)
 
 		try:
 			while(True):
@@ -592,8 +563,8 @@ class MessageWatcher(object):
 			print("Exiting...")
 			for connection in self.connection_list:
 				connection.terminate()
-			upstream_parser_process.terminate()
-			downstream_parser_process.terminate()
+			for parser in self.parser_list:
+				parser.terminate()
 			print("Terminated")
 
 	def _loop(self):

@@ -11,7 +11,7 @@ import logging
 from binascii import hexlify, unhexlify
 
 import cProfile
-import yappi
+# import yappi
 import pstats
 import io
 
@@ -484,13 +484,13 @@ class MessageWatcherAgentThread(multiprocessing.Process):
 
 				tlv_chassis_id = lldp.ChassisID(
 					subtype=lldp.ChassisID.SUB_LOCALLY_ASSIGNED,
-					chassis_id='dpid:%s' % dpid_to_str(self.id))
+					chassis_id=b'dpid:%s' % dpid_to_str(self.id).encode())
 
 				tlv_port_id = lldp.PortID(subtype=lldp.PortID.SUB_PORT_COMPONENT,
 										  port_id=struct.pack('!I', port.port_no))
 
 				tlv_ttl = lldp.TTL(ttl=120)
-				tlv_desc = lldp.PortDescription(port_description="ProxyTopologyMonitorLLDP")
+				tlv_desc = lldp.PortDescription(port_description=b"ProxyTopologyMonitorLLDP")
 				tlv_end = lldp.End()
 
 				tlvs = (tlv_chassis_id, tlv_port_id, tlv_ttl, tlv_desc, tlv_end)

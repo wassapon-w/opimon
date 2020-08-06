@@ -36,8 +36,72 @@ from pprint import pprint
 # import log
 
 LOG = logging.getLogger('OpenFlow Monitor')
+upstream_queue = multiprocessing.Queue()
+downstream_queue = multiprocessing.Queue()
 
-class MessageWatcherAgentThread(threading.Thread):
+class UpstreamMessageParserAgentThread(multiprocessing.Process):
+	def __init__(self):
+		super(UpstreamMessageParserAgentThread, self).__init__()
+
+		self.timeloop = time.time()
+		client = MongoClient('127.0.0.1', 27017)
+		self.db = client.opimon
+
+	def run(self):
+		while(True):
+			# print("Upstream Running")
+			print("UpstreamMessageParserAgentThread: " + str(upstream_queue.qsize()))
+
+			# for pkt in iter(upstream_queue.get, None):
+			# while(not upstream_queue.empty):
+				pkt = upstream_queue.get(True, None)
+				(version, msg_type, msg_len, xid) = ofproto_parser.header(pkt)
+				# print(str(msg_type))
+
+			time.sleep(30)
+	
+	# def _loop(self):
+	# 	# if(time.time() > self.timeloop + 60):
+	# 	self.timeloop = time.time()
+	# 	print("UpstreamMessageParserAgentThread")
+
+	# 	if(not Queue.empty())
+	# 		pkt = upstream_queue.get()
+	# 		(version, msg_type, msg_len, xid) = ofproto_parser.header(pkt)
+	# 		print(str(msg_type))
+
+class DownstreamMessageParserAgentThread(multiprocessing.Process):
+	def __init__(self):
+		super(DownstreamMessageParserAgentThread, self).__init__()
+
+		self.timeloop = time.time()
+		client = MongoClient('127.0.0.1', 27017)
+		self.db = client.opimon
+
+	def run(self):
+		while(True):
+			# print("Downstream Running")
+			print("DownstreamMessageParserAgentThread: " + str(downstream_queue.qsize()))
+
+			# for pkt in iter(downstream_queue.get, None):
+			while(not downstream_queue.empty):
+				pkt = downstream_queue.get()
+				(version, msg_type, msg_len, xid) = ofproto_parser.header(pkt)
+				# print(str(msg_type))
+
+			time.sleep(30)
+	
+	# def _loop(self):
+		# if(time.time() > self.timeloop + 60):
+		# print("DownstreamMessageParserAgentThread")
+
+		# pkt = downstream_queue.get()
+		# (version, msg_type, msg_len, xid) = ofproto_parser.header(pkt)
+		# print(str(msg_type))
+
+		# self.timeloop = time.time()
+
+class MessageWatcherAgentThread(multiprocessing.Process):
 	def __init__(self, switch_socket, controller_host, controller_port):
 		super(MessageWatcherAgentThread, self).__init__()
 
@@ -65,12 +129,10 @@ class MessageWatcherAgentThread(threading.Thread):
 		self.db = client.opimon
 
 	def run(self):
-		pr = cProfile.Profile()
+		# pr = cProfile.Profile()
 		while(self.is_alive):
 			# pr.enable()
-
 			self._loop()
-
 			# pr.disable()
 			# pr.dump_stats("profile-thread-%d.dat")
 
@@ -194,6 +256,8 @@ class MessageWatcherAgentThread(threading.Thread):
 			# self._close()
 			# pass
 
+		downstream_queue.put(pkt)
+
 		(version, msg_type, msg_len, xid) = ofproto_parser.header(pkt)
 
 		# Controller command messages
@@ -277,6 +341,7 @@ class MessageWatcherAgentThread(threading.Thread):
 			self._upstream_collector(pkt)
 	
 	def _upstream_collector(self, pkt):
+		upstream_queue.put(pkt)
 		(version, msg_type, msg_len, xid) = ofproto_parser.header(pkt)
 
 		# print(str(hex(xid)) + " - " + str(msg_type))
@@ -512,7 +577,14 @@ class MessageWatcher(object):
 		self.run()
 
 	def run(self):
-		global connection_list
+		upstream_parser = UpstreamMessageParserAgentThread()
+		upstream_parser_process = multiprocessing.Process(target=upstream_parser.run)
+		upstream_parser_process.start()
+
+		downstream_parser = DownstreamMessageParserAgentThread()
+		downstream_parser_process = multiprocessing.Process(target=downstream_parser.run)
+		downstream_parser_process.start()
+
 		try:
 			while(True):
 				self._loop()
@@ -520,6 +592,8 @@ class MessageWatcher(object):
 			print("Exiting...")
 			for connection in self.connection_list:
 				connection.terminate()
+			upstream_parser_process.terminate()
+			downstream_parser_process.terminate()
 			print("Terminated")
 
 	def _loop(self):

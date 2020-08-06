@@ -338,7 +338,7 @@ function showFlowTable(container, data) {
 
 function showFlowTableByID(container, data, switch_id) {
     var showHeader = document.getElementById("flowTableHead");
-    showHeader.textContent = "Flow Table";
+    showHeader.textContent = "Flow Table (Switch ID: " + switch_id +")";
 
     // var showTime = document.getElementById("currentTime");
     // var currentTime = new Date(Date.now());

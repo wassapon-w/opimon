@@ -52,8 +52,7 @@ class MessageParserAgentThread(multiprocessing.Process):
 		self.db = client.opimon
 
 		while(True):
-			# print("Upstream Running")
-			print("MessageParserAgentThread (" + str(multiprocessing.current_process().pid) + "): " + str(message_queue.qsize()))
+			# print("MessageParserAgentThread (" + str(multiprocessing.current_process().pid) + "): " + str(message_queue.qsize()))
 
 			pkt = message_queue.get(True, None)
 			self._message_parse(pkt)
@@ -112,14 +111,14 @@ class MessageParserAgentThread(multiprocessing.Process):
 				self.db.flow_mods.insert_one(db_message)
 				# pass
 				# if(self.id != None):
-				# 	print(datetime.datetime.utcnow().strftime('%Y/%m/%d %H:%M:%S') + " : [" + str(hex(self.id)) + "] --- Received FlowMod message")
+				# 	print(datetime.datetime.now().strftime('%Y/%m/%d %H:%M:%S') + " : [" + str(hex(self.id)) + "] --- Received FlowMod message")
 				# else:
-				# 	print(datetime.datetime.utcnow().strftime('%Y/%m/%d %H:%M:%S') + " : [" + str(self.id) + "] --- Received FlowMod message")
+				# 	print(datetime.datetime.now().strftime('%Y/%m/%d %H:%M:%S') + " : [" + str(self.id) + "] --- Received FlowMod message")
 			except:
 				if(self.id != None):
-					print(datetime.datetime.utcnow().strftime('%Y/%m/%d %H:%M:%S') + " : ERROR [" + str(hex(self.id)) + "] --- Failed to write data into database")
+					print(datetime.datetime.now().strftime('%Y/%m/%d %H:%M:%S') + " : ERROR [" + str(hex(self.id)) + "] --- Failed to write data into database")
 				else:
-					print(datetime.datetime.utcnow().strftime('%Y/%m/%d %H:%M:%S') + " : ERROR [" + str(self.id) + "] --- Failed to write data into database")
+					print(datetime.datetime.now().strftime('%Y/%m/%d %H:%M:%S') + " : ERROR [" + str(self.id) + "] --- Failed to write data into database")
 				pass
 
 		# Switch configuration messages
@@ -154,9 +153,9 @@ class MessageParserAgentThread(multiprocessing.Process):
 					self.db.switch_port.insert_one(db_message)
 				except:
 					if(self.id != None):
-						print(datetime.datetime.utcnow().strftime('%Y/%m/%d %H:%M:%S') + " : ERROR [" + str(hex(self.id)) + "] --- Failed to write data into database")
+						print(datetime.datetime.now().strftime('%Y/%m/%d %H:%M:%S') + " : ERROR [" + str(hex(self.id)) + "] --- Failed to write data into database")
 					else:
-						print(datetime.datetime.utcnow().strftime('%Y/%m/%d %H:%M:%S') + " : ERROR [" + str(self.id) + "] --- Failed to write data into database")
+						print(datetime.datetime.now().strftime('%Y/%m/%d %H:%M:%S') + " : ERROR [" + str(self.id) + "] --- Failed to write data into database")
 
 		elif msg_type == ofproto_v1_0.OFPT_STATS_REPLY:
 			msg = ofproto_v1_0_parser.OFPPortStatsReply.parser(self.datapath, version, msg_type, msg_len, xid, pkt)
@@ -204,9 +203,9 @@ class MessageParserAgentThread(multiprocessing.Process):
 						self.db.flow_stats.insert_one(db_message)
 					except:
 						if(self.id != None):
-							print(datetime.datetime.utcnow().strftime('%Y/%m/%d %H:%M:%S') + " : ERROR [" + str(hex(self.id)) + "] --- Failed to write data into database")
+							print(datetime.datetime.now().strftime('%Y/%m/%d %H:%M:%S') + " : ERROR [" + str(hex(self.id)) + "] --- Failed to write data into database")
 						else:
-							print(datetime.datetime.utcnow().strftime('%Y/%m/%d %H:%M:%S') + " : ERROR [" + str(self.id) + "] --- Failed to write data into database")
+							print(datetime.datetime.now().strftime('%Y/%m/%d %H:%M:%S') + " : ERROR [" + str(self.id) + "] --- Failed to write data into database")
 						pass
 
 			if(type(msg) is ofproto_v1_0_parser.OFPPortStatsReply):
@@ -235,9 +234,9 @@ class MessageParserAgentThread(multiprocessing.Process):
 						self.db.port_stats.insert_one(db_message)
 					except:
 						if(self.id != None):
-							print(datetime.datetime.utcnow().strftime('%Y/%m/%d %H:%M:%S') + " : ERROR [" + str(hex(self.id)) + "] --- Failed to write data into database")
+							print(datetime.datetime.now().strftime('%Y/%m/%d %H:%M:%S') + " : ERROR [" + str(hex(self.id)) + "] --- Failed to write data into database")
 						else:
-							print(datetime.datetime.utcnow().strftime('%Y/%m/%d %H:%M:%S') + " : ERROR [" + str(self.id) + "] --- Failed to write data into database")
+							print(datetime.datetime.now().strftime('%Y/%m/%d %H:%M:%S') + " : ERROR [" + str(self.id) + "] --- Failed to write data into database")
 
 				pass
 
@@ -267,9 +266,9 @@ class MessageParserAgentThread(multiprocessing.Process):
 													 	 "timestamp": datetime.datetime.utcnow()})
 						except:
 							if(self.id != None):
-								print(datetime.datetime.utcnow().strftime('%Y/%m/%d %H:%M:%S') + " : ERROR [" + str(hex(self.id)) + "] --- Failed to write data into database")
+								print(datetime.datetime.now().strftime('%Y/%m/%d %H:%M:%S') + " : ERROR [" + str(hex(self.id)) + "] --- Failed to write data into database")
 							else:
-								print(datetime.datetime.utcnow().strftime('%Y/%m/%d %H:%M:%S') + " : ERROR [" + str(self.id) + "] --- Failed to write data into database")
+								print(datetime.datetime.now().strftime('%Y/%m/%d %H:%M:%S') + " : ERROR [" + str(self.id) + "] --- Failed to write data into database")
 
 						return
 
@@ -295,6 +294,9 @@ class MessageWatcherAgentThread(multiprocessing.Process):
 		self.downstream_buf = bytearray()
 		self.upstream_buf = bytearray()
 		self.timeloop = time.time()
+
+	def profile_run(self):
+		cProfile.runctx('self.run()', globals(), locals(), 'prof-%d.prof' %int(multiprocessing.current_process().pid))
 
 	def run(self):
 		# pr = cProfile.Profile()
@@ -365,9 +367,9 @@ class MessageWatcherAgentThread(multiprocessing.Process):
 			self.switch_socket.send(out.buf)
 		except:
 			if(self.id != None):
-				print(datetime.datetime.utcnow().strftime('%Y/%m/%d %H:%M:%S') + " : ERROR [" + str(hex(self.id)) + "] --- Broken Pipe (Downstream : Send monitor message)")
+				print(datetime.datetime.now().strftime('%Y/%m/%d %H:%M:%S') + " : ERROR [" + str(hex(self.id)) + "] --- Broken Pipe (Downstream : Send monitor message)")
 			else:
-				print(datetime.datetime.utcnow().strftime('%Y/%m/%d %H:%M:%S') + " : ERROR [" + str(self.id) + "] --- Broken Pipe (Downstream : Send monitor message)")
+				print(datetime.datetime.now().strftime('%Y/%m/%d %H:%M:%S') + " : ERROR [" + str(self.id) + "] --- Broken Pipe (Downstream : Send monitor message)")
 			pass
 
 		ofp = self.datapath.ofproto
@@ -383,9 +385,9 @@ class MessageWatcherAgentThread(multiprocessing.Process):
 			self.switch_socket.send(out.buf)
 		except:
 			if(self.id != None):
-				print(datetime.datetime.utcnow().strftime('%Y/%m/%d %H:%M:%S') + " : ERROR [" + str(hex(self.id)) + "] --- Broken Pipe (Downstream : Send monitor message)")
+				print(datetime.datetime.now().strftime('%Y/%m/%d %H:%M:%S') + " : ERROR [" + str(hex(self.id)) + "] --- Broken Pipe (Downstream : Send monitor message)")
 			else:
-				print(datetime.datetime.utcnow().strftime('%Y/%m/%d %H:%M:%S') + " : ERROR [" + str(self.id) + "] --- Broken Pipe (Downstream : Send monitor message)")
+				print(datetime.datetime.now().strftime('%Y/%m/%d %H:%M:%S') + " : ERROR [" + str(self.id) + "] --- Broken Pipe (Downstream : Send monitor message)")
 			pass
 
 		ofp = self.datapath.ofproto
@@ -398,15 +400,15 @@ class MessageWatcherAgentThread(multiprocessing.Process):
 			self.switch_socket.send(out.buf)
 		except:
 			if(self.id != None):
-				print(datetime.datetime.utcnow().strftime('%Y/%m/%d %H:%M:%S') + " : ERROR [" + str(hex(self.id)) + "] --- Broken Pipe (Downstream : Send monitor message)")
+				print(datetime.datetime.now().strftime('%Y/%m/%d %H:%M:%S') + " : ERROR [" + str(hex(self.id)) + "] --- Broken Pipe (Downstream : Send monitor message)")
 			else:
-				print(datetime.datetime.utcnow().strftime('%Y/%m/%d %H:%M:%S') + " : ERROR [" + str(self.id) + "] --- Broken Pipe (Downstream : Send monitor message)")
+				print(datetime.datetime.now().strftime('%Y/%m/%d %H:%M:%S') + " : ERROR [" + str(self.id) + "] --- Broken Pipe (Downstream : Send monitor message)")
 			# self._close()
 
 		if(self.id != None):
-			print(datetime.datetime.utcnow().strftime('%Y/%m/%d %H:%M:%S') + " : [" + str(hex(self.id)) + "] --- Sent monitor messages")
+			print(datetime.datetime.now().strftime('%Y/%m/%d %H:%M:%S') + " : [" + str(hex(self.id)) + "] --- Sent monitor messages")
 		else:
-			print(datetime.datetime.utcnow().strftime('%Y/%m/%d %H:%M:%S') + " : [" + str(self.id) + "] --- Sent monitor messages")
+			print(datetime.datetime.now().strftime('%Y/%m/%d %H:%M:%S') + " : [" + str(self.id) + "] --- Sent monitor messages")
 
 	def parse_pkt(self, pkt, type):
 		# print(pkt)
@@ -418,9 +420,9 @@ class MessageWatcherAgentThread(multiprocessing.Process):
 			self.switch_socket.send(pkt)
 		except:
 			if(self.id != None):
-				print(datetime.datetime.utcnow().strftime('%Y/%m/%d %H:%M:%S') + " : ERROR [" + str(hex(self.id)) + "] --- Broken Pipe (Downstream)")
+				print(datetime.datetime.now().strftime('%Y/%m/%d %H:%M:%S') + " : ERROR [" + str(hex(self.id)) + "] --- Broken Pipe (Downstream)")
 			else:
-				print(datetime.datetime.utcnow().strftime('%Y/%m/%d %H:%M:%S') + " : ERROR [" + str(self.id) + "] --- Broken Pipe (Downstream)")
+				print(datetime.datetime.now().strftime('%Y/%m/%d %H:%M:%S') + " : ERROR [" + str(self.id) + "] --- Broken Pipe (Downstream)")
 			# self._close()
 			# pass
 
@@ -438,9 +440,9 @@ class MessageWatcherAgentThread(multiprocessing.Process):
 				self.controller_socket.send(pkt)
 			except:
 				if(self.id != None):
-					print(datetime.datetime.utcnow().strftime('%Y/%m/%d %H:%M:%S') + " : ERROR [" + str(hex(self.id)) + "] --- Broken Pipe (Upstream)")
+					print(datetime.datetime.now().strftime('%Y/%m/%d %H:%M:%S') + " : ERROR [" + str(hex(self.id)) + "] --- Broken Pipe (Upstream)")
 				else:
-					print(datetime.datetime.utcnow().strftime('%Y/%m/%d %H:%M:%S') + " : ERROR [" + str(self.id) + "] --- Broken Pipe (Upstream)")
+					print(datetime.datetime.now().strftime('%Y/%m/%d %H:%M:%S') + " : ERROR [" + str(self.id) + "] --- Broken Pipe (Upstream)")
 				# self._close()
 				# pass
 			self._upstream_collector(pkt)
@@ -510,9 +512,9 @@ class MessageWatcherAgentThread(multiprocessing.Process):
 					self.switch_socket.send(out.buf)
 				except:
 					if(self.id != None):
-						print(datetime.datetime.utcnow().strftime('%Y/%m/%d %H:%M:%S') + " : ERROR [" + str(hex(self.id)) + "] --- Broken Pipe (Downstream : LLDP Message)")
+						print(datetime.datetime.now().strftime('%Y/%m/%d %H:%M:%S') + " : ERROR [" + str(hex(self.id)) + "] --- Broken Pipe (Downstream : LLDP Message)")
 					else:
-						print(datetime.datetime.utcnow().strftime('%Y/%m/%d %H:%M:%S') + " : ERROR [" + str(self.id) + "] --- Broken Pipe (Downstream : LLDP Message)")
+						print(datetime.datetime.now().strftime('%Y/%m/%d %H:%M:%S') + " : ERROR [" + str(self.id) + "] --- Broken Pipe (Downstream : LLDP Message)")
 					# self._close()
 					pass
 
@@ -539,9 +541,10 @@ class MessageWatcher(object):
 		# thread.start()
 		# self.threads.append(thread)
 
-		print("Receiving new connection...")
+		print(datetime.datetime.now().strftime('%Y/%m/%d %H:%M:%S') + " : [" + str(len(self.connection_list)) + "] Receiving new connection...")
 		connection = MessageWatcherAgentThread(sock, self.forward_host, self.forward_port)
-		connection_process = multiprocessing.Process(target=connection.run)
+		# connection_process = multiprocessing.Process(target=connection.run)
+		connection_process = multiprocessing.Process(target=connection.profile_run)
 		connection_process.start()
 		self.connection_list.append(connection_process)
 

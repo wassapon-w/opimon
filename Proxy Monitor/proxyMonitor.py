@@ -3,6 +3,7 @@ import select
 import threading
 import multiprocessing
 import struct
+import argparse
 
 import datetime
 import time
@@ -11,7 +12,6 @@ import logging
 from binascii import hexlify, unhexlify
 
 import cProfile
-# import yappi
 import pstats
 import io
 
@@ -299,12 +299,8 @@ class MessageWatcherAgentThread(multiprocessing.Process):
 		cProfile.runctx('self.run()', globals(), locals(), 'prof-%d.prof' %int(multiprocessing.current_process().pid))
 
 	def run(self):
-		# pr = cProfile.Profile()
 		while(self.is_alive):
-			# pr.enable()
 			self._loop()
-			# pr.disable()
-			# pr.dump_stats("profile-thread-%d.dat")
 
 	def _drop_collections(self):
 		self.db.flow_mods.drop()
@@ -536,6 +532,13 @@ class MessageWatcher(object):
 		self.connection_list = []
 		self.parser_list = []
 
+		args_parser = argparse.ArgumentParser(description='Additional Options')
+		args_parser.add_argument('-p', action='store_true', dest="profile", default=False)
+		self.args = args_parser.parse_args()
+
+		if(self.args.profile):
+			print("Enable cProfile.")
+
 	def _handle(self, sock):
 		# thread = MessageWatcherAgentThread(sock, self.forward_host, self.forward_port)
 		# thread.start()
@@ -543,8 +546,10 @@ class MessageWatcher(object):
 
 		print(datetime.datetime.now().strftime('%Y/%m/%d %H:%M:%S') + " : [" + str(len(self.connection_list)) + "] Receiving new connection...")
 		connection = MessageWatcherAgentThread(sock, self.forward_host, self.forward_port)
-		# connection_process = multiprocessing.Process(target=connection.run)
-		connection_process = multiprocessing.Process(target=connection.profile_run)
+		if(self.args.profile):
+			connection_process = multiprocessing.Process(target=connection.profile_run)
+		else:
+			connection_process = multiprocessing.Process(target=connection.run)
 		connection_process.start()
 		self.connection_list.append(connection_process)
 
@@ -577,7 +582,7 @@ class MessageWatcher(object):
 if __name__ == '__main__':
 
 	# log.init_log()
-	print("Monitor is running.")
+	print("Opimon (Monitoring Tool) is running.")
 
 	LISTEN_HOST, LISTEN_PORT = '0.0.0.0', 6753
 	# FORWARD_HOST, FORWARD_PORT = 'sd-lemon.naist.jp', 3000

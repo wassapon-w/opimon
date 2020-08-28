@@ -4,6 +4,7 @@ import threading
 import multiprocessing
 import struct
 import argparse
+import sys
 
 import datetime
 import time
@@ -296,7 +297,7 @@ class MessageWatcherAgentThread(multiprocessing.Process):
 		self.timeloop = time.time()
 
 	def profile_run(self):
-		cProfile.runctx('self.run()', globals(), locals(), 'prof-%d.prof' %int(multiprocessing.current_process().pid))
+		cProfile.runctx('self.run()', globals(), locals(), 'prof-%d.prof' % int(multiprocessing.current_process().pid))
 
 	def run(self):
 		while(self.is_alive):
@@ -310,7 +311,7 @@ class MessageWatcherAgentThread(multiprocessing.Process):
 		socks = [self.controller_socket, self.switch_socket]
 
 		# Wait for receive
-		rsocks, wsocks, esocks = select.select(socks, [], [])
+		rsocks, wsocks, esocks = select.select(socks, socks, [])
 
 		for sock in rsocks:
 
@@ -328,6 +329,13 @@ class MessageWatcherAgentThread(multiprocessing.Process):
 			if sock is self.switch_socket:
 				self.upstream_buf += ret
 				self.upstream_buf = self._parse(self.upstream_buf, self._upstream_parse)
+
+		# for sock in wsocks:
+		# 	if sock is self.controller_socket:
+		# 		pass
+
+		# 	if sock is self.switch_socket:
+		# 		pass
 
 		if(time.time() > self.timeloop + 60):
 			self.inject_request_message()
@@ -414,11 +422,12 @@ class MessageWatcherAgentThread(multiprocessing.Process):
 	def _downstream_parse(self, pkt):
 		try:
 			self.switch_socket.send(pkt)
-		except:
-			if(self.id != None):
-				print(datetime.datetime.now().strftime('%Y/%m/%d %H:%M:%S') + " : ERROR [" + str(hex(self.id)) + "] --- Broken Pipe (Downstream)")
-			else:
-				print(datetime.datetime.now().strftime('%Y/%m/%d %H:%M:%S') + " : ERROR [" + str(self.id) + "] --- Broken Pipe (Downstream)")
+		except Exception as e:
+			print(datetime.datetime.now().strftime('%Y/%m/%d %H:%M:%S') + " : ERROR (Downstream) --- " + str(sys.exc_info()[0]) + " " + str(e))
+			# if(self.id != None):
+			# 	print(datetime.datetime.now().strftime('%Y/%m/%d %H:%M:%S') + " : ERROR [" + str(hex(self.id)) + "] (Downstream) --- " + str(sys.exc_info()[0]) + " " + str(e))
+			# else:
+			# 	print(datetime.datetime.now().strftime('%Y/%m/%d %H:%M:%S') + " : ERROR [" + str(self.id) + "] (Downstream) --- " + str(sys.exc_info()[0]) + " " + str(e))
 			# self._close()
 			# pass
 
@@ -428,19 +437,24 @@ class MessageWatcherAgentThread(multiprocessing.Process):
 	def _upstream_parse(self, pkt):
 		(version, msg_type, msg_len, xid) = ofproto_parser.header(pkt)
 
+		# if(self.id != None):
+		# 	print("[" + str(hex(self.id)) + "] " + str(msg_type))
+
 		if(xid == 0xffffffff):
 			self._upstream_collector(pkt)
 			# return
+			# pass
 		else:
 			try:
 				self.controller_socket.send(pkt)
-			except:
-				if(self.id != None):
-					print(datetime.datetime.now().strftime('%Y/%m/%d %H:%M:%S') + " : ERROR [" + str(hex(self.id)) + "] --- Broken Pipe (Upstream)")
-				else:
-					print(datetime.datetime.now().strftime('%Y/%m/%d %H:%M:%S') + " : ERROR [" + str(self.id) + "] --- Broken Pipe (Upstream)")
-				# self._close()
-				# pass
+			except Exception as e:
+				print(datetime.datetime.now().strftime('%Y/%m/%d %H:%M:%S') + " : ERROR (Upstream) --- " + str(sys.exc_info()[0]) + " " + str(e))
+			# if(self.id != None):
+			# 	print(datetime.datetime.now().strftime('%Y/%m/%d %H:%M:%S') + " : ERROR [" + str(hex(self.id)) + "] (Upstream) --- " + str(sys.exc_info()[0]) + " " + str(e))
+			# else:
+			# 	print(datetime.datetime.now().strftime('%Y/%m/%d %H:%M:%S') + " : ERROR [" + str(self.id) + "] (Upstream) --- " + str(sys.exc_info()[0]) + " " + str(e))
+			# self._close()
+			# pass
 			self._upstream_collector(pkt)
 	
 	def _upstream_collector(self, pkt):

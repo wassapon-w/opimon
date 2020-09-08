@@ -6,6 +6,8 @@ import struct
 import argparse
 import sys
 
+from collections import deque
+
 import datetime
 import time
 
@@ -15,6 +17,7 @@ from binascii import hexlify, unhexlify
 import cProfile
 import pstats
 import io
+import line_profiler
 
 from ryu.ofproto import ofproto_common
 from ryu.ofproto import ofproto_parser
@@ -35,6 +38,8 @@ from pymongo import MongoClient
 from pprint import pprint
 
 # import log
+
+# profile = line_profiler.LineProfiler()
 
 LOG = logging.getLogger('OpenFlow Monitor')
 upstream_queue = multiprocessing.Queue()
@@ -284,11 +289,11 @@ class MessageWatcherAgentThread(multiprocessing.Process):
 
 		self.controller_socket = socket.socket()
 		self.controller_socket.connect((controller_host, controller_port))
-		self.controller_socket.setblocking(0)
-		self.controller_socket.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
+		# self.controller_socket.setblocking(0)
+		# self.controller_socket.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
 		self.switch_socket = switch_socket
-		self.switch_socket.setblocking(0)
-		self.switch_socket.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
+		# self.switch_socket.setblocking(0)
+		# self.switch_socket.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
 		self.is_alive = True
 		self.datapath = ofproto_protocol.ProtocolDesc(version=0x01)
 		self.id = None
@@ -296,8 +301,29 @@ class MessageWatcherAgentThread(multiprocessing.Process):
 		self.upstream_buf = bytearray()
 		self.timeloop = time.time()
 
+		self.controller_buffer = deque()
+		self.switch_buffer = deque()
+
+		self.recv_socks = [self.controller_socket, self.switch_socket]
+		self.send_socks = set([])
+
 	def profile_run(self):
-		cProfile.runctx('self.run()', globals(), locals(), 'prof-%d.prof' % int(multiprocessing.current_process().pid))
+		# cProfile.runctx('self.run()', globals(), locals(), 'prof-%d.prof' % int(multiprocessing.current_process().pid))
+
+		prof = line_profiler.LineProfiler()
+		prof.add_function(self._loop)
+		prof.add_function(self._parse)
+		prof.add_function(self._downstream_sender)
+		prof.add_function(self._upstream_sender)
+		prof.add_function(self._downstream_buffer)
+		prof.add_function(self._upstream_buffer)
+		prof.runcall(self.run_with_profile, prof)
+		
+	def run_with_profile(self, prof):
+		while(self.is_alive):
+			self._loop()
+			# prof.print_stats()
+			prof.dump_stats('prof-%d.lprof' % int(multiprocessing.current_process().pid))
 
 	def run(self):
 		while(self.is_alive):
@@ -307,11 +333,8 @@ class MessageWatcherAgentThread(multiprocessing.Process):
 		self.db.flow_mods.drop()
 
 	def _loop(self):
-		# Initialization
-		socks = [self.controller_socket, self.switch_socket]
-
 		# Wait for receive
-		rsocks, wsocks, esocks = select.select(socks, socks, [])
+		rsocks, wsocks, esocks = select.select(self.recv_socks, self.send_socks, [])
 
 		for sock in rsocks:
 
@@ -324,18 +347,30 @@ class MessageWatcherAgentThread(multiprocessing.Process):
 
 			if sock is self.controller_socket:
 				self.downstream_buf += ret
-				self.downstream_buf = self._parse(self.downstream_buf, self._downstream_parse)
+				# if self.switch_socket in wsocks:
+				# 	self.downstream_buf = self._parse(self.downstream_buf, self._downstream_sender)
+				# else:
+				self.downstream_buf = self._parse(self.downstream_buf, self._downstream_buffer)
 
 			if sock is self.switch_socket:
 				self.upstream_buf += ret
-				self.upstream_buf = self._parse(self.upstream_buf, self._upstream_parse)
+				# if self.controller_socket in wsocks:
+				# 	self.upstream_buf = self._parse(self.upstream_buf, self._upstream_sender)
+				# else:
+				self.upstream_buf = self._parse(self.upstream_buf, self._upstream_buffer)
 
-		# for sock in wsocks:
-		# 	if sock is self.controller_socket:
-		# 		pass
+		for sock in wsocks:
+			if sock is self.controller_socket:
+				# while(self.controller_buffer):
+				self._upstream_sender(self.controller_buffer.popleft())
+				if not self.controller_buffer:
+					self.send_socks.discard(self.controller_socket)
 
-		# 	if sock is self.switch_socket:
-		# 		pass
+			if sock is self.switch_socket:
+				# while(self.switch_buffer):
+				self._downstream_sender(self.switch_buffer.popleft())
+				if not self.switch_buffer:
+					self.send_socks.discard(self.switch_socket)
 
 		if(time.time() > self.timeloop + 60):
 			self.inject_request_message()
@@ -419,7 +454,9 @@ class MessageWatcherAgentThread(multiprocessing.Process):
 		print("Request " + hex(pkt.msg_type) + "(" + type + ") " + "xid: " + hex(pkt.xid))
 
 	# Controller to Switch
-	def _downstream_parse(self, pkt):
+	def _downstream_sender(self, pkt):
+		# self.switch_buffer.append(pkt)
+
 		try:
 			self.switch_socket.send(pkt)
 		except Exception as e:
@@ -431,19 +468,20 @@ class MessageWatcherAgentThread(multiprocessing.Process):
 			# self._close()
 			# pass
 
-		message_queue.put(pkt)
+		# message_queue.put(pkt)
 
 	# Switch to Controller
-	def _upstream_parse(self, pkt):
+	def _upstream_sender(self, pkt):
+		# self.controller_buffer.append(pkt)
+
 		(version, msg_type, msg_len, xid) = ofproto_parser.header(pkt)
 
 		# if(self.id != None):
 		# 	print("[" + str(hex(self.id)) + "] " + str(msg_type))
 
 		if(xid == 0xffffffff):
-			self._upstream_collector(pkt)
-			# return
-			# pass
+			# self._upstream_collector(pkt)
+			pass
 		else:
 			try:
 				self.controller_socket.send(pkt)
@@ -455,7 +493,16 @@ class MessageWatcherAgentThread(multiprocessing.Process):
 			# 	print(datetime.datetime.now().strftime('%Y/%m/%d %H:%M:%S') + " : ERROR [" + str(self.id) + "] (Upstream) --- " + str(sys.exc_info()[0]) + " " + str(e))
 			# self._close()
 			# pass
-			self._upstream_collector(pkt)
+			# self._upstream_collector(pkt)
+
+	def _downstream_buffer(self, pkt):
+		self.switch_buffer.append(pkt)
+		self.send_socks.add(self.switch_socket)
+
+	# Switch to Controller
+	def _upstream_buffer(self, pkt):
+		self.controller_buffer.append(pkt)
+		self.send_socks.add(self.controller_socket)
 	
 	def _upstream_collector(self, pkt):
 		message_queue.put(pkt)
@@ -551,7 +598,7 @@ class MessageWatcher(object):
 		self.args = args_parser.parse_args()
 
 		if(self.args.profile):
-			print("Enable cProfile.")
+			print("Enable profiler")
 
 	def _handle(self, sock):
 		# thread = MessageWatcherAgentThread(sock, self.forward_host, self.forward_port)

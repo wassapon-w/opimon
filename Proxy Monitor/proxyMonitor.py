@@ -304,37 +304,48 @@ class MessageWatcherAgentThread(multiprocessing.Process):
 		self.controller_buffer = deque()
 		self.switch_buffer = deque()
 
-		self.recv_socks = [self.controller_socket, self.switch_socket]
+		self.recv_socks = set([])
 		self.send_socks = set([])
 
 	def profile_run(self):
 		# cProfile.runctx('self.run()', globals(), locals(), 'prof-%d.prof' % int(multiprocessing.current_process().pid))
 
 		prof = line_profiler.LineProfiler()
-		prof.add_function(self._loop)
-		prof.add_function(self._parse)
-		prof.add_function(self._downstream_sender)
-		prof.add_function(self._upstream_sender)
-		prof.add_function(self._downstream_buffer)
-		prof.add_function(self._upstream_buffer)
+		prof.add_function(self.loop)
+		prof.add_function(self.downstream_parse)
+		prof.add_function(self.upstream_parse)
+		prof.add_function(self.downstream_sender)
+		prof.add_function(self.upstream_sender)
+		prof.add_function(self.downstream_buffer)
+		prof.add_function(self.upstream_buffer)
 		prof.runcall(self.run_with_profile, prof)
 		
 	def run_with_profile(self, prof):
 		while(self.is_alive):
-			self._loop()
+			self.loop()
 			# prof.print_stats()
 			prof.dump_stats('prof-%d.lprof' % int(multiprocessing.current_process().pid))
 
 	def run(self):
 		while(self.is_alive):
-			self._loop()
+			self.loop()
 
-	def _drop_collections(self):
+	def drop_collections(self):
 		self.db.flow_mods.drop()
 
-	def _loop(self):
+	def loop(self):
+		self.recv_socks = set([])
+
 		# Wait for receive
+		if len(self.controller_buffer) < 1000:
+			self.recv_socks.add(self.switch_socket)
+
+		if len(self.switch_buffer) < 1000:
+			self.recv_socks.add(self.controller_socket)
+
 		rsocks, wsocks, esocks = select.select(self.recv_socks, self.send_socks, [])
+
+		print(len(self.controller_buffer))
 
 		for sock in rsocks:
 
@@ -342,56 +353,107 @@ class MessageWatcherAgentThread(multiprocessing.Process):
 			ret = sock.recv(2048)
 
 			if not ret:
-				self._close()
+				self.close()
 				break
 
 			if sock is self.controller_socket:
 				self.downstream_buf += ret
 				# if self.switch_socket in wsocks:
-				# 	self.downstream_buf = self._parse(self.downstream_buf, self._downstream_sender)
+				# 	self.downstream_buf = self._parse(self.downstream_buf, self.downstream_sender)
 				# else:
-				self.downstream_buf = self._parse(self.downstream_buf, self._downstream_buffer)
+				self.downstream_buf = self.downstream_parse(self.downstream_buf)
 
 			if sock is self.switch_socket:
 				self.upstream_buf += ret
 				# if self.controller_socket in wsocks:
-				# 	self.upstream_buf = self._parse(self.upstream_buf, self._upstream_sender)
+				# 	self.upstream_buf = self._parse(self.upstream_buf, self.upstream_sender)
 				# else:
-				self.upstream_buf = self._parse(self.upstream_buf, self._upstream_buffer)
+				self.upstream_buf = self.upstream_parse(self.upstream_buf)
 
 		for sock in wsocks:
 			if sock is self.controller_socket:
-				# while(self.controller_buffer):
-				self._upstream_sender(self.controller_buffer.popleft())
+				while(self.controller_buffer):
+				# for i in range(1, 100):
+				# 	if not self.controller_buffer:
+				# 		break
+					self.upstream_sender(self.controller_buffer.popleft())
 				if not self.controller_buffer:
 					self.send_socks.discard(self.controller_socket)
 
 			if sock is self.switch_socket:
-				# while(self.switch_buffer):
-				self._downstream_sender(self.switch_buffer.popleft())
+				while(self.switch_buffer):
+				# for i in range(1, 100):
+				# 	if not self.switch_buffer:
+				# 		break
+					self.downstream_sender(self.switch_buffer.popleft())
 				if not self.switch_buffer:
 					self.send_socks.discard(self.switch_socket)
 
-		if(time.time() > self.timeloop + 60):
-			self.inject_request_message()
-			self.timeloop = time.time()
+		# if(time.time() > self.timeloop + 60):
+		# 	self.inject_request_message()
+		# 	self.timeloop = time.time()
 
-	def _close(self):
+	def close(self):
+		print("Closed")
 		self.controller_socket.close()
 		self.switch_socket.close()
 		self.is_alive = False
 
-	def _parse(self, buf, parse):
+	def downstream_parse(self, buf):
 		required_len = ofproto_common.OFP_HEADER_SIZE
 		while len(buf) >= required_len:
-			(version,
-			 msg_type,
-			 msg_len,
-			 xid) = ofproto_parser.header(buf)
+			# (version,
+			#  msg_type,
+			#  msg_len,
+			#  xid) = ofproto_parser.header(buf)
+			_, _, msg_len, _ = struct.unpack_from('!BBHI', buf)
+
 			if len(buf) < msg_len:
 				break
 			pkt = buf[:msg_len]
+
+			self.switch_buffer.append(pkt)
+			self.send_socks.add(self.switch_socket)
+
+			buf = buf[msg_len:]
+		return buf
+
+	def upstream_parse(self, buf):
+		required_len = ofproto_common.OFP_HEADER_SIZE
+		while len(buf) >= required_len:
+			# (version,
+			#  msg_type,
+			#  msg_len,
+			#  xid) = ofproto_parser.header(buf)
+			# msg_len = list(buf)[3]
+			_, _, msg_len, _ = struct.unpack_from('!BBHI', buf)
+
+			if len(buf) < msg_len:
+				break
+			pkt = buf[:msg_len]
+
+			self.controller_buffer.append(pkt)
+			self.send_socks.add(self.controller_socket)
+
+			buf = buf[msg_len:]
+		return buf
+	
+	def _parse(self, buf, parse):
+		required_len = ofproto_common.OFP_HEADER_SIZE
+		while len(buf) >= required_len:
+			# (version,
+			#  msg_type,
+			#  msg_len,
+			#  xid) = ofproto_parser.header(buf)
+			# msg_len = list(buf)[3]
+			_, _, msg_len, _ = struct.unpack_from('!BBHI', buf)
+
+			if len(buf) < msg_len:
+				break
+			pkt = buf[:msg_len]
+
 			parse(pkt)
+
 			buf = buf[msg_len:]
 		return buf
 
@@ -454,7 +516,7 @@ class MessageWatcherAgentThread(multiprocessing.Process):
 		print("Request " + hex(pkt.msg_type) + "(" + type + ") " + "xid: " + hex(pkt.xid))
 
 	# Controller to Switch
-	def _downstream_sender(self, pkt):
+	def downstream_sender(self, pkt):
 		# self.switch_buffer.append(pkt)
 
 		try:
@@ -465,13 +527,13 @@ class MessageWatcherAgentThread(multiprocessing.Process):
 			# 	print(datetime.datetime.now().strftime('%Y/%m/%d %H:%M:%S') + " : ERROR [" + str(hex(self.id)) + "] (Downstream) --- " + str(sys.exc_info()[0]) + " " + str(e))
 			# else:
 			# 	print(datetime.datetime.now().strftime('%Y/%m/%d %H:%M:%S') + " : ERROR [" + str(self.id) + "] (Downstream) --- " + str(sys.exc_info()[0]) + " " + str(e))
-			# self._close()
+			# self.close()
 			# pass
 
 		# message_queue.put(pkt)
 
 	# Switch to Controller
-	def _upstream_sender(self, pkt):
+	def upstream_sender(self, pkt):
 		# self.controller_buffer.append(pkt)
 
 		(version, msg_type, msg_len, xid) = ofproto_parser.header(pkt)
@@ -491,20 +553,20 @@ class MessageWatcherAgentThread(multiprocessing.Process):
 			# 	print(datetime.datetime.now().strftime('%Y/%m/%d %H:%M:%S') + " : ERROR [" + str(hex(self.id)) + "] (Upstream) --- " + str(sys.exc_info()[0]) + " " + str(e))
 			# else:
 			# 	print(datetime.datetime.now().strftime('%Y/%m/%d %H:%M:%S') + " : ERROR [" + str(self.id) + "] (Upstream) --- " + str(sys.exc_info()[0]) + " " + str(e))
-			# self._close()
+			# self.close()
 			# pass
-			# self._upstream_collector(pkt)
+			# self.upstream_collector(pkt)
 
-	def _downstream_buffer(self, pkt):
+	def downstream_buffer(self, pkt):
 		self.switch_buffer.append(pkt)
 		self.send_socks.add(self.switch_socket)
 
 	# Switch to Controller
-	def _upstream_buffer(self, pkt):
+	def upstream_buffer(self, pkt):
 		self.controller_buffer.append(pkt)
 		self.send_socks.add(self.controller_socket)
 	
-	def _upstream_collector(self, pkt):
+	def upstream_collector(self, pkt):
 		message_queue.put(pkt)
 		(version, msg_type, msg_len, xid) = ofproto_parser.header(pkt)
 
@@ -600,7 +662,7 @@ class MessageWatcher(object):
 		if(self.args.profile):
 			print("Enable profiler")
 
-	def _handle(self, sock):
+	def handle(self, sock):
 		# thread = MessageWatcherAgentThread(sock, self.forward_host, self.forward_port)
 		# thread.start()
 		# self.threads.append(thread)
@@ -627,7 +689,7 @@ class MessageWatcher(object):
 
 		try:
 			while(True):
-				self._loop()
+				self.loop()
 		except KeyboardInterrupt:
 			print("Exiting...")
 			for connection in self.connection_list:
@@ -636,9 +698,9 @@ class MessageWatcher(object):
 				parser.terminate()
 			print("Terminated")
 
-	def _loop(self):
+	def loop(self):
 		conn, addr = self.listen_socket.accept()
-		self._handle(conn)
+		self.handle(conn)
 
 if __name__ == '__main__':
 

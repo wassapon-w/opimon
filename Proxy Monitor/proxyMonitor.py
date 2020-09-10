@@ -284,7 +284,7 @@ class MessageParserAgentThread(multiprocessing.Process):
 						pass
 
 class MessageWatcherAgentThread(multiprocessing.Process):
-	def __init__(self, switch_socket, controller_host, controller_port):
+	def __init__(self, switch_socket, controller_host, controller_port, switch_no):
 		super(MessageWatcherAgentThread, self).__init__()
 
 		self.controller_socket = socket.socket()
@@ -296,6 +296,7 @@ class MessageWatcherAgentThread(multiprocessing.Process):
 		# self.switch_socket.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
 		self.is_alive = True
 		self.datapath = ofproto_protocol.ProtocolDesc(version=0x01)
+		self.switch_no = switch_no
 		self.id = None
 		self.downstream_buf = bytearray()
 		self.upstream_buf = bytearray()
@@ -345,11 +346,8 @@ class MessageWatcherAgentThread(multiprocessing.Process):
 
 		rsocks, wsocks, esocks = select.select(self.recv_socks, self.send_socks, [])
 
-		print(len(self.controller_buffer))
-
+		# Receive packet
 		for sock in rsocks:
-
-			# Receive packet
 			ret = sock.recv(2048)
 
 			if not ret:
@@ -358,43 +356,37 @@ class MessageWatcherAgentThread(multiprocessing.Process):
 
 			if sock is self.controller_socket:
 				self.downstream_buf += ret
-				# if self.switch_socket in wsocks:
-				# 	self.downstream_buf = self._parse(self.downstream_buf, self.downstream_sender)
-				# else:
 				self.downstream_buf = self.downstream_parse(self.downstream_buf)
 
 			if sock is self.switch_socket:
 				self.upstream_buf += ret
-				# if self.controller_socket in wsocks:
-				# 	self.upstream_buf = self._parse(self.upstream_buf, self.upstream_sender)
-				# else:
 				self.upstream_buf = self.upstream_parse(self.upstream_buf)
 
+		# Send packet
 		for sock in wsocks:
 			if sock is self.controller_socket:
 				while(self.controller_buffer):
-				# for i in range(1, 100):
-				# 	if not self.controller_buffer:
-				# 		break
 					self.upstream_sender(self.controller_buffer.popleft())
+					if not self.is_alive:
+						break
 				if not self.controller_buffer:
 					self.send_socks.discard(self.controller_socket)
 
 			if sock is self.switch_socket:
 				while(self.switch_buffer):
-				# for i in range(1, 100):
-				# 	if not self.switch_buffer:
-				# 		break
 					self.downstream_sender(self.switch_buffer.popleft())
+					if not self.is_alive:
+						break
 				if not self.switch_buffer:
 					self.send_socks.discard(self.switch_socket)
 
-		# if(time.time() > self.timeloop + 60):
-		# 	self.inject_request_message()
-		# 	self.timeloop = time.time()
+		# Inject packet
+		if(time.time() > self.timeloop + 60):
+			self.inject_request_message()
+			self.timeloop = time.time()
 
 	def close(self):
-		print("Closed")
+		print(datetime.datetime.now().strftime('%Y/%m/%d %H:%M:%S') + " : [" + str(self.switch_no) + "] Closing connection...")
 		self.controller_socket.close()
 		self.switch_socket.close()
 		self.is_alive = False
@@ -402,59 +394,39 @@ class MessageWatcherAgentThread(multiprocessing.Process):
 	def downstream_parse(self, buf):
 		required_len = ofproto_common.OFP_HEADER_SIZE
 		while len(buf) >= required_len:
-			# (version,
-			#  msg_type,
-			#  msg_len,
-			#  xid) = ofproto_parser.header(buf)
-			_, _, msg_len, _ = struct.unpack_from('!BBHI', buf)
+			(version, msg_type, msg_len, xid) = ofproto_parser.header(buf)
 
 			if len(buf) < msg_len:
 				break
 			pkt = buf[:msg_len]
+			buf = buf[msg_len:]
 
 			self.switch_buffer.append(pkt)
 			self.send_socks.add(self.switch_socket)
 
-			buf = buf[msg_len:]
+			message_queue.put(pkt)
 		return buf
 
 	def upstream_parse(self, buf):
 		required_len = ofproto_common.OFP_HEADER_SIZE
 		while len(buf) >= required_len:
-			# (version,
-			#  msg_type,
-			#  msg_len,
-			#  xid) = ofproto_parser.header(buf)
-			# msg_len = list(buf)[3]
-			_, _, msg_len, _ = struct.unpack_from('!BBHI', buf)
+			(version, msg_type, msg_len, xid) = ofproto_parser.header(buf)
 
 			if len(buf) < msg_len:
 				break
 			pkt = buf[:msg_len]
+			buf = buf[msg_len:]
+
+			if(xid == 0xffffffff):
+				continue
 
 			self.controller_buffer.append(pkt)
 			self.send_socks.add(self.controller_socket)
 
-			buf = buf[msg_len:]
-		return buf
-	
-	def _parse(self, buf, parse):
-		required_len = ofproto_common.OFP_HEADER_SIZE
-		while len(buf) >= required_len:
-			# (version,
-			#  msg_type,
-			#  msg_len,
-			#  xid) = ofproto_parser.header(buf)
-			# msg_len = list(buf)[3]
-			_, _, msg_len, _ = struct.unpack_from('!BBHI', buf)
+			message_queue.put(pkt)
 
-			if len(buf) < msg_len:
-				break
-			pkt = buf[:msg_len]
-
-			parse(pkt)
-
-			buf = buf[msg_len:]
+			if msg_type == ofproto_v1_0.OFPT_FEATURES_REPLY:
+				self.lldp_injection(pkt, version, msg_type, msg_len, xid)
 		return buf
 
 	def inject_request_message(self):
@@ -517,125 +489,82 @@ class MessageWatcherAgentThread(multiprocessing.Process):
 
 	# Controller to Switch
 	def downstream_sender(self, pkt):
-		# self.switch_buffer.append(pkt)
-
 		try:
 			self.switch_socket.send(pkt)
 		except Exception as e:
-			print(datetime.datetime.now().strftime('%Y/%m/%d %H:%M:%S') + " : ERROR (Downstream) --- " + str(sys.exc_info()[0]) + " " + str(e))
-			# if(self.id != None):
-			# 	print(datetime.datetime.now().strftime('%Y/%m/%d %H:%M:%S') + " : ERROR [" + str(hex(self.id)) + "] (Downstream) --- " + str(sys.exc_info()[0]) + " " + str(e))
-			# else:
-			# 	print(datetime.datetime.now().strftime('%Y/%m/%d %H:%M:%S') + " : ERROR [" + str(self.id) + "] (Downstream) --- " + str(sys.exc_info()[0]) + " " + str(e))
-			# self.close()
-			# pass
-
-		# message_queue.put(pkt)
+			if(self.id != None):
+				print(datetime.datetime.now().strftime('%Y/%m/%d %H:%M:%S') + " : ERROR [" + str(hex(self.id)) + "] (Downstream) --- " + str(sys.exc_info()[0]) + " " + str(e))
+			else:
+				print(datetime.datetime.now().strftime('%Y/%m/%d %H:%M:%S') + " : ERROR [" + str(self.id) + "] (Downstream) --- " + str(sys.exc_info()[0]) + " " + str(e))
+			self.close()
 
 	# Switch to Controller
 	def upstream_sender(self, pkt):
-		# self.controller_buffer.append(pkt)
+		try:
+			self.controller_socket.send(pkt)
+		except Exception as e:
+			if(self.id != None):
+				print(datetime.datetime.now().strftime('%Y/%m/%d %H:%M:%S') + " : ERROR [" + str(hex(self.id)) + "] (Upstream) --- " + str(sys.exc_info()[0]) + " " + str(e))
+			else:
+				print(datetime.datetime.now().strftime('%Y/%m/%d %H:%M:%S') + " : ERROR [" + str(self.id) + "] (Upstream) --- " + str(sys.exc_info()[0]) + " " + str(e))
+			self.close()
 
-		(version, msg_type, msg_len, xid) = ofproto_parser.header(pkt)
-
-		# if(self.id != None):
-		# 	print("[" + str(hex(self.id)) + "] " + str(msg_type))
-
-		if(xid == 0xffffffff):
-			# self._upstream_collector(pkt)
-			pass
-		else:
-			try:
-				self.controller_socket.send(pkt)
-			except Exception as e:
-				print(datetime.datetime.now().strftime('%Y/%m/%d %H:%M:%S') + " : ERROR (Upstream) --- " + str(sys.exc_info()[0]) + " " + str(e))
-			# if(self.id != None):
-			# 	print(datetime.datetime.now().strftime('%Y/%m/%d %H:%M:%S') + " : ERROR [" + str(hex(self.id)) + "] (Upstream) --- " + str(sys.exc_info()[0]) + " " + str(e))
-			# else:
-			# 	print(datetime.datetime.now().strftime('%Y/%m/%d %H:%M:%S') + " : ERROR [" + str(self.id) + "] (Upstream) --- " + str(sys.exc_info()[0]) + " " + str(e))
-			# self.close()
-			# pass
-			# self.upstream_collector(pkt)
-
-	def downstream_buffer(self, pkt):
-		self.switch_buffer.append(pkt)
-		self.send_socks.add(self.switch_socket)
-
-	# Switch to Controller
-	def upstream_buffer(self, pkt):
-		self.controller_buffer.append(pkt)
-		self.send_socks.add(self.controller_socket)
-	
-	def upstream_collector(self, pkt):
-		message_queue.put(pkt)
-		(version, msg_type, msg_len, xid) = ofproto_parser.header(pkt)
-
-		# print(str(hex(xid)) + " - " + str(msg_type))
-
+	def lldp_injection(self, pkt, version, msg_type, msg_len, xid):
 		# Switch configuration messages
-		if msg_type == ofproto_v1_0.OFPT_FEATURES_REPLY:
-			# print("Reply xid: " + hex(xid))
-			msg = ofproto_v1_0_parser.OFPSwitchFeatures.parser(self.datapath, version, msg_type, msg_len, xid, pkt)
-			match = ofproto_v1_0_parser.OFPMatch(dl_type=ETH_TYPE_LLDP, dl_dst=lldp.LLDP_MAC_NEAREST_BRIDGE)
-			cookie = 0
-			command = ofproto_v1_0.OFPFC_ADD
-			idle_timeout = hard_timeout = 0
-			priority = 0
-			buffer_id = ofproto_v1_0.OFP_NO_BUFFER
-			out_port = ofproto_v1_0.OFPP_NONE
-			flags = 0
-			actions = [ofproto_v1_0_parser.OFPActionOutput(ofproto_v1_0.OFPP_CONTROLLER)]
-			mod = ofproto_v1_0_parser.OFPFlowMod(self.datapath, match, cookie, command, idle_timeout, hard_timeout, priority, buffer_id, out_port, flags, actions)
-			mod.serialize()
+		msg = ofproto_v1_0_parser.OFPSwitchFeatures.parser(self.datapath, version, msg_type, msg_len, xid, pkt)
+		match = ofproto_v1_0_parser.OFPMatch(dl_type=ETH_TYPE_LLDP, dl_dst=lldp.LLDP_MAC_NEAREST_BRIDGE)
+		cookie = 0
+		command = ofproto_v1_0.OFPFC_ADD
+		idle_timeout = hard_timeout = 0
+		priority = 0
+		buffer_id = ofproto_v1_0.OFP_NO_BUFFER
+		out_port = ofproto_v1_0.OFPP_NONE
+		flags = 0
+		actions = [ofproto_v1_0_parser.OFPActionOutput(ofproto_v1_0.OFPP_CONTROLLER)]
+		mod = ofproto_v1_0_parser.OFPFlowMod(self.datapath, match, cookie, command, idle_timeout, hard_timeout, priority, buffer_id, out_port, flags, actions)
+		mod.serialize()
 
-			self.id = msg.datapath_id
-			self.ports = msg.ports
+		self.id = msg.datapath_id
+		self.ports = msg.ports
 
-			# print(str(self.id) + " : Receive Features Reply Message")
-			# print(msg)
+		# print(str(self.id) + " : Receive Features Reply Message")
+		# print(msg)
 
-			for port in self.ports.values():
-				pkt_lldp = packet.Packet()
+		for port in self.ports.values():
+			pkt_lldp = packet.Packet()
 
-				dst = BROADCAST_STR
-				src = port.hw_addr
-				ethertype = ETH_TYPE_LLDP
-				eth_pkt = ethernet.ethernet(dst, src, ethertype)
-				pkt_lldp.add_protocol(eth_pkt)
+			dst = BROADCAST_STR
+			src = port.hw_addr
+			ethertype = ETH_TYPE_LLDP
+			eth_pkt = ethernet.ethernet(dst, src, ethertype)
+			pkt_lldp.add_protocol(eth_pkt)
 
-				tlv_chassis_id = lldp.ChassisID(
-					subtype=lldp.ChassisID.SUB_LOCALLY_ASSIGNED,
-					chassis_id=b'dpid:%s' % dpid_to_str(self.id).encode())
+			tlv_chassis_id = lldp.ChassisID(
+				subtype=lldp.ChassisID.SUB_LOCALLY_ASSIGNED,
+				chassis_id=b'dpid:%s' % dpid_to_str(self.id).encode())
 
-				tlv_port_id = lldp.PortID(subtype=lldp.PortID.SUB_PORT_COMPONENT,
-										  port_id=struct.pack('!I', port.port_no))
+			tlv_port_id = lldp.PortID(subtype=lldp.PortID.SUB_PORT_COMPONENT,
+										port_id=struct.pack('!I', port.port_no))
 
-				tlv_ttl = lldp.TTL(ttl=120)
-				tlv_desc = lldp.PortDescription(port_description=b"ProxyTopologyMonitorLLDP")
-				tlv_end = lldp.End()
+			tlv_ttl = lldp.TTL(ttl=120)
+			tlv_desc = lldp.PortDescription(port_description=b"ProxyTopologyMonitorLLDP")
+			tlv_end = lldp.End()
 
-				tlvs = (tlv_chassis_id, tlv_port_id, tlv_ttl, tlv_desc, tlv_end)
-				lldp_pkt = lldp.lldp(tlvs)
-				pkt_lldp.add_protocol(lldp_pkt)
+			tlvs = (tlv_chassis_id, tlv_port_id, tlv_ttl, tlv_desc, tlv_end)
+			lldp_pkt = lldp.lldp(tlvs)
+			pkt_lldp.add_protocol(lldp_pkt)
 
-				pkt_lldp.serialize()
+			pkt_lldp.serialize()
 
-				actions = [ofproto_v1_0_parser.OFPActionOutput(port.port_no)]
-				out = ofproto_v1_0_parser.OFPPacketOut(
-					datapath=self.datapath, in_port=ofproto_v1_0.OFPP_CONTROLLER,
-					buffer_id=ofproto_v1_0.OFP_NO_BUFFER, actions=actions,
-					data=pkt_lldp.data)
-				out.serialize()
+			actions = [ofproto_v1_0_parser.OFPActionOutput(port.port_no)]
+			out = ofproto_v1_0_parser.OFPPacketOut(
+				datapath=self.datapath, in_port=ofproto_v1_0.OFPP_CONTROLLER,
+				buffer_id=ofproto_v1_0.OFP_NO_BUFFER, actions=actions,
+				data=pkt_lldp.data)
+			out.serialize()
 
-				try:
-					self.switch_socket.send(out.buf)
-				except:
-					if(self.id != None):
-						print(datetime.datetime.now().strftime('%Y/%m/%d %H:%M:%S') + " : ERROR [" + str(hex(self.id)) + "] --- Broken Pipe (Downstream : LLDP Message)")
-					else:
-						print(datetime.datetime.now().strftime('%Y/%m/%d %H:%M:%S') + " : ERROR [" + str(self.id) + "] --- Broken Pipe (Downstream : LLDP Message)")
-					# self._close()
-					pass
+			self.switch_buffer.append(pkt)
+			self.send_socks.add(self.switch_socket)
 
 class MessageWatcher(object):
 
@@ -663,12 +592,8 @@ class MessageWatcher(object):
 			print("Enable profiler")
 
 	def handle(self, sock):
-		# thread = MessageWatcherAgentThread(sock, self.forward_host, self.forward_port)
-		# thread.start()
-		# self.threads.append(thread)
-
 		print(datetime.datetime.now().strftime('%Y/%m/%d %H:%M:%S') + " : [" + str(len(self.connection_list)) + "] Receiving new connection...")
-		connection = MessageWatcherAgentThread(sock, self.forward_host, self.forward_port)
+		connection = MessageWatcherAgentThread(sock, self.forward_host, self.forward_port, len(self.connection_list))
 		if(self.args.profile):
 			connection_process = multiprocessing.Process(target=connection.profile_run)
 		else:

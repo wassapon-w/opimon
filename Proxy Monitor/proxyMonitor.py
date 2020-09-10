@@ -129,19 +129,7 @@ class MessageParserAgentThread(multiprocessing.Process):
 
 		# Switch configuration messages
 		elif msg_type == ofproto_v1_0.OFPT_FEATURES_REPLY:
-			# print("Reply xid: " + hex(xid))
 			msg = ofproto_v1_0_parser.OFPSwitchFeatures.parser(self.datapath, version, msg_type, msg_len, xid, pkt)
-			match = ofproto_v1_0_parser.OFPMatch(dl_type=ETH_TYPE_LLDP, dl_dst=lldp.LLDP_MAC_NEAREST_BRIDGE)
-			cookie = 0
-			command = ofproto_v1_0.OFPFC_ADD
-			idle_timeout = hard_timeout = 0
-			priority = 0
-			buffer_id = ofproto_v1_0.OFP_NO_BUFFER
-			out_port = ofproto_v1_0.OFPP_NONE
-			flags = 0
-			actions = [ofproto_v1_0_parser.OFPActionOutput(ofproto_v1_0.OFPP_CONTROLLER)]
-			mod = ofproto_v1_0_parser.OFPFlowMod(self.datapath, match, cookie, command, idle_timeout, hard_timeout, priority, buffer_id, out_port, flags, actions)
-			mod.serialize()
 
 			self.id = msg.datapath_id
 			self.ports = msg.ports
@@ -563,7 +551,7 @@ class MessageWatcherAgentThread(multiprocessing.Process):
 				data=pkt_lldp.data)
 			out.serialize()
 
-			self.switch_buffer.append(pkt)
+			self.switch_buffer.append(out.buf)
 			self.send_socks.add(self.switch_socket)
 
 class MessageWatcher(object):

@@ -51,7 +51,14 @@ class MessageParserAgentThread(multiprocessing.Process):
 		super(MessageParserAgentThread, self).__init__()
 
 		self.datapath = ofproto_protocol.ProtocolDesc(version=0x01)
-		self.id = None
+
+	def profile_run(self):
+		# cProfile.runctx('self.run()', globals(), locals(), 'prof-%d.prof' % int(multiprocessing.current_process().pid))
+
+		prof = line_profiler.LineProfiler()
+		prof.add_function(self.run)
+		prof.add_function(self.message_parse)
+		prof.runcall(self.run_with_profile, prof)
 
 	def run(self):
 		client = MongoClient('127.0.0.1', 27017)
@@ -61,9 +68,9 @@ class MessageParserAgentThread(multiprocessing.Process):
 			# print("MessageParserAgentThread (" + str(multiprocessing.current_process().pid) + "): " + str(message_queue.qsize()))
 
 			pkt = message_queue.get(True, None)
-			self._message_parse(pkt)
+			self.message_parse(pkt[0], pkt[1])
 
-	def _message_parse(self, pkt):
+	def message_parse(self, pkt, switch_id):
 		(version, msg_type, msg_len, xid) = ofproto_parser.header(pkt)
 
 		# Controller command messages
@@ -73,7 +80,7 @@ class MessageParserAgentThread(multiprocessing.Process):
 			# print(str(self.id) + " : Receive Flow Mod Message")
 
 			# Write to database
-			db_message = {"switch": hex(self.id),
+			db_message = {"switch": hex(switch_id),
 						  "message": {
 							  "header": {
 								  "version": version,
@@ -131,14 +138,13 @@ class MessageParserAgentThread(multiprocessing.Process):
 		elif msg_type == ofproto_v1_0.OFPT_FEATURES_REPLY:
 			msg = ofproto_v1_0_parser.OFPSwitchFeatures.parser(self.datapath, version, msg_type, msg_len, xid, pkt)
 
-			self.id = msg.datapath_id
 			self.ports = msg.ports
 
 			# print(str(self.id) + " : Receive Features Reply Message")
 			# print(msg)
 
 			for port in self.ports.values():
-				db_message = {"switch_id": hex(self.id),
+				db_message = {"switch_id": hex(msg.datapath_id),
 							  "port_no": port.port_no,
 							  "hw_addr": port.hw_addr,
 							  "timestamp": datetime.datetime.utcnow()}
@@ -158,7 +164,7 @@ class MessageParserAgentThread(multiprocessing.Process):
 				# print(msg)
 
 				for flow in msg.body:
-					db_message = {"switch": hex(self.id),
+					db_message = {"switch": hex(switch_id),
 								  "message": {
 									  "header": {
 										  "version": msg.version,
@@ -208,7 +214,7 @@ class MessageParserAgentThread(multiprocessing.Process):
 
 				for port in msg.body:
 					# print(port)
-					db_message = {"switch": hex(self.id),
+					db_message = {"switch": hex(switch_id),
 								  "port_no": port.port_no,
 								  "rx_packets": port.rx_packets,
 								  "tx_packets": port.tx_packets,
@@ -239,21 +245,22 @@ class MessageParserAgentThread(multiprocessing.Process):
 			msg = ofproto_v1_0_parser.OFPPacketIn.parser(self.datapath, version, msg_type, msg_len, xid, pkt)
 			pkt_msg = packet.Packet(msg.data)
 
+			# print(msg)
+
 			if pkt_msg.get_protocol(ethernet.ethernet).ethertype == ETH_TYPE_LLDP:
 				lldp_msg = pkt_msg.get_protocol(lldp.lldp)
 
 				if lldp_msg != None:
-					if lldp_msg.tlvs[3].tlv_info == "ProxyTopologyMonitorLLDP":
-
+					if lldp_msg.tlvs[3].tlv_info == b'ProxyTopologyMonitorLLDP':
 						(port,) = struct.unpack('!I', lldp_msg.tlvs[1].port_id)
 						switch_src = str_to_dpid(lldp_msg.tlvs[0].chassis_id[5:])
 
-						# print(str(self.id) + " : Receive Proxy LLDP Packet")
+						# print(str(hex(self.id)) + " : Receive Proxy LLDP Packet (" + str(hex(switch_src)) + ")")
 						# print(lldp_msg)
 
 						# Write to database
 						try:
-							self.db.topology.insert_one({"switch_dst": hex(self.id),
+							self.db.topology.insert_one({"switch_dst": hex(switch_id),
 													 	 "port_dst": port,
 													 	 "switch_src": hex(switch_src),
 													 	 "port_src": msg.in_port,
@@ -389,10 +396,10 @@ class MessageWatcherAgentThread(multiprocessing.Process):
 			pkt = buf[:msg_len]
 			buf = buf[msg_len:]
 
+			message_queue.put([pkt, self.id])
+
 			self.switch_buffer.append(pkt)
 			self.send_socks.add(self.switch_socket)
-
-			message_queue.put(pkt)
 		return buf
 
 	def upstream_parse(self, buf):
@@ -405,16 +412,16 @@ class MessageWatcherAgentThread(multiprocessing.Process):
 			pkt = buf[:msg_len]
 			buf = buf[msg_len:]
 
+			message_queue.put([pkt, self.id])
+
+			if msg_type == ofproto_v1_0.OFPT_FEATURES_REPLY:
+				self.lldp_injection(pkt, version, msg_type, msg_len, xid)
+
 			if(xid == 0xffffffff):
 				continue
 
 			self.controller_buffer.append(pkt)
 			self.send_socks.add(self.controller_socket)
-
-			message_queue.put(pkt)
-
-			if msg_type == ofproto_v1_0.OFPT_FEATURES_REPLY:
-				self.lldp_injection(pkt, version, msg_type, msg_len, xid)
 		return buf
 
 	def inject_request_message(self):
@@ -424,14 +431,8 @@ class MessageWatcherAgentThread(multiprocessing.Process):
 		out.xid = 0xffffffff
 		out.serialize()
 		# self.parse_pkt(out, "FeaturesRequest")
-		try:
-			self.switch_socket.send(out.buf)
-		except:
-			if(self.id != None):
-				print(datetime.datetime.now().strftime('%Y/%m/%d %H:%M:%S') + " : ERROR [" + str(hex(self.id)) + "] --- Broken Pipe (Downstream : Send monitor message)")
-			else:
-				print(datetime.datetime.now().strftime('%Y/%m/%d %H:%M:%S') + " : ERROR [" + str(self.id) + "] --- Broken Pipe (Downstream : Send monitor message)")
-			pass
+		self.switch_buffer.append(out.buf)
+		self.send_socks.add(self.switch_socket)
 
 		ofp = self.datapath.ofproto
 		ofp_parser = self.datapath.ofproto_parser
@@ -439,17 +440,12 @@ class MessageWatcherAgentThread(multiprocessing.Process):
 		table_id = 0xff
 		out_port = ofp.OFPP_NONE
 		out = ofp_parser.OFPFlowStatsRequest(self.datapath, 0, match, table_id, out_port)
+
 		out.xid = 0xffffffff
 		out.serialize()
 		# self.parse_pkt(out, "FlowStatsRequest")
-		try:
-			self.switch_socket.send(out.buf)
-		except:
-			if(self.id != None):
-				print(datetime.datetime.now().strftime('%Y/%m/%d %H:%M:%S') + " : ERROR [" + str(hex(self.id)) + "] --- Broken Pipe (Downstream : Send monitor message)")
-			else:
-				print(datetime.datetime.now().strftime('%Y/%m/%d %H:%M:%S') + " : ERROR [" + str(self.id) + "] --- Broken Pipe (Downstream : Send monitor message)")
-			pass
+		self.switch_buffer.append(out.buf)
+		self.send_socks.add(self.switch_socket)
 
 		ofp = self.datapath.ofproto
 		ofp_parser = self.datapath.ofproto_parser
@@ -457,14 +453,8 @@ class MessageWatcherAgentThread(multiprocessing.Process):
 		out.xid = 0xffffffff
 		out.serialize()
 		# self.parse_pkt(out, "PortStatsRequest")
-		try:
-			self.switch_socket.send(out.buf)
-		except:
-			if(self.id != None):
-				print(datetime.datetime.now().strftime('%Y/%m/%d %H:%M:%S') + " : ERROR [" + str(hex(self.id)) + "] --- Broken Pipe (Downstream : Send monitor message)")
-			else:
-				print(datetime.datetime.now().strftime('%Y/%m/%d %H:%M:%S') + " : ERROR [" + str(self.id) + "] --- Broken Pipe (Downstream : Send monitor message)")
-			# self._close()
+		self.switch_buffer.append(out.buf)
+		self.send_socks.add(self.switch_socket)
 
 		if(self.id != None):
 			print(datetime.datetime.now().strftime('%Y/%m/%d %H:%M:%S') + " : [" + str(hex(self.id)) + "] --- Sent monitor messages")
@@ -500,17 +490,17 @@ class MessageWatcherAgentThread(multiprocessing.Process):
 	def lldp_injection(self, pkt, version, msg_type, msg_len, xid):
 		# Switch configuration messages
 		msg = ofproto_v1_0_parser.OFPSwitchFeatures.parser(self.datapath, version, msg_type, msg_len, xid, pkt)
-		match = ofproto_v1_0_parser.OFPMatch(dl_type=ETH_TYPE_LLDP, dl_dst=lldp.LLDP_MAC_NEAREST_BRIDGE)
-		cookie = 0
-		command = ofproto_v1_0.OFPFC_ADD
-		idle_timeout = hard_timeout = 0
-		priority = 0
-		buffer_id = ofproto_v1_0.OFP_NO_BUFFER
-		out_port = ofproto_v1_0.OFPP_NONE
-		flags = 0
-		actions = [ofproto_v1_0_parser.OFPActionOutput(ofproto_v1_0.OFPP_CONTROLLER)]
-		mod = ofproto_v1_0_parser.OFPFlowMod(self.datapath, match, cookie, command, idle_timeout, hard_timeout, priority, buffer_id, out_port, flags, actions)
-		mod.serialize()
+		# match = ofproto_v1_0_parser.OFPMatch(dl_type=ETH_TYPE_LLDP, dl_dst=lldp.LLDP_MAC_NEAREST_BRIDGE)
+		# cookie = 0
+		# command = ofproto_v1_0.OFPFC_ADD
+		# idle_timeout = hard_timeout = 0
+		# priority = 0
+		# buffer_id = ofproto_v1_0.OFP_NO_BUFFER
+		# out_port = ofproto_v1_0.OFPP_NONE
+		# flags = 0
+		# actions = [ofproto_v1_0_parser.OFPActionOutput(ofproto_v1_0.OFPP_CONTROLLER)]
+		# mod = ofproto_v1_0_parser.OFPFlowMod(self.datapath, match, cookie, command, idle_timeout, hard_timeout, priority, buffer_id, out_port, flags, actions)
+		# mod.serialize()
 
 		self.id = msg.datapath_id
 		self.ports = msg.ports

@@ -56,17 +56,24 @@ class MessageParserAgentThread(multiprocessing.Process):
 		# cProfile.runctx('self.run()', globals(), locals(), 'prof-%d.prof' % int(multiprocessing.current_process().pid))
 
 		prof = line_profiler.LineProfiler()
-		prof.add_function(self.run)
+		prof.add_function(self.run_with_profile)
 		prof.add_function(self.message_parse)
 		prof.runcall(self.run_with_profile, prof)
+
+	def run_with_profile(self, prof):
+		client = MongoClient('127.0.0.1', 27017)
+		self.db = client.opimon
+
+		while(True):
+			pkt = message_queue.get(True, None)
+			self.message_parse(pkt[0], pkt[1])
+			prof.dump_stats('prof-parser-%d.lprof' % int(multiprocessing.current_process().pid))
 
 	def run(self):
 		client = MongoClient('127.0.0.1', 27017)
 		self.db = client.opimon
 
 		while(True):
-			# print("MessageParserAgentThread (" + str(multiprocessing.current_process().pid) + "): " + str(message_queue.qsize()))
-
 			pkt = message_queue.get(True, None)
 			self.message_parse(pkt[0], pkt[1])
 
@@ -206,7 +213,6 @@ class MessageParserAgentThread(multiprocessing.Process):
 							print(datetime.datetime.now().strftime('%Y/%m/%d %H:%M:%S') + " : ERROR [" + str(hex(self.id)) + "] --- Failed to write data into database")
 						else:
 							print(datetime.datetime.now().strftime('%Y/%m/%d %H:%M:%S') + " : ERROR [" + str(self.id) + "] --- Failed to write data into database")
-						pass
 
 			if(type(msg) is ofproto_v1_0_parser.OFPPortStatsReply):
 				# print(str(self.id) + " : Receive Port Stats Message")
@@ -238,8 +244,6 @@ class MessageParserAgentThread(multiprocessing.Process):
 						else:
 							print(datetime.datetime.now().strftime('%Y/%m/%d %H:%M:%S') + " : ERROR [" + str(self.id) + "] --- Failed to write data into database")
 
-				pass
-
 		# Asynchronous messages
 		elif msg_type == ofproto_v1_0.OFPT_PACKET_IN:
 			msg = ofproto_v1_0_parser.OFPPacketIn.parser(self.datapath, version, msg_type, msg_len, xid, pkt)
@@ -251,26 +255,27 @@ class MessageParserAgentThread(multiprocessing.Process):
 				lldp_msg = pkt_msg.get_protocol(lldp.lldp)
 
 				if lldp_msg != None:
-					if lldp_msg.tlvs[3].tlv_info == b'ProxyTopologyMonitorLLDP':
+					if lldp_msg.tlvs[3].tlv_info == b'ProxyTopologyMonitorLLDP' and switch_id != None:
 						(port,) = struct.unpack('!I', lldp_msg.tlvs[1].port_id)
 						switch_src = str_to_dpid(lldp_msg.tlvs[0].chassis_id[5:])
 
 						# print(str(hex(self.id)) + " : Receive Proxy LLDP Packet (" + str(hex(switch_src)) + ")")
 						# print(lldp_msg)
 
+						db_message = {"switch_dst": hex(switch_id),
+									  "port_dst": port,
+									  "switch_src": hex(switch_src),
+									  "port_src": msg.in_port,
+									  "timestamp": datetime.datetime.utcnow()}
+
 						# Write to database
 						try:
-							self.db.topology.insert_one({"switch_dst": hex(switch_id),
-													 	 "port_dst": port,
-													 	 "switch_src": hex(switch_src),
-													 	 "port_src": msg.in_port,
-													 	 "timestamp": datetime.datetime.utcnow()})
+							self.db.topology.insert_one(db_message)
 						except:
 							if(self.id != None):
 								print(datetime.datetime.now().strftime('%Y/%m/%d %H:%M:%S') + " : ERROR [" + str(hex(self.id)) + "] --- Failed to write data into database")
 							else:
 								print(datetime.datetime.now().strftime('%Y/%m/%d %H:%M:%S') + " : ERROR [" + str(self.id) + "] --- Failed to write data into database")
-
 						return
 
 					elif lldp_msg.tlvs[3].tlv_info != "ProxyTopologyMonitorLLDP":
@@ -312,15 +317,15 @@ class MessageWatcherAgentThread(multiprocessing.Process):
 		prof.add_function(self.upstream_parse)
 		prof.add_function(self.downstream_sender)
 		prof.add_function(self.upstream_sender)
-		prof.add_function(self.downstream_buffer)
-		prof.add_function(self.upstream_buffer)
+		# prof.add_function(self.downstream_buffer)
+		# prof.add_function(self.upstream_buffer)
 		prof.runcall(self.run_with_profile, prof)
 		
 	def run_with_profile(self, prof):
 		while(self.is_alive):
 			self.loop()
 			# prof.print_stats()
-			prof.dump_stats('prof-%d.lprof' % int(multiprocessing.current_process().pid))
+			prof.dump_stats('prof-watcher-%d.lprof' % int(multiprocessing.current_process().pid))
 
 	def run(self):
 		while(self.is_alive):
@@ -586,7 +591,10 @@ class MessageWatcher(object):
 	def run(self):
 		for i in range(5):
 			message_parser = MessageParserAgentThread()
-			message_parser_process = multiprocessing.Process(target=message_parser.run)
+			if(self.args.profile):
+				message_parser_process = multiprocessing.Process(target=message_parser.profile_run)
+			else:
+				message_parser_process = multiprocessing.Process(target=message_parser.run)
 			message_parser_process.start()
 			self.parser_list.append(message_parser_process)
 

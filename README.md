@@ -8,7 +8,7 @@
 
 ### Install Command
 
-Recommended OS : Ubuntu Server 16.04
+Recommended OS : Ubuntu Server 20.04
 
 Install Mininet & Open vSwitch
 ```
@@ -17,19 +17,14 @@ Install Mininet & Open vSwitch
 
 Install Ryu SDN Library
 ```
-# git clone https://github.com/boom10899/ryuInstallHelper.git
-# cd ryuInstallHelper
-# sudo bash ryuInstallHelper.sh
-# cd ~/ryu
-# sudo pip install -r tools/pip-requires
-# sudo apt-get install -y python-lzma
-# sudo python -m pip install pymongo
+# sudo apt-get install -y python3-pip libffi-dev libssl-dev libxml2-dev libxslt1-dev zlib1g-dev
+# pip3 install ryu pymongo line_profiler
 ```
 
-Install MongoDB 3.4
+Install MongoDB 3.6
 ```
-# wget -qO - https://www.mongodb.org/static/pgp/server-3.4.asc | sudo apt-key add -
-# echo "deb [ arch=amd64,arm64 ] http://repo.mongodb.org/apt/ubuntu xenial/mongodb-org/3.4 multiverse" | sudo tee /etc/apt/sources.list.d/mongodb-org-3.4.list
+# wget -qO - https://www.mongodb.org/static/pgp/server-3.6.asc | sudo apt-key add -
+# echo "deb [ arch=amd64 ] https://repo.mongodb.org/apt/ubuntu bionic/mongodb-org/3.6 multiverse" | sudo tee /etc/apt/sources.list.d/mongodb-org-3.6.list
 # sudo apt-get update
 # sudo apt-get install -y mongodb-org
 # sudo service mongod start
@@ -56,7 +51,7 @@ Run simple controller
 
 Run monitoring tool
 ```
-# python opimon/Proxy\ Monitor/proxyMonitor.py
+# python3 opimon/Proxy\ Monitor/proxyMonitor.py
 ```
 
 Run visualization server

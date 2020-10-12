@@ -53,6 +53,7 @@ class MessageParserAgentThread(multiprocessing.Process):
 		self.datapath = ofproto_protocol.ProtocolDesc(version=0x01)
 
 	def profile_run(self):
+		print("MessageParser: ", multiprocessing.current_process().pid)
 		# cProfile.runctx('self.run()', globals(), locals(), 'prof-%d.prof' % int(multiprocessing.current_process().pid))
 
 		prof = line_profiler.LineProfiler()
@@ -130,10 +131,6 @@ class MessageParserAgentThread(multiprocessing.Process):
 			try:
 				self.db.flow_mods.insert_one(db_message)
 				# pass
-				# if(self.id != None):
-				# 	print(datetime.datetime.now().strftime('%Y/%m/%d %H:%M:%S') + " : [" + str(hex(self.id)) + "] --- Received FlowMod message")
-				# else:
-				# 	print(datetime.datetime.now().strftime('%Y/%m/%d %H:%M:%S') + " : [" + str(self.id) + "] --- Received FlowMod message")
 			except:
 				if(self.id != None):
 					print(datetime.datetime.now().strftime('%Y/%m/%d %H:%M:%S') + " : ERROR [" + str(hex(self.id)) + "] --- Failed to write data into database")
@@ -158,6 +155,7 @@ class MessageParserAgentThread(multiprocessing.Process):
 
 				try:
 					self.db.switch_port.insert_one(db_message)
+					# pass
 				except:
 					if(self.id != None):
 						print(datetime.datetime.now().strftime('%Y/%m/%d %H:%M:%S') + " : ERROR [" + str(hex(self.id)) + "] --- Failed to write data into database")
@@ -208,6 +206,7 @@ class MessageParserAgentThread(multiprocessing.Process):
 
 					try:
 						self.db.flow_stats.insert_one(db_message)
+						# pass
 					except:
 						if(self.id != None):
 							print(datetime.datetime.now().strftime('%Y/%m/%d %H:%M:%S') + " : ERROR [" + str(hex(self.id)) + "] --- Failed to write data into database")
@@ -238,6 +237,7 @@ class MessageParserAgentThread(multiprocessing.Process):
 
 					try:
 						self.db.port_stats.insert_one(db_message)
+						# pass
 					except:
 						if(self.id != None):
 							print(datetime.datetime.now().strftime('%Y/%m/%d %H:%M:%S') + " : ERROR [" + str(hex(self.id)) + "] --- Failed to write data into database")
@@ -309,6 +309,7 @@ class MessageWatcherAgentThread(multiprocessing.Process):
 		self.send_socks = set([])
 
 	def profile_run(self):
+		print("MessageWatcher: ", multiprocessing.current_process().pid)
 		# cProfile.runctx('self.run()', globals(), locals(), 'prof-%d.prof' % int(multiprocessing.current_process().pid))
 
 		prof = line_profiler.LineProfiler()
@@ -589,7 +590,7 @@ class MessageWatcher(object):
 		self.run()
 
 	def run(self):
-		for i in range(5):
+		for i in range(1):
 			message_parser = MessageParserAgentThread()
 			if(self.args.profile):
 				message_parser_process = multiprocessing.Process(target=message_parser.profile_run)

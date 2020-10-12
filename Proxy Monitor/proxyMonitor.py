@@ -62,7 +62,7 @@ class MessageParserAgentThread(multiprocessing.Process):
 		prof.runcall(self.run_with_profile, prof)
 
 	def run_with_profile(self, prof):
-		client = MongoClient('127.0.0.1', 27017)
+		client = MongoClient('163.221.29.154', 27017)
 		self.db = client.opimon
 
 		while(True):
@@ -71,7 +71,7 @@ class MessageParserAgentThread(multiprocessing.Process):
 			prof.dump_stats('prof-parser-%d.lprof' % int(multiprocessing.current_process().pid))
 
 	def run(self):
-		client = MongoClient('127.0.0.1', 27017)
+		client = MongoClient('163.221.29.154', 27017)
 		self.db = client.opimon
 
 		while(True):
@@ -620,7 +620,7 @@ if __name__ == '__main__':
 	print("Opimon (Monitoring Tool) is running.")
 
 	LISTEN_HOST, LISTEN_PORT = '0.0.0.0', 6753
-	# FORWARD_HOST, FORWARD_PORT = 'sd-lemon.naist.jp', 3000
-	FORWARD_HOST, FORWARD_PORT = 'localhost', 6733
+	FORWARD_HOST, FORWARD_PORT = '163.221.29.152', 6733
+	# FORWARD_HOST, FORWARD_PORT = 'localhost', 6733
 	manager = MessageWatcher(LISTEN_HOST, LISTEN_PORT, FORWARD_HOST, FORWARD_PORT)
 	manager.start()

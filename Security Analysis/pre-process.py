@@ -42,6 +42,20 @@ def pcap_process(pcap_name, csv_name):
                     print("", file=f, end=",")
                     print("", file=f)
 
+def labeling(csv_name, ddos_name, labeled_name):
+    packets = pd.read_csv(csv_name, skipinitialspace=True)
+    packets['Event'] = 'normal'
+
+    ddos_list = pd.read_csv(ddos_name, skipinitialspace=True)
+    ddos_list['Start Time(UNIX)'] = ddos_list['Start Time'].map(lambda x: int(pd.to_datetime(x).timestamp() + 18000))
+    ddos_list['Stop Time(UNIX)'] = ddos_list['Stop Time'].map(lambda x: int(pd.to_datetime(x).timestamp() + 18000))
+
+    for StartTime, StopTime, DDoS_IP_src, DDoS_IP_dst, DDoS_IP_dport in zip(ddos_list['Start Time(UNIX)'], ddos_list['Stop Time(UNIX)'], ddos_list['Source IP'], ddos_list['Destination IP'], ddos_list['Destination Port(s)']):
+        # print("{0} {1} {2} {3}".format(StartTime, StopTime, DDoS_IP_src, DDoS_IP_dst))
+        packets.loc[(packets['Time'] >= StartTime) & (packets['Time'] <= StopTime) & (packets['IP.src'] == DDoS_IP_src) & (packets['IP.dst'] == DDoS_IP_dst), 'Event'] = 'ddos'
+
+    packets.to_csv(labeled_name, index=False, header=True)
+
 def clear_values():
     global packets_count, throughput, proto_set, proto_count_TCP, proto_count_UDP, proto_count_ICMP
     global flags_set, flags_count_PA, flags_count_FPA, flags_count_S, flags_count_SA, flags_count_A, flags_count_FA
@@ -77,8 +91,7 @@ def packet_counter(csv_name, ts_name):
     with open(ts_name, 'w') as f:
         print("Time,throughput,packets_count,avg_size,proto_set,proto_count_TCP,proto_count_UDP,proto_count_ICMP,flags_set,flags_count_PA,flags_count_FPA,flags_count_S,flags_count_SA,flags_count_A,flags_count_FA,IP_src_set,IP_dst_set,IP_sport_set,IP_dport_set", file=f)
 
-    # for Time,IP_proto,TCP_flag,IP_src,IP_dst,IP_sport,IP_dport,Event in zip(df["Time"],df["IP.proto"],df["TCP.flags"],df["IP.src"],df["IP.dst"],df["IP.sport"],df["IP.dport"],df["Event"]):
-    for Time, Size, IP_proto, TCP_flag, IP_src, IP_dst, IP_sport, IP_dport in zip(df["Time"], df["Size"], df["IP.proto"], df["TCP.flags"], df["IP.src"], df["IP.dst"], df["IP.sport"], df["IP.dport"]):
+    for Time, Size, IP_proto, TCP_flag, IP_src, IP_dst, IP_sport, IP_dport, Event in zip(df["Time"], df["Size"], df["IP.proto"], df["TCP.flags"], df["IP.src"], df["IP.dst"], df["IP.sport"], df["IP.dport"], df["Event"]):
         # print(Time)
         if(Time > next_time):
             with open(ts_name, 'a') as f:
@@ -104,6 +117,10 @@ def packet_counter(csv_name, ts_name):
                 # print(ddos_flag)
             clear_values()
             next_time += 1
+
+        if(Event == "ddos"):
+            print("DDoS")
+            continue
 
         throughput += int(Size)
         packets_count += 1
@@ -131,8 +148,6 @@ def packet_counter(csv_name, ts_name):
         IP_dst_set.add(IP_dst)
         IP_sport_set.add(IP_sport)
         IP_dport_set.add(IP_dport)
-        # if(Event=="ddos"):
-        # 	ddos_flag=1
 
 def sum_file():
     output_file = '/work/wassapon-w/data/network/DARPA_Scalable_Network_Monitoring-20091103/ts_output.csv'
@@ -175,8 +190,12 @@ def main():
     csv_name = csv_dir + pcap_file[i] + ".csv"
     pcap_process(pcap_name, csv_name)
 
+    ddos_name = pcap_dir + "ddos_list.csv"
+    labeled_name = csv_dir + "labeled_" + pcap_file[i] + ".csv"
+    labeling(csv_name, ddos_name, labeled_name)
+
     ts_name = ts_dir + "ts_" + pcap_file[i] + ".csv"
-    packet_counter(csv_name, ts_name)
+    packet_counter(labeled_name, ts_name)
 
 if __name__ == "__main__":
     main()

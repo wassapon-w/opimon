@@ -79,6 +79,29 @@ def clear_values():
     IP_dport_set = set()
     ddos_flag = 0
 
+def write_values(ts_name, time):
+    with open(ts_name, 'a') as f:
+        print(time, file=f, end=",")
+        print(throughput, file=f, end=",")
+        print(packets_count, file=f, end=",")
+        print(throughput/packets_count, file=f, end=",")
+        print(len(proto_set), file=f, end=",")
+        print(proto_count_TCP, file=f, end=",")
+        print(proto_count_UDP, file=f, end=",")
+        print(proto_count_ICMP, file=f, end=",")
+        print(len(flags_set), file=f, end=",")
+        print(flags_count_PA, file=f, end=",")
+        print(flags_count_FPA, file=f, end=",")
+        print(flags_count_S, file=f, end=",")
+        print(flags_count_SA, file=f, end=",")
+        print(flags_count_A, file=f, end=",")
+        print(flags_count_FA, file=f, end=",")
+        print(len(IP_src_set), file=f, end=",")
+        print(len(IP_dst_set), file=f, end=",")
+        print(len(IP_sport_set), file=f, end=",")
+        print(len(IP_dport_set), file=f)
+        # print(ddos_flag)
+
 def packet_counter(csv_name, ts_name):
     df = pd.read_csv(csv_name, skipinitialspace=True)
 
@@ -87,6 +110,7 @@ def packet_counter(csv_name, ts_name):
     global IP_src_set, IP_dst_set, IP_sport_set, IP_dport_set, ddos_flag
     clear_values()
     next_time = df["Time"][0] + 1
+    last_time = 0
 
     with open(ts_name, 'w') as f:
         print("Time,throughput,packets_count,avg_size,proto_set,proto_count_TCP,proto_count_UDP,proto_count_ICMP,flags_set,flags_count_PA,flags_count_FPA,flags_count_S,flags_count_SA,flags_count_A,flags_count_FA,IP_src_set,IP_dst_set,IP_sport_set,IP_dport_set", file=f)
@@ -94,27 +118,7 @@ def packet_counter(csv_name, ts_name):
     for Time, Size, IP_proto, TCP_flag, IP_src, IP_dst, IP_sport, IP_dport, Event in zip(df["Time"], df["Size"], df["IP.proto"], df["TCP.flags"], df["IP.src"], df["IP.dst"], df["IP.sport"], df["IP.dport"], df["Event"]):
         # print(Time)
         if(Time > next_time):
-            with open(ts_name, 'a') as f:
-                print(Time, file=f, end=",")
-                print(throughput, file=f, end=",")
-                print(packets_count, file=f, end=",")
-                print(throughput/packets_count, file=f, end=",")
-                print(len(proto_set), file=f, end=",")
-                print(proto_count_TCP, file=f, end=",")
-                print(proto_count_UDP, file=f, end=",")
-                print(proto_count_ICMP, file=f, end=",")
-                print(len(flags_set), file=f, end=",")
-                print(flags_count_PA, file=f, end=",")
-                print(flags_count_FPA, file=f, end=",")
-                print(flags_count_S, file=f, end=",")
-                print(flags_count_SA, file=f, end=",")
-                print(flags_count_A, file=f, end=",")
-                print(flags_count_FA, file=f, end=",")
-                print(len(IP_src_set), file=f, end=",")
-                print(len(IP_dst_set), file=f, end=",")
-                print(len(IP_sport_set), file=f, end=",")
-                print(len(IP_dport_set), file=f)
-                # print(ddos_flag)
+            write_values(ts_name, last_time)
             clear_values()
             next_time += 1
 
@@ -148,19 +152,37 @@ def packet_counter(csv_name, ts_name):
         IP_dst_set.add(IP_dst)
         IP_sport_set.add(IP_sport)
         IP_dport_set.add(IP_dport)
+        last_time = Time
+    
+    write_values(ts_name, last_time)
 
 def sum_file():
-    output_file = '/work/wassapon-w/data/network/DARPA_Scalable_Network_Monitoring-20091103/ts_output.csv'
+    # output_file = '/work/wassapon-w/data/network/DARPA_Scalable_Network_Monitoring-20091103/ts_output.csv'
+    # output_data = []
 
-    with open(output_file, 'w') as f:
-        print("Time,throughput,packets_count,avg_size,proto_set,proto_count_TCP,proto_count_UDP,proto_count_ICMP,flags_set,flags_count_PA,flags_count_FPA,flags_count_S,flags_count_SA,flags_count_A,flags_count_FA,IP_src_set,IP_dst_set,IP_sport_set,IP_dport_set", file=f)
+    # with open(output_file, 'w') as f:
+    #     print("Time,throughput,packets_count,avg_size,proto_set,proto_count_TCP,proto_count_UDP,proto_count_ICMP,flags_set,flags_count_PA,flags_count_FPA,flags_count_S,flags_count_SA,flags_count_A,flags_count_FA,IP_src_set,IP_dst_set,IP_sport_set,IP_dport_set", file=f)
 
     for i in range(1,11):
+        output_file = '/work/wassapon-w/darpa_ts/ts_output_day'+str(i)+'.csv'
+        output_norm_file = '/work/wassapon-w/darpa_ts/ts_output_day'+str(i)+'_norm.csv'
+        output_data = []
+
         folder = glob.glob("/work/wassapon-w/data/network/DARPA_Scalable_Network_Monitoring-20091103/set"+str(i)+"/ts/*.csv") 
         for file in folder:
-            df = pd.read_csv(file, skipinitialspace=True, header=0) 
-            df.to_csv(output_file, mode='a', index=False, header=False)
+            df = pd.read_csv(file, skipinitialspace=True, header=0, index_col=0)
+            output_data.append(df)
+        all_data = pd.concat(output_data, axis=0)
+        all_data_sorted = all_data.sort_values(by=['Time'])
+        all_data_sorted.to_csv(output_file, index=True, header=True)
 
+        all_data_norm = all_data_sorted.copy()
+        for feature_name in all_data_sorted.columns:
+            max_value = all_data_sorted[feature_name].max()
+            min_value = all_data_sorted[feature_name].min()
+            all_data_norm[feature_name] = (all_data_sorted[feature_name] - min_value) / (max_value - min_value)
+        all_data_norm.to_csv(output_norm_file, index=True, header=True)
+        
 def main():
     pcap_dir = sys.argv[1]
     csv_dir = sys.argv[1] + "csv/"

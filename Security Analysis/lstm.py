@@ -20,8 +20,8 @@ def split_sequence(sequence, n_steps):
 		y.append(seq_y)
 	return array(X), array(y)
 
-for t in range(0, 1):
-    for l in range(0, 1):
+for t in range(0, 17):
+    for l in range(0, 19):
         start = time.time()
 
         time_series = pd.read_csv('/work/wassapon-w/darpa_ts/ts_output_day1_norm.csv', header=0, index_col=0)

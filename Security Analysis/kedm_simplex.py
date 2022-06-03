@@ -5,6 +5,7 @@ import time
 
 target_list = ["throughput", "packets_count", "avg_size", "proto_set", "proto_count_TCP", "proto_count_UDP", "proto_count_ICMP", "flags_set", "flags_count_PA", "flags_count_FPA", "flags_count_S", "flags_count_SA", "flags_count_A", "flags_count_FA", "IP_src_set", "IP_dst_set", "IP_sport_set", "IP_dport_set"]
 
+print("method,target,E,tau,Tp,Time(Second)")
 for t in range(0, 17):
     print(target_list[t])
     for e in range(1, 21):
@@ -22,8 +23,6 @@ for t in range(0, 17):
 
                 shift = (e - 1) * tau + tp
 
-                print(e, " ", tau, " ", tp, " : ", len(pd.DataFrame(simplex_result)[:-tp]), " / ", len(data_test[target_list[t]]), " - ", shift, " = ", len(data_test[target_list[t]][shift:]))
-
                 output = pd.DataFrame()
                 output = pd.concat((pd.DataFrame(data_test[target_list[t]][shift:]), pd.DataFrame(simplex_result)[:-tp].set_index(data_test[shift:].index)), axis=1)
                 output.columns = ["Observations", "Predictions"]
@@ -34,4 +33,4 @@ for t in range(0, 17):
                 # np.savetxt("/home/boom/simplex_result.csv", simplex_result, delimiter=",")
 
                 end = time.time()
-                print("E = " + str(e) + " tau = " + str(tau) + " Tp = " + str(tp) + " : " + str(end - start))
+                print("kEDM," + target_list[t] + "," + str(e) + "," + str(tau) + "," + str(tp) + "," + str(end - start))

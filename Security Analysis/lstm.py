@@ -20,6 +20,8 @@ def split_sequence(sequence, n_steps):
 		y.append(seq_y)
 	return array(X), array(y)
 
+print("method,target,lags,Time(Second)")
+
 for t in range(0, 17):
     for l in range(0, 19):
         start = time.time()
@@ -55,4 +57,4 @@ for t in range(0, 17):
         # output.to_csv('/Users/boom/Desktop/ts_output_day1_lstm_'+target_list[t]+'_'+str(n_steps)+'.csv', index=True, header=True)
 
         end = time.time()
-        print("LSTM : " + target_list[t] + " : lags : " + str(n_steps) + " : " + str(end - start))
+        print("LSTM," + target_list[t] + "," + str(n_steps) + "," + str(end - start))

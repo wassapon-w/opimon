@@ -6,6 +6,7 @@ target_list = ["throughput", "packets_count", "avg_size", "proto_set", "proto_co
 
 t = int(sys.argv[1]) - 1
 
+print("method,target,E,tau,Time(Second)")
 # for t in range(0, 17):
 print(target_list[t])
 for e in range(1, 21):
@@ -16,5 +17,5 @@ for e in range(1, 21):
         start = time.time()
         pyEDM.Simplex( pathIn = "/work/wassapon-w/darpa_ts/", dataFile = "ts_output_day1_norm.csv", pathOut = "/work/wassapon-w/network_output/", predictFile = "ts_output_day1_"+target_list[t]+"_E"+str(e)+"_tau"+str(tau)+".csv", lib = "1 27817", pred = "27818 55634",  E = e, tau = tau, embedded = False, columns=target_list[t], target=target_list[t]) 
         end = time.time()
-        print("E = " + str(e) + " tau = " + str(tau) + " : " + str(end - start))
+        print("pyEDM," + target_list[t] + "," + str(e) + "," + str(tau) + "," + str(end - start))
 print("----------")

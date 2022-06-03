@@ -8,6 +8,8 @@ from math import sqrt
 target_list = ["throughput", "packets_count", "avg_size", "proto_set", "proto_count_TCP", "proto_count_UDP", "proto_count_ICMP", "flags_set", "flags_count_PA", "flags_count_FPA", "flags_count_S", "flags_count_SA", "flags_count_A", "flags_count_FA", "IP_src_set", "IP_dst_set", "IP_sport_set", "IP_dport_set"]
 lags = [10, 20, 30, 40, 50, 60, 70, 80, 90, 100, 110, 120, 130, 140, 150, 160, 170, 180, 190]
 
+print("method,target,lags,Time(Second)")
+
 for t in range(0, 17):
     for l in range(0, 19):
         start = time.time()
@@ -28,7 +30,7 @@ for t in range(0, 17):
         output.to_csv('/work/wassapon-w/network_output/ts_output_day1_auto_regression_'+target_list[t]+'_'+str(lags[l])+'.csv', index=True, header=True)
 
         end = time.time()
-        print("Auto Regression : " + target_list[t] + " : lags : " + str(lags[l]) + " : " + str(end - start))
+        print("AutoReg," + target_list[t] + "," + str(lags[l]) + "," + str(end - start))
 
         # for i in range(len(predictions)):
         #     print('predicted=%f, expected=%f' % (predictions[i], test[i]))

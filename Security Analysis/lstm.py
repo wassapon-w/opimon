@@ -22,7 +22,7 @@ def split_sequence(sequence, n_steps):
 
 print("method,target,lags,Time(Second)")
 
-for t in range(0, 17):
+for t in range(0, 18):
     for l in range(0, 19):
         start = time.time()
 

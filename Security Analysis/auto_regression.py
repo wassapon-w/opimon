@@ -10,7 +10,7 @@ lags = [10, 20, 30, 40, 50, 60, 70, 80, 90, 100, 110, 120, 130, 140, 150, 160, 1
 
 print("method,target,lags,Time(Second)")
 
-for t in range(0, 17):
+for t in range(0, 18):
     for l in range(0, 19):
         start = time.time()
         time_series = pd.read_csv('/work/wassapon-w/darpa_ts/ts_output_day1_norm.csv', header=0, index_col=0)

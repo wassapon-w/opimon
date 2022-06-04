@@ -13,7 +13,9 @@ print("method,target,lags,Time(Second)")
 for t in range(0, 18):
     for l in range(0, 19):
         start = time.time()
+
         time_series = pd.read_csv('/work/wassapon-w/darpa_ts/ts_output_day1_norm.csv', header=0, index_col=0)
+        # time_series = pd.read_csv('/work/wassapon-w/darpa_ts/ts_ddos_output_day1_norm.csv', header=0, index_col=0)
 
         steps = 27817
         data_train = time_series[:-steps]
@@ -28,6 +30,7 @@ for t in range(0, 18):
         output.columns = ["Observations", "Predictions"]
 
         output.to_csv('/work/wassapon-w/network_output/ts_output_day1_auto_regression_'+target_list[t]+'_'+str(lags[l])+'.csv', index=True, header=True)
+        # output.to_csv('/work/wassapon-w/network_ddos_output/ts_ddos_output_day1_auto_regression_'+target_list[t]+'_'+str(lags[l])+'.csv', index=True, header=True)
 
         end = time.time()
         print("AutoReg," + target_list[t] + "," + str(lags[l]) + "," + str(end - start))

@@ -16,7 +16,7 @@ for e in range(1, 21):
             start = time.time()
 
             time_series = pd.read_csv('/work/wassapon-w/darpa_ts/ts_output_day1_norm.csv', header=0, index_col=0)
-            # time_series = pd.read_csv('/Users/boom/Desktop/darpa_ts/ts_output_day1_norm.csv', header=0, index_col=0)
+            # time_series = pd.read_csv('/work/wassapon-w/darpa_ts/ts_ddos_output_day1_norm.csv', header=0, index_col=0)
 
             steps = 27817
             data_train = time_series[:-steps]
@@ -30,7 +30,7 @@ for e in range(1, 21):
             output.columns = ["Observations", "Predictions"]
 
             output.to_csv("/work/wassapon-w/network_output/kedm/ts_output_day1_kedm_"+target_list[t]+"_E"+str(e)+"_tau"+str(tau)+"_tp"+str(tp)+".csv", index=True, header=True)
-            # output.to_csv("/Users/boom/Desktop/test/ts_output_day1_kedm_"+target_list[t]+"_E"+str(e)+"_tau"+str(tau)+".csv", index=True, header=True)
+            # output.to_csv("/work/wassapon-w/network_ddos_output/kedm/ts_ddos_output_day1_kedm_"+target_list[t]+"_E"+str(e)+"_tau"+str(tau)+"_tp"+str(tp)+".csv", index=True, header=True)
 
             # np.savetxt("/home/boom/simplex_result.csv", simplex_result, delimiter=",")
 

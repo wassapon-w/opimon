@@ -27,7 +27,7 @@ for t in range(0, 18):
         start = time.time()
 
         time_series = pd.read_csv('/work/wassapon-w/darpa_ts/ts_output_day1_norm.csv', header=0, index_col=0)
-        # time_series = pd.read_csv('/Users/boom/Desktop/darpa_ts/ts_output_day1_norm.csv', header=0, index_col=0)
+        # time_series = pd.read_csv('/work/wassapon-w/darpa_ts/ts_ddos_output_day1_norm.csv', header=0, index_col=0)
 
         steps = 27817
         data_train = time_series[:-steps]
@@ -54,7 +54,7 @@ for t in range(0, 18):
         output.columns = ["Observations", "Predictions"]
 
         output.to_csv('/work/wassapon-w/network_output/ts_output_day1_lstm_'+target_list[t]+'_'+str(n_steps)+'.csv', index=True, header=True)
-        # output.to_csv('/Users/boom/Desktop/ts_output_day1_lstm_'+target_list[t]+'_'+str(n_steps)+'.csv', index=True, header=True)
+        # output.to_csv('/work/wassapon-w/network_ddos_output/ts_ddos_output_day1_lstm_'+target_list[t]+'_'+str(n_steps)+'.csv', index=True, header=True)
 
         end = time.time()
         print("LSTM," + target_list[t] + "," + str(n_steps) + "," + str(end - start))

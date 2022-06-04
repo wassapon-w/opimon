@@ -187,6 +187,7 @@ def main():
     pcap_dir = sys.argv[1]
     csv_dir = sys.argv[1] + "csv/"
     ts_dir = sys.argv[1] + "ts/"
+    # ts_dir = sys.argv[1] + "ts_ddos/"
 
     print("Directory: " + str(sys.argv[1]))
     # print("File Number: " + str(sys.argv[2]) + " to " + str(sys.argv[3]))
@@ -217,6 +218,7 @@ def main():
     labeling(csv_name, ddos_name, labeled_name)
 
     ts_name = ts_dir + "ts_" + pcap_file[i] + ".csv"
+    # ts_name = ts_dir + "ts_ddos_" + pcap_file[i] + ".csv"
     packet_counter(labeled_name, ts_name)
 
 if __name__ == "__main__":

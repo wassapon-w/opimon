@@ -18,4 +18,3 @@ for e in range(1, 21):
         pyEDM.Simplex( pathIn = "/work/wassapon-w/darpa_ts/", dataFile = "ts_output_day1_norm.csv", pathOut = "/work/wassapon-w/network_output/", predictFile = "ts_output_day1_"+target_list[t]+"_E"+str(e)+"_tau"+str(tau)+".csv", lib = "1 27817", pred = "27818 55634",  E = e, tau = tau, embedded = False, columns=target_list[t], target=target_list[t]) 
         end = time.time()
         print("pyEDM," + target_list[t] + "," + str(e) + "," + str(tau) + "," + str(end - start))
-print("----------")

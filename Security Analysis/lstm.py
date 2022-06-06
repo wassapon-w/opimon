@@ -27,11 +27,11 @@ for t in range(0, 18):
         start = time.time()
 
         time_series = pd.read_csv('/work/wassapon-w/darpa_ts/ts_output_day1_norm.csv', header=0, index_col=0)
-        # time_series = pd.read_csv('/work/wassapon-w/darpa_ts/ts_ddos_output_day1_norm.csv', header=0, index_col=0)
+        time_series_ddos = pd.read_csv('/work/wassapon-w/darpa_ts/ts_ddos_output_day1_norm.csv', header=0, index_col=0)
 
         steps = 27817
         data_train = time_series[:-steps]
-        data_test  = time_series[-steps:]
+        data_test  = time_series_ddos[-steps:]
 
         n_steps = lags[l]
         x_train, y_train = split_sequence(data_train[target_list[t]].reset_index(drop=True).to_numpy(), n_steps)
@@ -53,8 +53,8 @@ for t in range(0, 18):
         output = pd.concat([data_test[target_list[t]][n_steps:], pd.DataFrame(predictions).set_index(data_test[n_steps:].index)], axis=1)
         output.columns = ["Observations", "Predictions"]
 
-        output.to_csv('/work/wassapon-w/network_output/ts_output_day1_lstm_'+target_list[t]+'_'+str(n_steps)+'.csv', index=True, header=True)
-        # output.to_csv('/work/wassapon-w/network_ddos_output/ts_ddos_output_day1_lstm_'+target_list[t]+'_'+str(n_steps)+'.csv', index=True, header=True)
+        # output.to_csv('/work/wassapon-w/network_output/ts_output_day1_lstm_'+target_list[t]+'_'+str(n_steps)+'.csv', index=True, header=True)
+        output.to_csv('/work/wassapon-w/network_ddos_output/ts_ddos_output_day1_lstm_'+target_list[t]+'_'+str(n_steps)+'.csv', index=True, header=True)
 
         end = time.time()
         print("LSTM," + target_list[t] + "," + str(n_steps) + "," + str(end - start))

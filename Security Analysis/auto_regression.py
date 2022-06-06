@@ -15,11 +15,11 @@ for t in range(0, 18):
         start = time.time()
 
         time_series = pd.read_csv('/work/wassapon-w/darpa_ts/ts_output_day1_norm.csv', header=0, index_col=0)
-        # time_series = pd.read_csv('/work/wassapon-w/darpa_ts/ts_ddos_output_day1_norm.csv', header=0, index_col=0)
+        time_series_ddos = pd.read_csv('/work/wassapon-w/darpa_ts/ts_ddos_output_day1_norm.csv', header=0, index_col=0)
 
         steps = 27817
         data_train = time_series[:-steps]
-        data_test  = time_series[-steps:]
+        data_test  = time_series_ddos[-steps:]
 
         model = AutoReg(data_train[target_list[t]], lags=lags[l])
         model_fit = model.fit()
@@ -29,13 +29,8 @@ for t in range(0, 18):
         output = pd.concat([data_test[target_list[t]], predictions.to_frame().set_index(data_test.index)], axis=1)
         output.columns = ["Observations", "Predictions"]
 
-        output.to_csv('/work/wassapon-w/network_output/ts_output_day1_auto_regression_'+target_list[t]+'_'+str(lags[l])+'.csv', index=True, header=True)
-        # output.to_csv('/work/wassapon-w/network_ddos_output/ts_ddos_output_day1_auto_regression_'+target_list[t]+'_'+str(lags[l])+'.csv', index=True, header=True)
+        # output.to_csv('/work/wassapon-w/network_output/ts_output_day1_auto_regression_'+target_list[t]+'_'+str(lags[l])+'.csv', index=True, header=True)
+        output.to_csv('/work/wassapon-w/network_ddos_output/ts_ddos_output_day1_auto_regression_'+target_list[t]+'_'+str(lags[l])+'.csv', index=True, header=True)
 
         end = time.time()
         print("AutoReg," + target_list[t] + "," + str(lags[l]) + "," + str(end - start))
-
-        # for i in range(len(predictions)):
-        #     print('predicted=%f, expected=%f' % (predictions[i], test[i]))
-        # rmse = sqrt(mean_squared_error(test, predictions))
-        # print('Test RMSE: %.3f' % rmse)

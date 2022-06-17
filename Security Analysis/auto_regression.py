@@ -17,6 +17,8 @@ for t in range(0, 18):
             lags = (e-1)*tau
             if lags <= 0:
                 lags = 1
+            else:
+                lags += 1
 
             start = time.time()
 
@@ -25,19 +27,19 @@ for t in range(0, 18):
 
             steps = 27817
             data_train = time_series[:-steps]
-            data_test  = time_series[-steps:]
-            # data_test  = time_series_ddos[-steps:]
+            # data_test  = time_series[-steps:]
+            data_test  = time_series_ddos[-steps:]
 
             model = AutoReg(data_train[target_list[t]], lags=lags)
             model_fit = model.fit()
-            predictions = model_fit.predict(start=len(data_train[target_list[t]]), end=len(data_train[target_list[t]])+len(data_test[target_list[t]])-1, dynamic=False)
+            predictions = model_fit.predict(start=len(data_train[target_list[t]])+lags, end=len(data_train[target_list[t]])+len(data_test[target_list[t]])-1, dynamic=False)
 
             output = pd.DataFrame()
-            output = pd.concat([data_test[target_list[t]], predictions.to_frame().set_index(data_test.index)], axis=1)
+            output = pd.concat([data_test[target_list[t]][lags:], predictions.to_frame().set_index(data_test[lags:].index)], axis=1)
             output.columns = ["Observations", "Predictions"]
 
-            output.to_csv('/work/wassapon-w/network_output/autoreg/ts_output_day1_autoreg_'+target_list[t]+"_E"+str(e)+"_tau"+str(tau)+"_tp"+str(tp)+'.csv', index=True, header=True)
-            # output.to_csv('/work/wassapon-w/network_ddos_output/autoreg/ts_ddos_output_day1_autoreg_'+target_list[t]+"_E"+str(e)+"_tau"+str(tau)+"_tp"+str(tp)+'.csv', index=True, header=True)
+            # output.to_csv('/work/wassapon-w/network_output/autoreg/ts_output_day1_autoreg_'+target_list[t]+"_E"+str(e)+"_tau"+str(tau)+"_tp"+str(tp)+'.csv', index=True, header=True)
+            output.to_csv('/work/wassapon-w/network_ddos_output/autoreg/ts_ddos_output_day1_autoreg_'+target_list[t]+"_E"+str(e)+"_tau"+str(tau)+"_tp"+str(tp)+'.csv', index=True, header=True)
 
             end = time.time()
             print("AutoReg," + target_list[t] + "," + str(e) + "," + str(tau) + "," + str(tp) + "," + str(end - start))

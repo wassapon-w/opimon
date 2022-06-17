@@ -32,6 +32,8 @@ for e in range(1, 21):
         lags = (e-1)*tau
         if lags <= 0:
             lags = 1
+        else:
+            lags += 1
 
         start = time.time()
 

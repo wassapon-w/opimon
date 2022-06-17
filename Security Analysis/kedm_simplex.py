@@ -17,12 +17,12 @@ for e in range(1, 21):
 
             time_series = pd.read_csv('/work/wassapon-w/darpa_ts/ts_output_day1_norm.csv', header=0, index_col=0)
             time_series_ddos = pd.read_csv('/work/wassapon-w/darpa_ts/ts_ddos_output_day1_norm.csv', header=0, index_col=0)
-
+            
             steps = 27817
             data_train = time_series[:-steps]
-            data_test  = time_series[-steps:]
-            # data_test  = time_series_ddos[-steps:]
-            
+            # data_test  = time_series[-steps:]
+            data_test  = time_series_ddos[-steps:]
+
             simplex_result = kedm.simplex(data_train[target_list[t]].to_numpy(), data_test[target_list[t]].to_numpy(), e, tau, tp)
 
             shift = (e - 1) * tau + tp
@@ -31,8 +31,8 @@ for e in range(1, 21):
             output = pd.concat((pd.DataFrame(data_test[target_list[t]][shift:]), pd.DataFrame(simplex_result)[:-tp].set_index(data_test[shift:].index)), axis=1)
             output.columns = ["Observations", "Predictions"]
 
-            output.to_csv("/work/wassapon-w/network_output/kedm/ts_output_day1_kedm_"+target_list[t]+"_E"+str(e)+"_tau"+str(tau)+"_tp"+str(tp)+".csv", index=True, header=True)
-            # output.to_csv("/work/wassapon-w/network_ddos_output/kedm/ts_ddos_output_day1_kedm_"+target_list[t]+"_E"+str(e)+"_tau"+str(tau)+"_tp"+str(tp)+".csv", index=True, header=True)
+            # output.to_csv("/work/wassapon-w/network_output/kedm/ts_output_day1_kedm_"+target_list[t]+"_E"+str(e)+"_tau"+str(tau)+"_tp"+str(tp)+".csv", index=True, header=True)
+            output.to_csv("/work/wassapon-w/network_ddos_output/kedm/ts_ddos_output_day1_kedm_"+target_list[t]+"_E"+str(e)+"_tau"+str(tau)+"_tp"+str(tp)+".csv", index=True, header=True)
 
             end = time.time()
             print("kEDM," + target_list[t] + "," + str(e) + "," + str(tau) + "," + str(tp) + "," + str(end - start))

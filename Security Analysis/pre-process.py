@@ -99,8 +99,8 @@ def write_values(ts_name, time):
         print(len(IP_src_set), file=f, end=",")
         print(len(IP_dst_set), file=f, end=",")
         print(len(IP_sport_set), file=f, end=",")
-        print(len(IP_dport_set), file=f)
-        # print(ddos_flag)
+        print(len(IP_dport_set), file=f, end=",")
+        print(ddos_flag, file=f)
 
 def packet_counter(csv_name, ts_name):
     df = pd.read_csv(csv_name, skipinitialspace=True)
@@ -113,7 +113,7 @@ def packet_counter(csv_name, ts_name):
     last_time = 0
 
     with open(ts_name, 'w') as f:
-        print("Time,throughput,packets_count,avg_size,proto_set,proto_count_TCP,proto_count_UDP,proto_count_ICMP,flags_set,flags_count_PA,flags_count_FPA,flags_count_S,flags_count_SA,flags_count_A,flags_count_FA,IP_src_set,IP_dst_set,IP_sport_set,IP_dport_set", file=f)
+        print("Time,throughput,packets_count,avg_size,proto_set,proto_count_TCP,proto_count_UDP,proto_count_ICMP,flags_set,flags_count_PA,flags_count_FPA,flags_count_S,flags_count_SA,flags_count_A,flags_count_FA,IP_src_set,IP_dst_set,IP_sport_set,IP_dport_set,ddos_flag", file=f)
 
     for Time, Size, IP_proto, TCP_flag, IP_src, IP_dst, IP_sport, IP_dport, Event in zip(df["Time"], df["Size"], df["IP.proto"], df["TCP.flags"], df["IP.src"], df["IP.dst"], df["IP.sport"], df["IP.dport"], df["Event"]):
         # print(Time)
@@ -123,8 +123,9 @@ def packet_counter(csv_name, ts_name):
             next_time += 1
 
         if(Event == "ddos"):
+            ddos_flag = 1
             print("DDoS")
-            continue
+            # continue
 
         throughput += int(Size)
         packets_count += 1
@@ -186,8 +187,9 @@ def sum_file():
 def main():
     pcap_dir = sys.argv[1]
     csv_dir = sys.argv[1] + "csv/"
-    ts_dir = sys.argv[1] + "ts/"
+    # ts_dir = sys.argv[1] + "ts/"
     # ts_dir = sys.argv[1] + "ts_ddos/"
+    ts_dir = sys.argv[1] + "ts_ddos_labeled/"
 
     print("Directory: " + str(sys.argv[1]))
     # print("File Number: " + str(sys.argv[2]) + " to " + str(sys.argv[3]))
@@ -217,8 +219,8 @@ def main():
     labeled_name = csv_dir + "labeled_" + pcap_file[i] + ".csv"
     labeling(csv_name, ddos_name, labeled_name)
 
-    ts_name = ts_dir + "ts_" + pcap_file[i] + ".csv"
-    # ts_name = ts_dir + "ts_ddos_" + pcap_file[i] + ".csv"
+    # ts_name = ts_dir + "ts_" + pcap_file[i] + ".csv"
+    ts_name = ts_dir + "ts_ddos_labeled_" + pcap_file[i] + ".csv"
     packet_counter(labeled_name, ts_name)
 
 if __name__ == "__main__":

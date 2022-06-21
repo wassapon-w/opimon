@@ -13,7 +13,7 @@ print("method,target,E,tau,Tp,Time(Second)")
 
 for t in range(0, 18):
     for e in range(1, 21):
-        for tau in range(1,11):
+        for tau in range(1, 11):
             lags = (e-1)*tau
             if lags <= 0:
                 lags = 1

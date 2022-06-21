@@ -11,7 +11,7 @@ t = int(sys.argv[1]) - 1
 print("method,target,E,tau,Tp,Time(Second)")
 # for t in range(0, 18):
 for e in range(1, 21):
-    for tau in range(1,11):
+    for tau in range(1, 11):
         for tp in range(1, 6):
             start = time.time()
 

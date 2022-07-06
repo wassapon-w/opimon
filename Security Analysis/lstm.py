@@ -24,8 +24,8 @@ def split_sequence(sequence, n_steps):
 		y.append(seq_y)
 	return array(X), array(y)
 
-# runtime_log = '/work/wassapon-w/network_output/runtime/runtime_day1_normal_lstm_'+str(t)+'.csv'
-runtime_log = '/work/wassapon-w/network_ddos_output/runtime/runtime_day1_ddos_lstm_'+str(t)+'.csv'
+runtime_log = '/work/wassapon-w/network_output/runtime/runtime_day1_normal_lstm_'+str(t)+'.csv'
+# runtime_log = '/work/wassapon-w/network_ddos_output/runtime/runtime_day1_ddos_lstm_'+str(t)+'.csv'
 
 with open(runtime_log, 'w') as f:
     print("method,target,E,tau,Tp,Time(Second)")
@@ -46,8 +46,8 @@ for e in range(1, 21):
 
         steps = 27817
         data_train = time_series[:-steps]
-        # data_test  = time_series[-steps:]
-        data_test  = time_series_ddos[-steps:]
+        data_test  = time_series[-steps:]
+        # data_test  = time_series_ddos[-steps:]
 
         n_steps = lags
         x_train, y_train = split_sequence(data_train[target_list[t]].reset_index(drop=True).to_numpy(), n_steps)
@@ -69,8 +69,8 @@ for e in range(1, 21):
         output = pd.concat([data_test[target_list[t]][n_steps:], pd.DataFrame(predictions).set_index(data_test[n_steps:].index)], axis=1)
         output.columns = ["Observations", "Predictions"]
 
-        output.to_csv('/work/wassapon-w/network_output/lstm/ts_output_day2_lstm_'+target_list[t]+"_E"+str(e)+"_tau"+str(tau)+"_tp"+str(tp)+'.csv', index=True, header=True)
-        # output.to_csv('/work/wassapon-w/network_ddos_output/lstm/ts_ddos_output_day2_lstm_'+target_list[t]+"_E"+str(e)+"_tau"+str(tau)+"_tp"+str(tp)+'.csv', index=True, header=True)
+        output.to_csv('/work/wassapon-w/network_output/lstm/ts_output_day1_lstm_'+target_list[t]+"_E"+str(e)+"_tau"+str(tau)+"_tp"+str(tp)+'.csv', index=True, header=True)
+        # output.to_csv('/work/wassapon-w/network_ddos_output/lstm/ts_ddos_output_day1_lstm_'+target_list[t]+"_E"+str(e)+"_tau"+str(tau)+"_tp"+str(tp)+'.csv', index=True, header=True)
 
         end = time.time()
 

@@ -8,7 +8,7 @@ from math import sqrt
 target_list = ["throughput", "packets_count", "avg_size", "proto_set", "proto_count_TCP", "proto_count_UDP", "proto_count_ICMP", "flags_set", "flags_count_PA", "flags_count_FPA", "flags_count_S", "flags_count_SA", "flags_count_A", "flags_count_FA", "IP_src_set", "IP_dst_set", "IP_sport_set", "IP_dport_set"]
 tp = 1
 
-runtime_log = '/work/wassapon-w/network_output/autoreg/runtime_day1_normal_autoreg.csv'
+runtime_log = '/work/wassapon-w/network_output/runtime/runtime_day1_normal_autoreg.csv'
 # runtime_log = '/work/wassapon-w/network_ddos_output/runtime/runtime_day1_ddos_autoreg.csv'
 
 with open(runtime_log, 'w') as f:

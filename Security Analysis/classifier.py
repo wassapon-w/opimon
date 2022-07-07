@@ -19,7 +19,7 @@ df_ddos = pd.read_csv("/Users/boom/Desktop/darpa_ts/ts_ddos_labeled_output_day1_
 # df_ddos = pd.read_csv("/work/wassapon-w/darpa_ts/ts_ddos_labeled_output_day1_norm.csv")
 
 e = 19
-tau = 9
+tau = 1
 tp = 1
 m = 0
 

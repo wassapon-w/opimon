@@ -15,10 +15,10 @@ import seaborn as sns
 methods = ["kedm", "autoreg", "lstm", "arima"]
 target_list = ["throughput", "packets_count", "avg_size", "proto_set", "proto_count_TCP", "proto_count_UDP", "proto_count_ICMP", "flags_set", "flags_count_PA", "flags_count_FPA", "flags_count_S", "flags_count_SA", "flags_count_A", "flags_count_FA", "IP_src_set", "IP_dst_set", "IP_sport_set", "IP_dport_set"]
 
-df_ddos = pd.read_csv("/Users/boom/Desktop/darpa_ts/ts_ddos_labeled_output_day1_norm.csv")
+df_ddos = pd.read_csv("/Users/boom/Desktop/darpa_ts/ts_ddos_labeled_output_day2_norm.csv")
 # df_ddos = pd.read_csv("/work/wassapon-w/darpa_ts/ts_ddos_labeled_output_day1_norm.csv")
 
-e = 19
+e = 6
 tau = 1
 tp = 1
 m = 0
@@ -40,11 +40,12 @@ for m in range(0, 3):
     pred_error = pd.DataFrame()
     for t in range(0, len(target_list)):
         f += 1
-        df = pd.read_csv("/Users/boom/Desktop/darpa_result/network_ddos_output/"+methods[m]+"/ts_ddos_output_day1_"+methods[m]+"_"+target_list[t]+"_E"+str(e)+"_tau"+str(tau)+"_tp"+str(tp)+".csv", header=0)
+        # df = pd.read_csv("/Users/boom/Desktop/darpa_result/network_ddos_output/"+methods[m]+"/ts_ddos_output_day1_"+methods[m]+"_"+target_list[t]+"_E"+str(e)+"_tau"+str(tau)+"_tp"+str(tp)+".csv", header=0)
+        df = pd.read_csv("/Users/boom/Desktop/darpa_result/network_ddos_output/day2/ts_ddos_output_day2_"+methods[m]+"_"+target_list[t]+"_E"+str(e)+"_tau"+str(tau)+"_tp"+str(tp)+".csv", header=0)
         pred_error[target_list[t]+"_Obs"] = df["Observations"]
     for t in range(0, len(target_list)):
         f += 1
-        df = pd.read_csv("/Users/boom/Desktop/darpa_result/network_ddos_output/"+methods[m]+"/ts_ddos_output_day1_"+methods[m]+"_"+target_list[t]+"_E"+str(e)+"_tau"+str(tau)+"_tp"+str(tp)+".csv", header=0)
+        df = pd.read_csv("/Users/boom/Desktop/darpa_result/network_ddos_output/day2/ts_ddos_output_day2_"+methods[m]+"_"+target_list[t]+"_E"+str(e)+"_tau"+str(tau)+"_tp"+str(tp)+".csv", header=0)
         pred_error[target_list[t]+"_Pre"] = df["Predictions"]
     # for t in range(0, len(target_list)):
     #     df = pd.read_csv("/Users/boom/Desktop/darpa_result/network_ddos_output/"+methods[m]+"/ts_ddos_output_day1_"+methods[m]+"_"+target_list[t]+"_E"+str(e)+"_tau"+str(tau)+"_tp"+str(tp)+".csv", header=0)
